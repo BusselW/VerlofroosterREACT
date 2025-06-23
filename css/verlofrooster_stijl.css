@@ -1,0 +1,651 @@
+/* ==========================================================================
+   Algemene Stijlen & Typografie
+   ========================================================================== */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   Hoofdlayout & Knoppen
+   ========================================================================== */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 1.5rem;
+    gap: 1.5rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: #4a90e2;
+    color: white;
+    border-color: #4a90e2;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #357abd;
+    border-color: #357abd;
+}
+
+.btn-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+    border-color: #ccc;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #e0e0e0;
+    border-color: #bbb;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+    border-color: #e74c3c;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #c0392b;
+    border-color: #c0392b;
+}
+
+
+/* ==========================================================================
+   Header & Toolbar
+   ========================================================================== */
+.header {
+    background-color: #2c3e50; /* Donkerblauw */
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.5rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.header-acties {
+    display: flex;
+    gap: 1rem;
+}
+
+.toolbar {
+    background-color: #34495e; /* Iets lichter blauw */
+    border-top: 1px solid #4a627a;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.toolbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.periode-navigatie {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.periode-navigatie button {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.periode-navigatie button:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.periode-display {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #ecf0f1;
+    min-width: 180px;
+    text-align: center;
+}
+
+/* --- Stijlen voor Sliding Weergave-toggle --- */
+.weergave-toggle {
+    display: flex;
+    position: relative;
+    background-color: transparent; 
+    border-radius: 8px;
+    padding: 5px;
+    border: 1px solid #5a728a; 
+}
+
+.weergave-toggle .glider {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    height: calc(100% - 10px);
+    width: 50%;
+    background-color: #ecf0f1;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1;
+}
+
+.weergave-toggle .weergave-optie {
+    flex: 1;
+    padding: 0.5rem 2.5rem; 
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: #bdc3c7;
+    z-index: 2;
+    transition: color 0.3s ease-in-out;
+}
+
+.weergave-toggle[data-weergave="week"] .glider {
+    transform: translateX(0%);
+}
+.weergave-toggle[data-weergave="maand"] .glider {
+    transform: translateX(100%);
+}
+.weergave-toggle[data-weergave="week"] .weergave-optie:first-of-type,
+.weergave-toggle[data-weergave="maand"] .weergave-optie:last-of-type {
+    color: #34495e;
+}
+
+
+.filter-groep {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.zoek-input,
+.filter-select {
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #4a627a;
+    font-size: 0.9rem;
+    background-color: #2c3e50;
+    color: white;
+}
+
+.zoek-input::placeholder {
+    color: #bdc3c7;
+}
+
+.filter-select {
+    min-width: 180px;
+}
+
+/* --- Legenda --- */
+.legenda-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #4a627a;
+}
+
+.legenda-titel {
+    font-weight: 500;
+    color: #bdc3c7;
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #bdc3c7;
+}
+
+.legenda-kleur {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Rooster Tabel
+   ========================================================================== */
+.main-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+}
+
+.rooster-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.rooster-thead th {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    font-weight: 500;
+    color: #555;
+    border-bottom: 2px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+}
+
+.medewerker-kolom {
+    width: 220px;
+    text-align: left;
+    padding-left: 1rem !important;
+}
+
+.dag-kolom {
+    width: 60px;
+}
+
+.dag-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dag-naam {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #888;
+}
+
+.dag-nummer {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.team-rij td {
+    padding: 0;
+}
+
+.team-header {
+    background-color: var(--team-kleur, #e0e0e0);
+    color: white;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 1rem;
+    border-radius: 6px 6px 0 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.medewerker-rij {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.medewerker-rij:last-child {
+    border-bottom: none;
+}
+
+.medewerker-rij:hover {
+    background-color: #fafafa;
+}
+
+.medewerker-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.medewerker-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.medewerker-naam {
+    font-weight: 500;
+}
+
+.dag-cel {
+    text-align: center;
+    border-left: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    position: relative;
+    min-height: 48px;
+    height: 52px;
+    padding: 4px; /* Padding om ruimte te maken voor het absolute blok */
+}
+
+.dag-cel:hover {
+    background-color: #f5f5f5;
+}
+
+/* --- Cel Achtergronden (Weekend & Feestdag) --- */
+.dag-cel.weekend, .rooster-thead .dag-kolom.weekend {
+    background-color: #e9ecef; 
+}
+
+.dag-cel.feestdag, .rooster-thead .dag-kolom.feestdag {
+    background-color: #fff0f0;
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 8px,
+        rgba(255, 0, 0, 0.08) 8px,
+        rgba(255, 0, 0, 0.08) 10px
+    );
+}
+
+.rooster-thead .dag-kolom.feestdag .dag-header .dag-naam,
+.rooster-thead .dag-kolom.feestdag .dag-header .dag-nummer {
+    color: #c0392b;
+    font-weight: 700;
+}
+
+/* --- Vereenvoudigde Verlof Blok Stijlen --- */
+.verlof-blok {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border-radius: 6px; /* Afronding voor het hele blok */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centreert de tekst */
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem; /* Iets groter lettertype */
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+/* --- Verlof Status Stijlen --- */
+.verlof-blok.status-goedgekeurd {
+    opacity: 1;
+}
+
+.verlof-blok.status-nieuw {
+    opacity: 0.6;
+    border: 1px dashed rgba(255, 255, 255, 0.8);
+}
+
+
+/* ==========================================================================
+   Modal
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modal-fade-in 0.3s ease-out;
+}
+
+@keyframes modal-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    font-weight: 300;
+    cursor: pointer;
+    color: #888;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover:not(:disabled) {
+    color: #333;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-groep {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-groep label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-input[readOnly] {
+    background-color: #f8f9fa;
+    color: #666;
+}
+
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled {
+    background-color: #f8f9fa;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-info {
+    color: #666;
+    font-style: italic;
+    margin: 0;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.form-acties {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+    border-radius: 0 0 8px 8px;
+    flex-wrap: wrap;
+}
+
+.form-acties .btn-danger {
+    margin-right: auto;
+}
+
+/* ==========================================================================
+   Overige & Responsive
+   ========================================================================== */
+.loading-indicator,
+.error-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #555;
+    text-align: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.error-message {
+    color: #e74c3c;
+    background-color: #fbeae8;
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    .header-content, .toolbar-content, .filter-groep {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .header-acties {
+        justify-content: center;
+    }
+    .periode-navigatie {
+        justify-content: center;
+    }
+    .zoek-input, .filter-select {
+        min-width: auto;
+    }
+    .legenda-container {
+        justify-content: center;
+    }
+    .rooster-table {
+        font-size: 0.8rem;
+    }
+    .medewerker-kolom {
+        width: 160px;
+    }
+    .dag-kolom {
+        width: 50px;
+    }
+    .modal {
+        margin: 1rem;
+        max-width: calc(100vw - 2rem);
+    }
+    .form-acties {
+        flex-direction: column;
+    }
+    .form-acties .btn-danger {
+        margin-right: 0;
+        order: 2;
+    }
+}
