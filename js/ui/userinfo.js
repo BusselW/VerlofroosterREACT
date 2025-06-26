@@ -12,36 +12,48 @@ import { getUserInfo } from '../services/sharepointService.js';
 const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
 
 function MedewerkerRow({ medewerker }) {
+    // Voeg een defensieve controle toe om ervoor te zorgen dat medewerker altijd een object is.
+    if (!medewerker) {
+        // Render niets of een placeholder als medewerker niet wordt verstrekt.
+        // Dit voorkomt fouten als de component ooit onjuist wordt gebruikt.
+        return h('div', { className: 'medewerker-info' }, 'Geen data');
+    }
+
     const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
 
     useEffect(() => {
         let isMounted = true;
         const fetchUserData = async () => {
+            // Controleer ook op medewerker en Username in het effect
             if (medewerker && medewerker.Username) {
-                if(isMounted) setSharePointUser({ PictureURL: null, IsLoading: true });
+                if (isMounted) setSharePointUser({ PictureURL: null, IsLoading: true });
                 const userData = await getUserInfo(medewerker.Username);
                 if (isMounted) {
                     setSharePointUser({ ...(userData || {}), IsLoading: false });
                 }
-            } else if(isMounted) {
+            } else if (isMounted) {
                 setSharePointUser({ PictureURL: null, IsLoading: false });
             }
         };
 
         fetchUserData();
         return () => { isMounted = false; };
-    }, [medewerker.Username]);
+    }, [medewerker.Username]); // Afhankelijkheid van medewerker.Username
 
     const getAvatarUrl = () => {
         if (sharePointUser.IsLoading) return '';
         if (sharePointUser.PictureURL) return sharePointUser.PictureURL;
-        const initials = medewerker.Naam ? medewerker.Naam.match(/\b\w/g).join('') : '?';
+        // Robuuste initialen extractie
+        const match = medewerker.Naam ? String(medewerker.Naam).match(/\b\w/g) : null;
+        const initials = match ? match.join('') : '?';
         return `${fallbackAvatar}${initials}`;
     };
 
     const handleImageError = (e) => {
         e.target.onerror = null;
-        const initials = medewerker.Naam ? medewerker.Naam.match(/\b\w/g).join('') : '?';
+        // Robuuste initialen extractie
+        const match = medewerker.Naam ? String(medewerker.Naam).match(/\b\w/g) : null;
+        const initials = match ? match.join('') : '?';
         e.target.src = `${fallbackAvatar}${initials}`;
     };
 
@@ -50,12 +62,11 @@ function MedewerkerRow({ medewerker }) {
         h('img', {
             src: getAvatarUrl(),
             className: 'medewerker-avatar',
-            alt: `Profielfoto van ${medewerker.Naam}`,
+            alt: `Profielfoto van ${medewerker.Naam || 'onbekend'}`, // Fallback voor alt-tekst
             onError: handleImageError
         }),
         h('div', null, // Wrapper voor tekst-elementen
-            h('span', { className: 'medewerker-naam' }, medewerker.Naam),
-            // Hier kun je extra velden toevoegen, zoals de functie
+            h('span', { className: 'medewerker-naam' }, medewerker.Naam || 'Onbekende medewerker'), // Fallback voor naam
             medewerker.Functie ? h('span', { style: { display: 'block', fontSize: '0.8rem', color: '#666' } }, medewerker.Functie) : null
         )
     );
