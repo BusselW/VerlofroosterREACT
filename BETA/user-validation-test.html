@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Validation Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="js/config/configLijst.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .loading { color: blue; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div id="test-root"></div>
+    
+    <script type="module">
+        import { getCurrentUser, fetchSharePointList, trimLoginNaamPrefix } from './js/services/sharepointService.js';
+        
+        const { useState, useEffect, createElement: h } = React;
+        
+        function UserValidationTest() {
+            const [status, setStatus] = useState('Loading...');
+            const [user, setUser] = useState(null);
+            const [userExists, setUserExists] = useState(false);
+            
+            useEffect(() => {
+                testUserValidation();
+            }, []);
+            
+            async function testUserValidation() {
+                try {
+                    setStatus('Getting current user...');
+                    const currentUser = await getCurrentUser();
+                    console.log('Current user:', currentUser);
+                    setUser(currentUser);
+                    
+                    if (!currentUser) {
+                        setStatus('❌ No current user found');
+                        return;
+                    }
+                    
+                    setStatus('Checking if user exists in Medewerkers...');
+                    
+                    // Format username
+                    let userLoginName = currentUser.LoginName;
+                    if (userLoginName.startsWith('i:0#.w|')) {
+                        userLoginName = userLoginName.substring(7);
+                    }
+                    
+                    // Get Medewerkers list
+                    const medewerkers = await fetchSharePointList('Medewerkers');
+                    console.log('Medewerkers count:', medewerkers.length);
+                    
+                    // Check if user exists
+                    const exists = medewerkers.some(m => {
+                        return m.Username === userLoginName && m.Actief !== false;
+                    });
+                    
+                    setUserExists(exists);
+                    setStatus(exists ? '✅ User found in Medewerkers list!' : '❌ User NOT found in Medewerkers list');
+                    
+                } catch (error) {
+                    console.error('Test error:', error);
+                    setStatus(`❌ Error: ${error.message}`);
+                }
+            }
+            
+            return h('div', null,
+                h('h2', null, 'User Validation Test'),
+                h('p', { className: status.includes('✅') ? 'success' : status.includes('❌') ? 'error' : 'loading' }, status),
+                user && h('div', null,
+                    h('h3', null, 'Current User Details:'),
+                    h('p', null, `Login Name: ${user.LoginName}`),
+                    h('p', null, `Title: ${user.Title}`),
+                    h('p', null, `Email: ${user.Email}`)
+                ),
+                h('button', { onClick: testUserValidation }, 'Retry Test')
+            );
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('test-root'));
+        root.render(h(UserValidationTest));
+    </script>
+</body>
+</html>
