@@ -1481,13 +1481,19 @@
                                                             if (isEnd) blokClasses.push('eind-blok');
 
                                                             const isVerlof = 'RedenId' in item;
-                                                            const afkorting = isVerlof ? shiftTypes[item.RedenId].afkorting : (item.Afkorting || 'ZV');
-                                                            const kleur = isVerlof ? shiftTypes[item.RedenId].kleur : (item.Kleur || '#8e44ad');
-                                                            const titel = isVerlof ? (item.Omschrijving || shiftTypes[item.RedenId].label) : (item.Opmerking || item.Title);
+                                                            const shiftType = isVerlof ? shiftTypes[item.RedenId] : null;
+                                                            const afkorting = isVerlof && shiftType ? shiftType.afkorting : (item.Afkorting || 'ZV');
+                                                            const kleur = isVerlof && shiftType ? shiftType.kleur : (item.Kleur || '#8e44ad');
+                                                            const titel = isVerlof && shiftType ? (item.Omschrijving || shiftType.label) : (item.Opmerking || item.Title);
                                                             const status = isVerlof ? (item.Status || 'Goedgekeurd').toLowerCase() : 'goedgekeurd';
+
+                                                            if (afkorting === 'VER') {
+                                                                blokClasses.push('ver-item');
+                                                            }
 
                                                             teRenderenBlok = h('div', {
                                                                 className: `${blokClasses.join(' ')} status-${status}`,
+                                                                'data-afkorting': afkorting,
                                                                 style: { backgroundColor: kleur },
                                                                 title: titel
                                                             }, isMiddle ? afkorting : '');
