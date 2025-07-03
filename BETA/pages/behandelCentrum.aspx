@@ -50,15 +50,21 @@
                             <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l5-5z" clip-rule="evenodd"></path>
                             </svg>
-                            Wachtende Verlofaanvragen
+                            Wachtende Aanvragen (<span id="aantal-wachtend">0</span>)
                         </button>
                         <button data-tab="verlof" class="tab-button">
                             <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
                             </svg>
-                            Alle Verlofaanvragen
+                            Verlof & Ziekte
                         </button>
-                        <!-- Remove the compensatie and zittingsvrij tabs -->
+                        <button data-tab="compensatie" class="tab-button">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12 8l-3 3 3 3m6-3H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                            </svg>
+                            Compensatie Uren
+                        </button>
+                    </nav>
                     </nav>
                 </div>
             </div>
@@ -146,6 +152,37 @@
                                 </table>
                             </div>
                             <div id="verlof-status" class="mt-3 text-sm text-gray-500">
+                                Data wordt laden...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compensatie Tab -->
+                    <div id="tab-content-compensatie" class="tab-content">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                            <h2 class="text-xl font-semibold text-gray-800">Compensatie Uren Aanvragen</h2>
+                        </div>
+                        
+                        <div class="bg-gray-100 p-4 md:p-6 rounded-lg shadow-inner">
+                            <div class="overflow-x-auto">
+                                <table class="data-tabel" id="compensatie-tabel">
+                                    <thead>
+                                        <tr>
+                                            <th>Medewerker</th>
+                                            <th>Datum Gewerkt</th>
+                                            <th>Tijd</th>
+                                            <th>Totaal Uren</th>
+                                            <th>Ruildag</th>
+                                            <th>Status</th>
+                                            <th>Acties</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compensatie-lijst">
+                                        <tr><td colspan="7" class="text-center text-gray-500 py-8">Data wordt geladen...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="compensatie-status" class="mt-3 text-sm text-gray-500">
                                 Data wordt laden...
                             </div>
                         </div>
@@ -585,19 +622,28 @@
         // === Data Laden Functies ===
         async function laadAlleAanvragen() {
             try {
-                UI.toonLoading(true, "Verlofaanvragen laden...");
+                UI.toonLoading(true, "Aanvragen laden...");
                 
-                console.log("Laden van verlofaanvragen...");
+                console.log("Laden van alle aanvragen...");
                 
-                // Only load Verlof list instead of all three lists
-                const lijstNamen = ['Verlof']; // Remove 'CompensatieUren' and 'IncidenteelZittingVrij'
+                // Load both Verlof and CompensatieUren lists
+                const lijstNamen = ['Verlof', 'CompensatieUren'];
                 const resultaten = {};
                 
-                // Load only Verlof list
+                // Load both lists
                 for (const lijstNaam of lijstNamen) {
                     try {
                         console.log(`Laden van ${lijstNaam}...`);
-                        const items = await haalLijstItemsOp(lijstNaam, "", "", "Created desc");
+                        let selectVelden = "";
+                        
+                        // Set specific fields for each list type
+                        if (lijstNaam === 'Verlof') {
+                            selectVelden = "ID,Title,Medewerker,MedewerkerID,StartDatum,EindDatum,Reden,Omschrijving,Status,Created,Modified,OpmerkingBehandelaar,HerinneringStatus,HerinneringDatum,AanvraagTijdstip";
+                        } else if (lijstNaam === 'CompensatieUren') {
+                            selectVelden = "ID,Title,Medewerker,MedewerkerID,StartCompensatieUren,EindeCompensatieUren,UrenTotaal,Ruildag,ruildagStart,ruildagEinde,Omschrijving,Status,Created,Modified,ReactieBehandelaar,AanvraagTijdstip";
+                        }
+                        
+                        const items = await haalLijstItemsOp(lijstNaam, selectVelden, "", "Created desc");
                         resultaten[lijstNaam] = items.map(item => ({...item, ItemType: lijstNaam}));
                         console.log(`${lijstNaam}: ${items.length} items geladen`);
                     } catch (error) {
@@ -607,10 +653,10 @@
                     }
                 }
                 
-                // Only use Verlof items
+                // Combine all items
                 const alleItems = [
-                    ...resultaten.Verlof
-                    // Remove the other lists
+                    ...resultaten.Verlof,
+                    ...resultaten.CompensatieUren
                 ];
                 
                 // Sort by Created date (newest first)

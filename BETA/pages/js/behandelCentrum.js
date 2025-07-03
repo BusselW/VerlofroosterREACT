@@ -1,5 +1,16 @@
 // bestand: js/behandelen.js
 
+// Globale variabelen voor ListItemEntityTypes
+let verlofListItemEntityType = null;
+let compensatieListItemEntityType = null;
+
+// Constanten voor status behandeling
+const BEHANDEL_STATUS = {
+    NIEUW: 'Ingediend',
+    GOEDGEKEURD: 'Goedgekeurd', 
+    AFGEWEZEN: 'Afgewezen'
+};
+
 // Wacht tot de Document Object Model (DOM) volledig geladen en geparset is
 document.addEventListener('DOMContentLoaded', function () {
     console.log("DOM volledig geladen. Initialiseren van de 'Verlof & Compensatie Behandelen' pagina logica.");

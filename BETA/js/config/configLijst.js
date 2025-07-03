@@ -102,7 +102,12 @@ if (typeof window.appConfiguratie === "undefined") {
           titel: "UrenTotaal",
           interneNaam: "UrenTotaal",
           type: "Text"
-        } /* Totaal aantal uren gecompenseerd door de medewerker. Dit wordt gebruikt om het totaal aantal gecompenseerde uren te berekenen. */
+        } /* Totaal aantal uren gecompenseerd door de medewerker. Dit wordt gebruikt om het totaal aantal gecompenseerde uren te berekenen. */,
+        {
+          titel: "ReactieBehandelaar",
+          interneNaam: "ReactieBehandelaar",
+          type: "Note"
+        } /* Reactie van de beheerder bij goedkeuring of afwijzing van de compensatie-uren aanvraag. */
       ]
     },
 
@@ -608,4 +613,23 @@ Otherwise, extract values from DagenIndicators.Title
   };
 }
 
+// Compatibility layer for legacy getLijstConfig function
+if (typeof window.getLijstConfig === 'undefined') {
+  window.getLijstConfig = function (lijstKey) {
+    if (window.appConfiguratie && window.appConfiguratie[lijstKey]) {
+      return window.appConfiguratie[lijstKey];
+    }
+    console.warn(`[getLijstConfig] Configuratie voor sleutel '${lijstKey}' niet gevonden.`);
+    return null;
+  };
+
+  // Create legacy sharepointLijstConfiguraties for backward compatibility
+  window.sharepointLijstConfiguraties = window.appConfiguratie;
+
+  console.log("Compatibility layer toegevoegd voor appConfiguratie -> getLijstConfig");
+  console.log("Available configurations:", Object.keys(window.appConfiguratie));
+}
+
 console.log("js/config/appConfig.js geladen.");
+console.log("window.appConfiguratie loaded:", typeof window.appConfiguratie);
+console.log("window.getLijstConfig available:", typeof window.getLijstConfig);

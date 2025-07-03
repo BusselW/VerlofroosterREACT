@@ -3,8 +3,12 @@ const { createElement: h, Fragment } = React;
 /**
  * Utility function to render compensatie moments that can be shared
  * between DagCell component and inline table logic
+ * @param {Array} compensatieMomenten - Array of compensatie moments
+ * @param {Object} options - Optional handlers for click and context menu
+ * @param {Function} options.onContextMenu - Context menu handler that receives (event, compensatieItem)
+ * @param {Function} options.onClick - Click handler that receives (event, compensatieItem)
  */
-const renderCompensatieMomenten = (compensatieMomenten) => {
+const renderCompensatieMomenten = (compensatieMomenten, options = {}) => {
     return compensatieMomenten.map((moment) => {
         let iconSrc = '';
         let title = moment.item.Omschrijving || '';
@@ -19,23 +23,43 @@ const renderCompensatieMomenten = (compensatieMomenten) => {
                 break;
             case 'ruildag-gewerkt':
                 iconSrc = './icons/compensatieuren/Plusuren.svg';
-                const ruildagDatum = moment.item.ruildagStart ? moment.item.ruildagStart.toLocaleDateString('nl-NL') : 'onbekend';
+                const ruildagDatum = moment.item.ruildagStart ? new Date(moment.item.ruildagStart).toISOString().split('T')[0] : 'onbekend';
                 title = `Gewerkte dag (geruild met ${ruildagDatum}). ${title}`;
                 className += ' ruildag-plus';
                 linkId = `ruildag-${moment.item.ID}`;
                 break;
             case 'ruildag-vrij':
                 iconSrc = './icons/compensatieuren/Minuren.svg';
-                const gewerkteDatum = moment.item.StartCompensatieUren.toLocaleDateString('nl-NL');
+                const gewerkteDatum = new Date(moment.item.StartCompensatieUren).toISOString().split('T')[0];
                 title = `Vrije dag (gewerkt op ${gewerkteDatum}). ${title}`;
                 className += ' ruildag-min';
                 linkId = `ruildag-${moment.item.ID}`;
                 break;
         }
 
+        // Create event handlers for the compensatie block
+        const handleContextMenu = (e) => {
+            if (options.onContextMenu) {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent the cell's context menu from also triggering
+                console.log('Compensatie uren right-clicked:', moment.item);
+                options.onContextMenu(e, moment.item);
+            }
+        };
+
+        const handleClick = (e) => {
+            if (options.onClick) {
+                e.stopPropagation(); // Prevent the cell's click handler from also triggering
+                console.log('Compensatie uren clicked:', moment.item);
+                options.onClick(e, moment.item);
+            }
+        };
+
         return h('div', {
             key: `${moment.item.ID}-${moment.type}`,
             className: 'compensatie-uur-container',
+            onContextMenu: handleContextMenu,
+            onClick: handleClick
         }, h('div', {
             className: className,
             title: title.trim(),
@@ -145,7 +169,25 @@ const DagCell = ({ dag, medewerker, onContextMenu, getVerlofVoorDag, getZittings
                 return { type, item: comp };
             });
             
-            return renderCompensatieMomenten(compensatieMomenten);
+            return renderCompensatieMomenten(compensatieMomenten, {
+                onContextMenu: (e, compensatieItem) => {
+                    e.preventDefault();
+                    onContextMenu(e, {
+                        medewerker,
+                        dag,
+                        datum: dag,
+                        verlofItem,
+                        zittingsvrijItem,
+                        compensatieUren: compensatieUrenVoorDag,
+                        selectedCompensatieItem: compensatieItem // Pass the specific clicked item
+                    });
+                },
+                onClick: (e, compensatieItem) => {
+                    if (onCellClick) {
+                        onCellClick(medewerker, dag, compensatieItem);
+                    }
+                }
+            });
         })()
     );
 };

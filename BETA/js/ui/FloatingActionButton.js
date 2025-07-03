@@ -1,10 +1,12 @@
-const { createElement: h, useState, useEffect, useRef } = React;
+const { createElement: h, useState, useEffect, useRef, useLayoutEffect } = React;
 
 // Import permission service
 import { isUserInAnyGroup } from '../services/permissionService.js';
 
 /**
  * Een Floating Action Button (FAB) met uitklapbare opties.
+ * Dit component werkt samen met het selectiemechanisme in k.aspx - de selectie state wordt bewaard
+ * en doorgegeven aan formulieren wanneer een optie wordt gekozen. Dit zorgt voor consistentie met het ContextMenu.
  * @param {object} props
  * @param {Array<object>} props.actions - Een array van actie-objecten. Elke object moet { label: string, icon: string, onClick: function, requiredGroups?: Array<string> } bevatten.
  * @param {string} [props.id] - Optionele ID voor het FAB element.
@@ -72,6 +74,28 @@ const FloatingActionButton = ({ actions = [], id }) => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen]);
+
+    // Adjust FAB actions position when they might go off screen
+    useLayoutEffect(() => {
+        if (isOpen && filteredActions.length > 0) {
+            const fabActions = document.querySelector('.fab-actions');
+            if (fabActions) {
+                const fabRect = fabActions.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                
+                // Check if actions extend beyond bottom edge
+                if (fabRect.bottom > viewportHeight) {
+                    // Calculate how far up we need to move the actions
+                    // Moving it up enough to fit within viewport, with a small padding
+                    const adjustment = fabRect.bottom - viewportHeight + 10;
+                    fabActions.style.bottom = `${adjustment}px`;
+                } else {
+                    // Reset to default position if no adjustment needed
+                    fabActions.style.bottom = '';
+                }
+            }
+        }
+    }, [isOpen, filteredActions]);
 
     const handleActionClick = (action) => {
         action();

@@ -239,6 +239,7 @@ const VerlofAanvraagForm = ({ onSubmit, onClose, initialData = {}, medewerkers =
             StartDatum: `${startDate}T${startTime}:00`,
             EindDatum: `${endDate}T${endTime}:00`,
             RedenId: String(redenId), // Convert to string as SharePoint expects Edm.String
+            Reden: 'Verlof/vakantie',
             Omschrijving: omschrijving,
             Status: status,
         };

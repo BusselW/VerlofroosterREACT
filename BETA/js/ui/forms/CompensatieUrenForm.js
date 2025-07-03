@@ -161,15 +161,22 @@ const CompensatieUrenForm = ({ onSubmit, onClose, initialData = {}, medewerkers 
         const username = selectedMedewerker ? selectedMedewerker.Username : '';
         const currentDate = new Date().toLocaleDateString('nl-NL');
 
+        // Construct date strings manually to avoid timezone conversions.
+        // This format is treated as a "floating" timezone by SharePoint.
+        const startDateTimeString = `${startDate}T${startTime}:00`;
+        const endDateTimeString = `${endDate}T${endTime}:00`;
+        const ruildagStartString = isRuildag && ruildagStart ? `${ruildagStart}T09:00:00` : null;
+        const ruildagEindeString = isRuildag && ruildagEinde ? `${ruildagEinde}T17:00:00` : null;
+
         const formData = {
             Title: `Compensatie-uren - ${fullName} - ${currentDate}`,
             Medewerker: fullName,
             MedewerkerID: username,
-            StartCompensatieUren: `${startDate}T${startTime}:00`,
-            EindeCompensatieUren: `${endDate}T${endTime}:00`,
+            StartCompensatieUren: startDateTimeString,
+            EindeCompensatieUren: endDateTimeString,
             Ruildag: isRuildag,
-            ruildagStart: isRuildag && ruildagStart ? `${ruildagStart}T09:00:00` : null,
-            ruildagEinde: isRuildag && ruildagEinde ? `${ruildagEinde}T17:00:00` : null,
+            ruildagStart: ruildagStartString,
+            ruildagEinde: ruildagEindeString,
             Omschrijving: omschrijving,
             Status: status,
             UrenTotaal: String(urenTotaal) // Convert to string as SharePoint expects Edm.String

@@ -61,11 +61,17 @@ const ZittingsvrijForm = ({ onSubmit, onCancel, initialData = {}, medewerkers = 
             
             const today = toInputDateString(new Date());
             if (Object.keys(initialData).length === 0) { // Nieuw item
-                // 1. Datums instellen
+                // 1. Datums instellen - handle both single day and date range selections
                 if (selection && selection.start) {
-                    setStartDate(toInputDateString(selection.start));
-                    const endDateValue = selection.end ? toInputDateString(selection.end) : toInputDateString(selection.start);
-                    setEndDate(endDateValue);
+                    const startDateValue = toInputDateString(selection.start);
+                    setStartDate(startDateValue);
+                    
+                    // If there's an end date different from start date, use it, otherwise use start date
+                    if (selection.end && selection.end.getTime() !== selection.start.getTime()) {
+                        setEndDate(toInputDateString(selection.end));
+                    } else {
+                        setEndDate(startDateValue);
+                    }
                 } else {
                     setStartDate(today);
                     setEndDate(today);
@@ -83,14 +89,9 @@ const ZittingsvrijForm = ({ onSubmit, onCancel, initialData = {}, medewerkers = 
                     setMedewerkerUsername(targetMedewerker.Username);
                     employeeSet = true;
                     console.log('Using medewerker from selection (privileged user):', targetMedewerker);
-                } else if (selection && selection.medewerkerId) {
-                    const medewerker = medewerkers.find(m => m.Username === selection.medewerkerId);
-                    if (medewerker) {
-                        setMedewerkerId(medewerker.Id);
-                        setMedewerkerUsername(medewerker.Username);
-                        employeeSet = true;
-                    }
                 }
+                // Remove the non-privileged selection logic - users without canManageOthers 
+                // should only be able to create events for themselves
                 
                 if (!employeeSet) {
                     // Always default to current user
@@ -105,8 +106,23 @@ const ZittingsvrijForm = ({ onSubmit, onCancel, initialData = {}, medewerkers = 
                     }
                 }
 
-                // 3. Specifieke defaults voor dit formulier instellen
-                setTitle('');
+                // 3. Set default title similar to VerlofAanvraagForm
+                let targetMedewerkerForTitle = null;
+                if (userCanManageOthers && selection && selection.medewerkerData) {
+                    targetMedewerkerForTitle = selection.medewerkerData;
+                } else {
+                    const currentUser = await getCurrentUserInfo();
+                    if (currentUser && medewerkers.length > 0) {
+                        const loginName = currentUser.LoginName.split('|')[1];
+                        targetMedewerkerForTitle = medewerkers.find(m => m.Username === loginName);
+                    }
+                }
+                
+                if (targetMedewerkerForTitle) {
+                    const currentDate = new Date().toLocaleDateString('nl-NL');
+                    setTitle(`Zittingsvrij - ${targetMedewerkerForTitle.Title} - ${currentDate}`);
+                }
+                
                 setOpmerking(null);
                 setTerugkerend(false);
                 setTerugkerendTot(today);
@@ -154,24 +170,29 @@ const ZittingsvrijForm = ({ onSubmit, onCancel, initialData = {}, medewerkers = 
         const fullName = selectedMedewerker ? selectedMedewerker.Title : 'Onbekend';
         const currentDate = new Date().toLocaleDateString('nl-NL');
 
+        // Use the title from the form, or generate default if empty
+        const finalTitle = title && title.trim() ? title : `Zittingsvrij - ${fullName} - ${currentDate}`;
+
         const formData = {
-            Title: title || `Zittingsvrij - ${fullName} - ${currentDate}`,
+            Title: finalTitle,
             Medewerker: selectedMedewerker ? selectedMedewerker.Title : null,
-            MedewerkerID: medewerkerUsername,
-            StartDatum: `${startDate}T${startTime}:00`,
-            EindDatum: `${endDate}T${endTime}:00`,
+            Gebruikersnaam: medewerkerUsername,
+            ZittingsVrijeDagTijd: `${startDate}T${startTime}:00`,
+            ZittingsVrijeDagTijdEind: `${endDate}T${endTime}:00`,
             Opmerking: opmerking,
-            Terugkerend: terugkerend,
-            TerugkerendTot: terugkerend ? terugkerendTot : null,
-            TerugkeerPatroon: terugkerend ? terugkeerPatroon : null,
+            Terugkerend: false, // Always false since recurring is hidden
+            TerugkerendTot: null,
+            TerugkeerPatroon: null,
+            // Add a list property to specify which list to use
+            _listName: 'IncidenteelZittingVrij'
         };
         onSubmit(formData);
     };
 
     return h('form', { onSubmit: handleSubmit, className: 'modal-form' },
-        h('h2', { className: 'form-title' }, 'Zittingsvrij Registreren'),
+        h('h2', { className: 'form-title' }, 'Zittingsvrij maken'),
         
-        h('div', { className: 'form-content' },
+        h('div', { className: 'form-content modal-form-content' },
             h('div', { className: 'form-row' },
             h('div', { className: 'form-groep' },
                 h('label', { htmlFor: 'zv-medewerker' }, 'Medewerker'),
@@ -226,61 +247,64 @@ const ZittingsvrijForm = ({ onSubmit, onCancel, initialData = {}, medewerkers = 
         h('div', { className: 'form-row' },
             h('div', { className: 'form-groep' },
                 h('label', { htmlFor: 'zv-title' }, 'Titel / Reden'),
-                h('input', { type: 'text', id: 'zv-title', className: 'form-input', value: title, onChange: (e) => setTitle(e.target.value), required: true, placeholder: 'Korte omschrijving, bijv. Cursus' })
+                h('input', { 
+                    type: 'text', 
+                    id: 'zv-title', 
+                    className: 'form-input', 
+                    value: title, 
+                    onChange: (e) => setTitle(e.target.value), 
+                    required: true, 
+                    placeholder: 'Korte omschrijving, bijv. Cursus' 
+                })
             )
         ),
 
         h('div', { className: 'form-row' },
             h('div', { className: 'form-groep' },
                 h('label', { htmlFor: 'zv-opmerking' }, 'Opmerking (optioneel)'),
-                h('textarea', { id: 'zv-opmerking', className: 'form-textarea', rows: 3, value: opmerking || '', onChange: (e) => setOpmerking(e.target.value), placeholder: 'Extra details' })
-            )
-        ),
-
-        h('div', { className: 'form-row' },
-            h('div', { className: 'form-groep form-groep-checkbox' },
-                h('input', { 
-                    type: 'checkbox', 
-                    id: 'zv-terugkerend', 
-                    className: 'form-checkbox', 
-                    checked: terugkerend, 
-                    onChange: (e) => setTerugkerend(e.target.checked) 
-                }),
-                h('label', { htmlFor: 'zv-terugkerend' }, 'Terugkerende afspraak')
-            )
-        ),
-
-        terugkerend && h('div', { className: 'form-row' },
-            h('div', { className: 'form-groep' },
-                h('label', { htmlFor: 'zv-terugkerend-tot' }, 'Herhalen tot'),
-                h('input', { 
-                    type: 'date', 
-                    id: 'zv-terugkerend-tot', 
-                    className: 'form-input', 
-                    value: terugkerendTot, 
-                    onChange: (e) => setTerugkerendTot(e.target.value),
-                    min: startDate,
-                    required: true
+                h('textarea', { 
+                    id: 'zv-opmerking', 
+                    className: 'form-textarea', 
+                    rows: 3, 
+                    value: opmerking || '', 
+                    onChange: (e) => setOpmerking(e.target.value), 
+                    placeholder: 'Extra details' 
                 })
-            ),
-            h('div', { className: 'form-groep' },
-                h('label', { htmlFor: 'zv-terugkeer-patroon' }, 'Herhaalpatroon'),
-                h('select', { 
-                    id: 'zv-terugkeer-patroon', 
-                    className: 'form-select', 
-                    value: terugkeerPatroon, 
-                    onChange: (e) => setTerugkeerPatroon(e.target.value),
-                    required: true
-                },
-                    h('option', { value: 'Wekelijks' }, 'Wekelijks'),
-                    h('option', { value: 'Maandelijks' }, 'Maandelijks')
-                )
             )
         )
+
+        // Terugkerende afspraak section is hidden for now
+        // terugkerend && h('div', { className: 'form-row' },
+        //     h('div', { className: 'form-groep' },
+        //         h('label', { htmlFor: 'zv-terugkerend-tot' }, 'Herhalen tot'),
+        //         h('input', { 
+        //             type: 'date', 
+        //             id: 'zv-terugkerend-tot', 
+        //             className: 'form-input', 
+        //             value: terugkerendTot, 
+        //             onChange: (e) => setTerugkerendTot(e.target.value),
+        //             min: startDate,
+        //             required: true
+        //         })
+        //     ),
+        //     h('div', { className: 'form-groep' },
+        //         h('label', { htmlFor: 'zv-terugkeer-patroon' }, 'Herhaalpatroon'),
+        //         h('select', { 
+        //             id: 'zv-terugkeer-patroon', 
+        //             className: 'form-select', 
+        //             value: terugkeerPatroon, 
+        //             onChange: (e) => setTerugkeerPatroon(e.target.value),
+        //             required: true
+        //         },
+        //             h('option', { value: 'Wekelijks' }, 'Wekelijks'),
+        //             h('option', { value: 'Maandelijks' }, 'Maandelijks')
+        //         )
+        //     )
+        // )
         ), // Close form-content div
 
         h('div', { className: 'form-acties' },
-            h('button', { type: 'submit', className: 'btn btn-primary' }, 'Opslaan'),
+            h('button', { type: 'submit', className: 'btn btn-primary' }, 'Zittingsvrij maken'),
             h('button', { type: 'button', className: 'btn btn-secondary', onClick: onCancel }, 'Annuleren')
         )
     );

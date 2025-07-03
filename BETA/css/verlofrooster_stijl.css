@@ -60,54 +60,68 @@ body {
     cursor: not-allowed;
 }
 
-/* Licht verbeterde hover effecten */
+/* Enhanced hover effects */
 .btn:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary {
-    background-color: #4a90e2;
+    background-color: #2196f3;
     color: white;
-    border-color: #4a90e2;
+    border-color: #2196f3;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: #357abd;
-    border-color: #357abd;
+    background-color: #1976d2;
+    border-color: #1976d2;
 }
 
 .btn-secondary {
-    background-color: #f0f0f0;
-    color: #333;
-    border-color: #ccc;
+    background-color: #f5f5f5;
+    color: #424242;
+    border-color: #e0e0e0;
 }
 
 .btn-secondary:hover:not(:disabled) {
     background-color: #e0e0e0;
-    border-color: #bbb;
+    border-color: #bdbdbd; 
 }
 
 .btn-danger {
-    background-color: #e74c3c;
+    background-color: #f44336;
     color: white;
-    border-color: #e74c3c;
+    border-color: #f44336;
 }
 
 .btn-danger:hover:not(:disabled) {
-    background-color: #c0392b;
-    border-color: #c0392b;
+    background-color: #d32f2f;
+    border-color: #d32f2f;
 }
 
 /* ==========================================================================
-   Header & Toolbar (Behouden met kleine verbeteringen)
+   Header & Toolbar (Modern Harmonized Design)
    ========================================================================== */
 .header {
-    background-color: #2c3e50;
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 85%, #c2410c 100%);
     color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(30, 58, 138, 0.4);
+    padding: 1.25rem 2rem;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    pointer-events: none;
 }
 
 .header-content {
@@ -123,11 +137,12 @@ body {
 }
 
 .header h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 1.75rem;
+    font-weight: 700;
     margin: 0;
     color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.025em;
 }
 
 .header-acties {
@@ -147,77 +162,66 @@ body {
     align-items: center;
 }
 
-/* Licht verbeterde knop kleuren */
-.btn-melding {
-    background-color: #e67e22;
+/* Modern navigation buttons with glass effect */
+.btn-melding,
+.btn-functional,
+.btn-taakbeheer,
+.btn-tour {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
-    border-color: #e67e22;
-    font-weight: 600;
-}
-
-.btn-melding:hover:not(:disabled) {
-    background-color: #d35400;
-    border-color: #d35400;
-}
-
-.btn-admin {
-    background-color: #e74c3c;
-    color: white;
-    border-color: #e74c3c;
     font-weight: 500;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-melding:hover:not(:disabled),
+.btn-functional:hover:not(:disabled),
+.btn-taakbeheer:hover:not(:disabled),
+.btn-tour:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Admin button with distinctive styling */
+.btn-admin {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-weight: 600;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-admin:hover:not(:disabled) {
-    background-color: #c0392b;
-    border-color: #c0392b;
-}
-
-.btn-functional {
-    background-color: #8e44ad;
+    background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+    border-color: rgba(255, 255, 255, 0.4);
     color: white;
-    border-color: #8e44ad;
-    font-weight: 500;
-}
-
-.btn-functional:hover:not(:disabled) {
-    background-color: #7d3c98;
-    border-color: #7d3c98;
-}
-
-.btn-taakbeheer {
-    background-color: #27ae60;
-    color: white;
-    border-color: #27ae60;
-    font-weight: 500;
-}
-
-.btn-taakbeheer:hover:not(:disabled) {
-    background-color: #229954;
-    border-color: #229954;
-}
-
-.btn-tour {
-    background-color: #3498db;
-    color: white;
-    border-color: #3498db;
-    font-weight: 500;
-}
-
-.btn-tour:hover:not(:disabled) {
-    background-color: #2980b9;
-    border-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
 }
 
 .btn-settings {
-    background-color: #6c757d;
-    color: white;
-    border-color: #6c757d;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-settings:hover:not(:disabled) {
-    background-color: #5a6268;
-    border-color: #545b62;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-1px);
 }
 
 /* User Settings Dropdown */
@@ -230,21 +234,25 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background-color: #6c757d;
-    color: white;
-    border: 1px solid #6c757d;
-    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 0.9rem;
     font-weight: 500;
+    color: white;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .user-settings-btn:hover:not(:disabled) {
-    background-color: #5a6268;
-    border-color: #545b62;
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
     transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .user-avatar-small {
@@ -269,12 +277,15 @@ body {
     right: 0;
     margin-top: 0.5rem;
     min-width: 280px;
-    background-color: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    animation: fadeInUp 0.2s ease-out;
+    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
 }
 
 @keyframes fadeIn {
@@ -308,17 +319,18 @@ body {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
     border: none;
     background: none;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: left;
-    color: #333;
+    color: #2c3e50;
 }
 
 .dropdown-item:hover {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.12) 0%, rgba(15, 23, 42, 0.08) 85%, rgba(194, 65, 12, 0.05) 100%);
+    transform: translateX(4px);
 }
 
 .dropdown-item i {
@@ -348,14 +360,30 @@ body {
 }
 
 .toolbar {
-    background-color: #34495e;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    padding: 1.25rem 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
     margin-top: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.toolbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.03) 0%, rgba(15, 23, 42, 0.02) 85%, rgba(194, 65, 12, 0.01) 100%);
+    pointer-events: none;
 }
 
 .toolbar-content {
@@ -373,66 +401,78 @@ body {
 }
 
 .periode-navigatie button {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: none;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(15, 23, 42, 0.1) 85%, rgba(194, 65, 12, 0.1) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(30, 58, 138, 0.3);
     cursor: pointer;
-    color: white;
+    color: #1e3a8a;
     font-size: 1.2rem;
-    padding: 0.5rem;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    padding: 0.75rem;
+    border-radius: 12px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
 }
 
 .periode-navigatie button:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: scale(1.05);
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.25) 0%, rgba(15, 23, 42, 0.2) 85%, rgba(194, 65, 12, 0.15) 100%);
+    border-color: rgba(30, 58, 138, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(30, 58, 138, 0.2);
 }
 
 .periode-display {
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: #ecf0f1;
-    min-width: 180px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 85%, #c2410c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    min-width: 200px;
     text-align: center;
+    letter-spacing: -0.025em;
 }
 
 .weergave-toggle {
     display: flex;
     position: relative;
-    background-color: transparent;
-    border-radius: 8px;
-    padding: 5px;
-    border: 1px solid #5a728a;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 6px;
+    border: 2px solid rgba(30, 58, 138, 0.2);
 }
 
 .weergave-toggle .glider {
     position: absolute;
-    top: 5px;
-    left: 5px;
-    height: calc(100% - 10px);
-    width: 50%;
-    background-color: #ecf0f1;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease-in-out;
+    top: 6px;
+    left: 6px;
+    height: calc(100% - 12px);
+    width: calc(50% - 6px);
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 85%, #c2410c 100%);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
 }
 
 .weergave-toggle .weergave-optie {
     flex: 1;
-    padding: 0.5rem 2.5rem;
+    padding: 0.75rem 2rem;
     border: none;
     background-color: transparent;
     cursor: pointer;
     font-weight: 600;
-    color: #bdc3c7;
+    color: rgba(44, 62, 80, 0.7);
     z-index: 2;
     transition: color 0.3s ease-in-out;
+    border-radius: 8px;
 }
 
 .weergave-toggle[data-weergave="week"] .glider {
@@ -440,12 +480,13 @@ body {
 }
 
 .weergave-toggle[data-weergave="maand"] .glider {
-    transform: translateX(100%);
+    transform: translateX(calc(100% + 6px));
 }
 
 .weergave-toggle[data-weergave="week"] .weergave-optie:first-of-type,
 .weergave-toggle[data-weergave="maand"] .weergave-optie:last-of-type {
-    color: #34495e;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .filter-groep {
@@ -456,57 +497,81 @@ body {
 
 .zoek-input,
 .filter-select {
-    padding: 0.6rem 1rem;
-    border-radius: 6px;
-    border: 1px solid #4a627a;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    border: 2px solid rgba(30, 58, 138, 0.2);
     font-size: 0.9rem;
-    background-color: #2c3e50;
-    color: white;
-    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #2c3e50;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
 }
 
 .zoek-input:focus,
 .filter-select:focus {
     outline: none;
-    border-color: #5a728a;
-    box-shadow: 0 0 0 3px rgba(90, 114, 138, 0.2);
+    border-color: #1e3a8a;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+    transform: translateY(-1px);
 }
 
 .zoek-input::placeholder {
-    color: #bdc3c7;
+    color: rgba(44, 62, 80, 0.6);
+    font-weight: 400;
 }
 
 .filter-select {
-    min-width: 180px;
+    min-width: 200px;
+    cursor: pointer;
+}
+
+.filter-select option {
+    background: rgba(255, 255, 255, 0.95);
+    color: #2c3e50;
+    padding: 0.5rem;
 }
 
 .legenda-container {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #4a627a;
+    gap: 1.25rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.08) 0%, rgba(15, 23, 42, 0.05) 85%, rgba(194, 65, 12, 0.03) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(30, 58, 138, 0.15);
+    margin-bottom: 1rem;
 }
 
 .legenda-titel {
-    font-weight: 500;
-    color: #bdc3c7;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 85%, #c2410c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 0.95rem;
 }
 
 .legenda-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     font-size: 0.85rem;
-    color: #bdc3c7;
+    color: #475569;
+    font-weight: 500;
 }
 
 .legenda-kleur {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 6px;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* ==========================================================================
@@ -531,6 +596,7 @@ body {
     min-width: fit-content;
 }
 
+/* Make the header sticky */
 .rooster-thead th {
     text-align: center;
     padding: 0.5rem 0.25rem; /* Reduced padding for smaller screens */
@@ -545,7 +611,7 @@ body {
     white-space: nowrap; /* Prevent text wrapping in headers */
 }
 
-/* Additional sticky header rules to ensure they work */
+/* Improved sticky header rules to ensure they work */
 thead th,
 .rooster-table thead th,
 .rooster-thead th,
@@ -557,7 +623,7 @@ th.dag-header-cel {
     border-bottom: 2px solid #e9ecef !important;
 }
 
-/* Ensure all table header cells are sticky */
+/* Make sure all table header cells are sticky */
 .rooster-table th {
     position: sticky !important;
     top: 0 !important;
@@ -574,6 +640,7 @@ th.dag-header-cel {
     background-color: white !important;
 }
 
+/* Make the 'Medewerker' column sticky */
 .medewerker-kolom {
     /* Make employee column responsive */
     min-width: 160px;
@@ -587,8 +654,35 @@ th.dag-header-cel {
     z-index: 90 !important; /* Lower than day headers but still sticky */
 }
 
+/* Crucial - This ensures the corner cell (Medewerker header) stays on top of everything */
+th.medewerker-kolom {
+    z-index: 110 !important; /* Higher than both row and column headers to appear on top */
+    left: 0 !important;
+    top: 0 !important;
+    position: sticky !important;
+    background-color: white !important;
+    /* Add a subtle shadow to distinguish it */
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Make the medewerker column keep its background on hover */
 .medewerker-rij:hover .medewerker-kolom {
-    background-color: #fafafa;
+    background-color: #fafafa !important;
+}
+
+/* Add visual distinction to the sticky column with subtle shadow */
+td.medewerker-kolom, th.medewerker-kolom {
+    box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Add visual distinction to sticky headers with subtle shadow */
+.rooster-thead th {
+    box-shadow: 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Handle the corner case where header and column intersect */
+th.medewerker-kolom {
+    box-shadow: 2px 2px 4px -2px rgba(0, 0, 0, 0.15);
 }
 
 .dag-kolom {
@@ -761,6 +855,7 @@ th.dag-header-cel {
     background-color: #e3f2fd !important;
     border: 2px solid #2196f3 !important;
     position: relative;
+    box-shadow: 0 0 6px rgba(33, 150, 243, 0.3);
 }
 
 .vandaag .dag-naam {
@@ -774,12 +869,13 @@ th.dag-header-cel {
 }
 
 .vandaag-indicator {
-    color: #2196f3;
-    font-size: 1.2rem;
-    line-height: 1;
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: -4px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    background-color: #2196f3;
+    border-radius: 50%;
 }
 
 /* Holiday styling - highest priority */
@@ -1237,6 +1333,7 @@ td.weekend:not(.feestdag) {
     justify-content: center;
     margin: 1px;
     position: relative;
+    cursor: pointer; /* Make it clear these are clickable */
 }
 
 .compensatie-uur-blok {
@@ -1253,6 +1350,18 @@ td.weekend:not(.feestdag) {
     text-shadow: 0 1px 1px rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.3);
     box-sizing: border-box;
+    transition: all 0.2s ease; /* Smooth transition for hover effects */
+}
+
+/* Hover effects for compensatie blocks */
+.compensatie-uur-container:hover .compensatie-uur-blok {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border-color: rgba(255,255,255,0.5);
+}
+
+.compensatie-uur-container:hover .compensatie-uur-blok .compensatie-icon-svg {
+    filter: brightness(1.2) contrast(1.1) !important;
 }
 
 .compensatie-uur-blok.compensatie-neutraal {
@@ -1555,6 +1664,12 @@ td .compensatie-uur-container img.compensatie-icon-svg {
     animation: fadeIn 0.1s ease-out;
 }
 
+/* Flipped context menu (opens upward) */
+.context-menu-flip-vertical {
+    transform: translateY(-100%);
+    margin-top: -8px; /* Add some spacing between cursor and menu */
+}
+
 .context-menu-list {
     list-style: none;
     padding: 0;
@@ -1614,10 +1729,19 @@ td .compensatie-uur-container img.compensatie-icon-svg {
     padding: 4px 0;
     min-width: 200px;
     z-index: 1001;
+    /* Add max-height to enable scrolling for very tall submenus */
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .context-menu-item.submenu-open > .submenu {
     display: block;
+}
+
+/* Context menu right-to-left submenu */
+.submenu-rtl {
+    left: auto !important; 
+    right: 100% !important;
 }
 
 /* Separator styling */
@@ -1897,56 +2021,8 @@ td .compensatie-uur-container img.compensatie-icon-svg {
     height: 100%;
 }
 
-/* Form fields container within modals */
-.form-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    padding: 0;
+/* Modal form content container with proper padding */
+.modal-form-content {
+    padding: 1.5rem;
     flex-grow: 1;
-}
-
-/* Ensure proper spacing for form within modal body */
-.modal-body .form-container {
-    padding: 1.5rem 2rem;
-    margin: 0;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Form title within modal - reduce top margin since modal has header */
-.modal-body .form-title {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    flex-shrink: 0;
-}
-
-/* Ensure form elements in modals have proper styling */
-.modal-body .form-input,
-.modal-body .form-select,
-.modal-body .form-textarea {
-    font-size: 0.95rem;
-}
-
-/* Form actions at bottom of modal forms */
-.modal-form-wrapper .form-acties {
-    margin-top: 0;
-    border-top: 1px solid #e9ecef;
-    background-color: #f8f9fa;
-    flex-shrink: 0;
-}
-
-/* SVG icon styling in context menu */
-.menu-icon-svg {
-    margin-right: 8px;
-    vertical-align: middle;
-    opacity: 0.9;
-}
-
-/* Calendar cell positioning for absolute positioned icons */
-.dag-cel {
-    position: relative;
-    min-height: 40px;
-    vertical-align: top;
 }
