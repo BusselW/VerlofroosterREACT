@@ -640,10 +640,27 @@ export const WorkHoursTab = ({ user, data }) => {
         ),
 
         // Save Button
-        h('div', { className: 'save-section', style: { textAlign: 'right' } },
+        h('div', { 
+            className: 'save-section', 
+            style: { 
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                marginTop: '20px'
+            } 
+        },
             feedback && h('div', { 
                 className: `feedback-message ${feedback.type}`,
-                style: { textAlign: 'left', marginBottom: '10px' }
+                style: { 
+                    alignSelf: 'flex-start',
+                    marginBottom: '10px',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    backgroundColor: feedback.type === 'success' ? '#d4edda' : '#f8d7da',
+                    color: feedback.type === 'success' ? '#155724' : '#721c24',
+                    border: feedback.type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
+                }
             }, feedback.message),
             h('button', {
                 className: 'btn btn-primary save-btn',
@@ -653,7 +670,15 @@ export const WorkHoursTab = ({ user, data }) => {
             }, 
                 isLoading ? 'Bezig met opslaan...' : 'Mijn werktijden opslaan'
             ),
-            h('p', { className: 'text-muted', style: { marginTop: '10px', fontSize: '13px', textAlign: 'left' } },
+            h('p', { 
+                className: 'text-muted', 
+                style: { 
+                    marginTop: '10px', 
+                    fontSize: '13px', 
+                    alignSelf: 'flex-start',
+                    maxWidth: '500px'
+                } 
+            },
                 'Na het opslaan worden uw nieuwe werktijden gebruikt in het rooster. Dit kan even duren voordat het overal zichtbaar is.'
             )
         ),

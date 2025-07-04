@@ -379,7 +379,7 @@
                 h('button', {
                     className: 'dropdown-item',
                     onClick: () => {
-                        navigateTo('pages/instellingenCentrum/instellingenCentrumN.aspx');
+                        navigateTo('instellingenCentrum/instellingenCentrumN.aspx');
                         setSettingsDropdownOpen(false);
                     }
                 },

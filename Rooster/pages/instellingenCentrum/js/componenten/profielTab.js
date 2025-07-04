@@ -328,7 +328,16 @@ export const ProfileTab = ({ user, data }) => {
             ),
             
             // Save button at the bottom
-            h('div', { className: 'form-row', style: { marginTop: '24px', justifyContent: 'flex-end', alignItems: 'center', gap: '12px' } },
+            h('div', { 
+                className: 'form-row', 
+                style: { 
+                    marginTop: '24px', 
+                    display: 'flex',
+                    justifyContent: 'flex-end', 
+                    alignItems: 'center', 
+                    gap: '12px' 
+                } 
+            },
                 // Success/Error message
                 saveMessage && h('div', { 
                     className: `status-message status-${saveMessage.type}`,
@@ -342,7 +351,7 @@ export const ProfileTab = ({ user, data }) => {
                         border: saveMessage.type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
                     }
                 }, saveMessage.text),
-                // Save button - already right-aligned
+                // Save button - right-aligned
                 h('button', { 
                     className: 'btn btn-primary',
                     onClick: handleSave,
