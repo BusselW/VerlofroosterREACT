@@ -23,8 +23,8 @@
         /* Registration specific styles that extend instellingencentrum_s.css */
         .registration-container {
             width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: none; /* Make it full width */
+            margin: 0;
             padding: 1rem;
         }
 
@@ -171,7 +171,14 @@
         /* Form styling matching existing form components */
         .form-grid {
             display: grid;
+            grid-template-columns: 1fr;
             gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         .form-group {
@@ -200,6 +207,15 @@
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input:disabled,
+        .form-input[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #ced4da;
+            opacity: 0.6;
         }
 
         .form-help {
@@ -474,6 +490,10 @@
             const [isCompleted, setIsCompleted] = useState(false);
             const [isSubmitting, setIsSubmitting] = useState(false);
 
+            // Data for dropdowns
+            const [teams, setTeams] = useState([]);
+            const [functies, setFuncties] = useState([]);
+
             // Initialize application
             useEffect(() => {
                 const initializeApp = async () => {
@@ -484,6 +504,23 @@
                         // Load current user
                         const currentUser = await getCurrentUser();
                         setUser(currentUser);
+
+                        // Load teams and functions for dropdowns
+                        try {
+                            const teamsData = await fetchSharePointList('Teams');
+                            setTeams(teamsData || []);
+                        } catch (err) {
+                            console.warn('Could not load teams:', err);
+                            setTeams([]);
+                        }
+
+                        try {
+                            const functiesData = await fetchSharePointList('keuzelijstFuncties');
+                            setFuncties(functiesData || []);
+                        } catch (err) {
+                            console.warn('Could not load functions:', err);
+                            setFuncties([]);
+                        }
 
                         console.log('Registration app initialized successfully');
                     } catch (err) {
@@ -702,7 +739,9 @@
                         h(RegistrationProfileStep, { 
                             user, 
                             data: registrationData.profile,
-                            onChange: (data) => updateStepData('profile', data)
+                            onChange: (data) => updateStepData('profile', data),
+                            teams,
+                            functies
                         })
                     );
 
@@ -742,11 +781,72 @@
         // =====================
         
         // Profile Step Component
-        const RegistrationProfileStep = ({ user, data, onChange }) => {
-            // This will be a simplified version of ProfileTab
-            // focusing only on essential fields for registration
+        const RegistrationProfileStep = ({ user, data, onChange, teams, functies }) => {
+            // Auto-fill username and email from current user
+            useEffect(() => {
+                if (user && !data.username && !data.email) {
+                    // Extract clean username from SharePoint LoginName
+                    let cleanUsername = '';
+                    if (user.LoginName) {
+                        // Remove claim prefix if present (i:0#.w|)
+                        if (user.LoginName.startsWith('i:0#.w|')) {
+                            cleanUsername = user.LoginName.replace('i:0#.w|', '');
+                        } else {
+                            cleanUsername = user.LoginName;
+                        }
+                    }
+
+                    onChange({
+                        username: cleanUsername,
+                        email: user.Email || ''
+                        // Don't prefill naam - let user enter it manually with placeholder
+                    });
+                }
+            }, [user, data.username, data.email, onChange]);
+
+            // Generate initials for profile picture
+            const generateInitials = (naam) => {
+                if (!naam) return 'NG';
+                const delen = naam.split(' ');
+                if (delen.length >= 2) {
+                    return `${delen[0].charAt(0)}${delen[delen.length - 1].charAt(0)}`.toUpperCase();
+                }
+                return naam.substring(0, 2).toUpperCase();
+            };
+
             return h('div', { className: 'form-grid' },
-                h('div', { className: 'form-group' },
+                // Profile picture section
+                h('div', { 
+                    className: 'form-group',
+                    style: { 
+                        gridColumn: '1 / -1',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginBottom: '2rem'
+                    }
+                },
+                    h('div', {
+                        style: {
+                            width: '120px',
+                            height: '120px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                            overflow: 'hidden',
+                            color: 'white',
+                            fontSize: '2rem',
+                            fontWeight: '600'
+                        }
+                    },
+                        generateInitials(data.naam)
+                    )
+                ),
+
+                // Full name field (not prefilled)
+                h('div', { className: 'form-group', style: { gridColumn: '1 / -1' } },
                     h('label', { className: 'form-label' }, 'Volledige naam *'),
                     h('input', {
                         type: 'text',
@@ -757,26 +857,100 @@
                     }),
                     h('div', { className: 'form-help' }, 'Voer je volledige voor- en achternaam in zoals deze officieel gebruikt wordt.')
                 ),
+
+                // Username field (locked/readonly)
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'E-mailadres *'),
+                    h('label', { className: 'form-label' }, 'Gebruikersnaam'),
+                    h('input', {
+                        type: 'text',
+                        className: 'form-input',
+                        value: data.username || '',
+                        readOnly: true,
+                        disabled: true,
+                        title: 'Automatisch ingevuld vanuit SharePoint'
+                    }),
+                    h('div', { className: 'form-help' }, 'Automatisch ingevuld vanuit je SharePoint account.')
+                ),
+
+                // Email field (locked/readonly)
+                h('div', { className: 'form-group' },
+                    h('label', { className: 'form-label' }, 'E-mailadres'),
                     h('input', {
                         type: 'email',
                         className: 'form-input',
-                        value: data.email || user?.Email || '',
-                        onChange: (e) => onChange({ email: e.target.value }),
-                        placeholder: 'je.naam@organisatie.nl'
+                        value: data.email || '',
+                        readOnly: true,
+                        disabled: true,
+                        title: 'Automatisch ingevuld vanuit SharePoint'
                     }),
-                    h('div', { className: 'form-help' }, 'Je werk e-mailadres voor systeemnotificaties.')
+                    h('div', { className: 'form-help' }, 'Je werk e-mailadres vanuit SharePoint.')
                 ),
+
+                // Birth date field
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Geboortedatum'),
+                    h('label', { className: 'form-label' }, 'Geboortedatum *'),
                     h('input', {
                         type: 'date',
                         className: 'form-input',
                         value: data.geboortedatum || '',
                         onChange: (e) => onChange({ geboortedatum: e.target.value })
                     }),
-                    h('div', { className: 'form-help' }, 'Optioneel: gebruikt voor verjaardagsherinneringen in het systeem.')
+                    h('div', { className: 'form-help' }, 'Verplicht voor verjaardagsherinneringen in het systeem.')
+                ),
+
+                // Team selection
+                h('div', { className: 'form-group' },
+                    h('label', { className: 'form-label' }, 'Team *'),
+                    h('select', {
+                        className: 'form-input',
+                        value: data.team || '',
+                        onChange: (e) => onChange({ team: e.target.value })
+                    },
+                        h('option', { value: '' }, 'Selecteer een team...'),
+                        teams && teams.map(team =>
+                            h('option', { key: team.ID || team.Id, value: team.Naam || team.Title }, team.Naam || team.Title)
+                        )
+                    ),
+                    h('div', { className: 'form-help' }, 'Selecteer het team waarvan je deel uitmaakt.')
+                ),
+
+                // Function selection
+                h('div', { className: 'form-group' },
+                    h('label', { className: 'form-label' }, 'Functie *'),
+                    h('select', {
+                        className: 'form-input',
+                        value: data.functie || '',
+                        onChange: (e) => onChange({ functie: e.target.value })
+                    },
+                        h('option', { value: '' }, 'Selecteer een functie...'),
+                        functies && functies.map(functie =>
+                            h('option', { key: functie.ID || functie.Id, value: functie.Title }, functie.Title)
+                        )
+                    ),
+                    h('div', { className: 'form-help' }, 'Selecteer je functie binnen de organisatie.')
+                ),
+
+                // Required fields note
+                h('div', { 
+                    className: 'form-group',
+                    style: { 
+                        gridColumn: '1 / -1',
+                        marginTop: '1rem',
+                        padding: '1rem',
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '6px',
+                        border: '1px solid #e2e8f0'
+                    }
+                },
+                    h('p', { 
+                        style: { 
+                            margin: 0, 
+                            fontSize: '13px', 
+                            color: '#64748b' 
+                        } 
+                    }, 
+                        '* Verplichte velden voor registratie'
+                    )
                 )
             );
         };
