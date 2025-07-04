@@ -122,9 +122,11 @@ export const ProfileTab = ({ user, data }) => {
     useEffect(() => {
         let isMounted = true;
         const fetchUserData = async () => {
-            if (user && user.Username) {
+            // Use LoginName instead of Username, and also try with the cleaned username
+            const loginName = user?.LoginName || formData.username;
+            if (loginName) {
                 if (isMounted) setSharePointUser({ PictureURL: null, IsLoading: true });
-                const userData = await getUserInfo(user.Username);
+                const userData = await getUserInfo(loginName);
                 if (isMounted) {
                     setSharePointUser({ ...(userData || {}), IsLoading: false });
                 }
@@ -134,12 +136,37 @@ export const ProfileTab = ({ user, data }) => {
         };
         fetchUserData();
         return () => { isMounted = false; };
-    }, [user?.Username]);
+    }, [user?.LoginName, formData.username]);
 
     const getAvatarUrl = () => {
         if (sharePointUser.IsLoading) return '';
+        
+        // Try SharePoint profile photo first (from getUserInfo)
         if (sharePointUser.PictureURL) return sharePointUser.PictureURL;
-        // Robuuste initialen extractie
+        
+        // Use the exact same logic as verlofRooster.aspx getProfilePhotoUrl function
+        const loginName = user?.LoginName || formData.username;
+        if (loginName) {
+            // Extract username from domain\username format or claim format
+            let usernameOnly = loginName;
+            if (loginName.includes('\\')) {
+                usernameOnly = loginName.split('\\')[1];
+            } else if (loginName.includes('|')) {
+                usernameOnly = loginName.split('|')[1];
+            }
+            
+            // Remove domain prefix if still there
+            if (usernameOnly.includes('\\')) {
+                usernameOnly = usernameOnly.split('\\')[1];
+            }
+            
+            // Construct URL to SharePoint profile photo - same as verlofRooster.aspx
+            const siteUrl = window.appConfiguratie?.instellingen?.siteUrl || '';
+            const profileUrl = `${siteUrl}/_layouts/15/userphoto.aspx?size=L&accountname=${usernameOnly}@org.om.local`;
+            return profileUrl;
+        }
+        
+        // Fallback to initials - same logic as MedewerkerRow
         const match = user?.Title ? String(user.Title).match(/\b\w/g) : null;
         const initials = match ? match.join('') : '?';
         return `${fallbackAvatar}${initials}`;
@@ -147,10 +174,30 @@ export const ProfileTab = ({ user, data }) => {
 
     const handleImageError = (e) => {
         e.target.onerror = null;
-        // Robuuste initialen extractie
-        const match = user?.Title ? String(user.Title).match(/\b\w/g) : null;
-        const initials = match ? match.join('') : '?';
-        e.target.src = `${fallbackAvatar}${initials}`;
+        // Try smaller size first, then fallback to initials - same logic as MedewerkerRow
+        const loginName = user?.LoginName || formData.username;
+        if (loginName && !e.target.src.includes('size=S')) {
+            let usernameOnly = loginName;
+            if (loginName.includes('\\')) {
+                usernameOnly = loginName.split('\\')[1];
+            } else if (loginName.includes('|')) {
+                usernameOnly = loginName.split('|')[1];
+            }
+            
+            // Remove domain prefix if still there
+            if (usernameOnly.includes('\\')) {
+                usernameOnly = usernameOnly.split('\\')[1];
+            }
+            
+            const siteUrl = window.appConfiguratie?.instellingen?.siteUrl || '';
+            const fallbackUrl = `${siteUrl}/_layouts/15/userphoto.aspx?size=S&accountname=${usernameOnly}@org.om.local`;
+            e.target.src = fallbackUrl;
+        } else {
+            // Final fallback to initials - same logic as MedewerkerRow
+            const match = user?.Title ? String(user.Title).match(/\b\w/g) : null;
+            const initials = match ? match.join('') : '?';
+            e.target.src = `${fallbackAvatar}${initials}`;
+        }
     };
 
     const handleInputChange = (field, value) => {
@@ -239,14 +286,16 @@ export const ProfileTab = ({ user, data }) => {
                     h('p', { className: 'text-muted' }, user?.Email || 'Geen e-mail beschikbaar'),
                     h('div', { className: 'profile-badges' },
                         h('span', { className: 'badge badge-primary' }, 'Actief'),
-                        h('span', { className: 'badge badge-secondary' }, 'Medewerker')
+                        h('span', { className: 'badge badge-secondary' }, 
+                            formData.functie || currentUserRecord?.Functie || 'Medewerker'
+                        )
                     )
                 )
             ),
             
-            // Form fields
+            // Form fields - Updated layout: Volledige naam | Gebruikersnaam
             h('div', { className: 'form-row' },
-                h('div', { className: 'form-group', style: { gridColumn: '1 / -1' } },
+                h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Volledige naam'),
                     h('input', {
                         type: 'text',
@@ -254,9 +303,7 @@ export const ProfileTab = ({ user, data }) => {
                         value: formData.naam,
                         onChange: (e) => handleInputChange('naam', e.target.value)
                     })
-                )
-            ),
-            h('div', { className: 'form-row' },
+                ),
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Gebruikersnaam'),
                     h('input', {
@@ -267,8 +314,11 @@ export const ProfileTab = ({ user, data }) => {
                         style: { backgroundColor: '#f8fafc', color: '#64748b' },
                         title: 'Automatisch ingevuld vanuit SharePoint'
                     })
-                ),
-                h('div', { className: 'form-group' },
+                )
+            ),
+            // E-mailadres - full width
+            h('div', { className: 'form-row' },
+                h('div', { className: 'form-group', style: { gridColumn: '1 / -1' } },
                     h('label', { className: 'form-label' }, 'E-mailadres'),
                     h('input', {
                         type: 'email',
@@ -279,9 +329,17 @@ export const ProfileTab = ({ user, data }) => {
                     })
                 )
             ),
+            // Geboortedatum - full width
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group', style: { gridColumn: '1 / -1' } },
-                    h('label', { className: 'form-label' }, 'Geboortedatum'),
+                    h('label', { 
+                        className: 'form-label',
+                        style: { 
+                            fontFamily: 'inherit',
+                            fontWeight: '500',
+                            fontSize: 'inherit'
+                        }
+                    }, 'Geboortedatum'),
                     h('input', {
                         type: 'date',
                         className: 'form-input',
@@ -290,6 +348,7 @@ export const ProfileTab = ({ user, data }) => {
                     })
                 )
             ),
+            // Team | Functie
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Team'),
