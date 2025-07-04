@@ -235,14 +235,35 @@ body {
     animation: spin 1s linear infinite;
 }
 
+/* Loading spinner animation */
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
-    100% {
-        transform: rotate(360deg);
-    }
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Loading state styles */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-text {
+    color: #6c757d;
+    margin: 0;
+    font-size: 14px;
 }
 
 /* Error styles */

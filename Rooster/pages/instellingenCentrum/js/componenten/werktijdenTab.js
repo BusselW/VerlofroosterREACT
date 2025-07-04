@@ -57,6 +57,7 @@ const { useState, createElement: h } = React;
 export const WorkHoursTab = ({ user, data }) => {
     // State management
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(true); // New loading state for data fetching
     const [feedback, setFeedback] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [scheduleType, setScheduleType] = useState('fixed'); // 'fixed' or 'rotating'
@@ -72,6 +73,7 @@ export const WorkHoursTab = ({ user, data }) => {
     const [bulkTimes, setBulkTimes] = useState({ start: '09:00', end: '17:00' });
     const [ingangsdatum, setIngangsdatum] = useState(new Date().toISOString().split('T')[0]);
     const [cycleStartDate, setCycleStartDate] = useState(new Date().toISOString().split('T')[0]);
+    const [hasExistingData, setHasExistingData] = useState(false); // Track if existing data was loaded
 
     // Load user data
     React.useEffect(() => {
@@ -80,16 +82,170 @@ export const WorkHoursTab = ({ user, data }) => {
 
     const loadUserInfo = async () => {
         try {
+            setIsLoadingData(true);
+            setFeedback(null);
+            
             const user = await getCurrentUserInfo();
             // Trim the login name prefix to get just "org\busselw" instead of "i:0;w:org\busselw"
             if (user && user.LoginName) {
                 user.LoginName = trimLoginNaamPrefix(user.LoginName);
             }
             setUserInfo(user);
-            // TODO: Load existing work hours from SharePoint when available
+            
+            // Load existing work hours from SharePoint UrenPerWeek list
+            if (user && user.LoginName) {
+                await loadExistingWorkHours(user.LoginName);
+            }
         } catch (error) {
             console.error('Error loading user info:', error);
+            setFeedback({ 
+                type: 'error', 
+                message: 'Fout bij laden van gebruikersgegevens. Probeer de pagina te vernieuwen.' 
+            });
+        } finally {
+            setIsLoadingData(false);
         }
+    };
+
+    // Load existing work hours from UrenPerWeek SharePoint list
+    const loadExistingWorkHours = async (userLoginName) => {
+        try {
+            console.log('Loading existing work hours for user:', userLoginName);
+            
+            // Fetch all UrenPerWeek records for the current user
+            const urenPerWeekItems = await fetchSharePointList('UrenPerWeek');
+            
+            // Filter records for current user
+            const userRecords = urenPerWeekItems.filter(item => 
+                item.MedewerkerID === userLoginName
+            );
+            
+            console.log(`Found ${userRecords.length} existing work hour records for user`);
+            
+            if (userRecords.length === 0) {
+                console.log('No existing work hours found, using defaults');
+                setHasExistingData(false);
+                setFeedback({ 
+                    type: 'info', 
+                    message: 'Geen bestaande werktijden gevonden. Je kunt nu je eerste rooster instellen.' 
+                });
+                return;
+            }
+            
+            // Sort by Ingangsdatum to get the most recent record(s)
+            userRecords.sort((a, b) => new Date(b.Ingangsdatum) - new Date(a.Ingangsdatum));
+            
+            // Check if the most recent records are rotating (2 records with same Ingangsdatum)
+            const mostRecentDate = userRecords[0].Ingangsdatum;
+            const mostRecentRecords = userRecords.filter(record => 
+                record.Ingangsdatum === mostRecentDate
+            );
+            
+            console.log(`Most recent records (${mostRecentDate}):`, mostRecentRecords);
+            
+            // Determine if this is a rotating schedule
+            const isRotating = mostRecentRecords.length === 2 && 
+                              mostRecentRecords.some(r => r.IsRotatingSchedule === true);
+            
+            setHasExistingData(true);
+            
+            if (isRotating) {
+                console.log('Loading rotating schedule data');
+                setScheduleType('rotating');
+                
+                // Find Week A and Week B records
+                const weekARecord = mostRecentRecords.find(r => r.WeekType === 'A');
+                const weekBRecord = mostRecentRecords.find(r => r.WeekType === 'B');
+                
+                if (weekARecord) {
+                    const weekAHours = parseWorkHoursFromRecord(weekARecord);
+                    setWorkHours(weekAHours);
+                    console.log('Loaded Week A hours:', weekAHours);
+                }
+                
+                if (weekBRecord) {
+                    const weekBHours = parseWorkHoursFromRecord(weekBRecord);
+                    setWorkHoursB(weekBHours);
+                    console.log('Loaded Week B hours:', weekBHours);
+                }
+                
+                // Set cycle start date if available
+                if (weekARecord?.CycleStartDate) {
+                    setCycleStartDate(new Date(weekARecord.CycleStartDate).toISOString().split('T')[0]);
+                }
+                
+                setFeedback({ 
+                    type: 'success', 
+                    message: `Je bestaande roulerende rooster is geladen (geldig vanaf ${new Date(mostRecentDate).toLocaleDateString('nl-NL')}).` 
+                });
+                
+            } else {
+                console.log('Loading fixed schedule data');
+                setScheduleType('fixed');
+                
+                // Use the most recent single record
+                const fixedRecord = mostRecentRecords[0];
+                const fixedHours = parseWorkHoursFromRecord(fixedRecord);
+                setWorkHours(fixedHours);
+                console.log('Loaded fixed schedule hours:', fixedHours);
+                
+                setFeedback({ 
+                    type: 'success', 
+                    message: `Je bestaande vaste rooster is geladen (geldig vanaf ${new Date(mostRecentDate).toLocaleDateString('nl-NL')}).` 
+                });
+            }
+            
+            // Set ingangsdatum from the most recent record
+            if (mostRecentRecords[0]?.Ingangsdatum) {
+                setIngangsdatum(new Date(mostRecentRecords[0].Ingangsdatum).toISOString().split('T')[0]);
+            }
+            
+        } catch (error) {
+            console.error('Error loading existing work hours:', error);
+            setFeedback({ 
+                type: 'error', 
+                message: 'Fout bij laden van bestaande werktijden. Je kunt toch een nieuw rooster instellen.' 
+            });
+        }
+    };
+
+    // Parse SharePoint record into work hours format
+    const parseWorkHoursFromRecord = (record) => {
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        const dayMappings = {
+            monday: 'Maandag',
+            tuesday: 'Dinsdag', 
+            wednesday: 'Woensdag',
+            thursday: 'Donderdag',
+            friday: 'Vrijdag'
+        };
+        
+        const workHours = {};
+        
+        days.forEach(day => {
+            const dayPrefix = dayMappings[day];
+            const startTime = record[`${dayPrefix}Start`] || '--:--';
+            const endTime = record[`${dayPrefix}Eind`] || '--:--';
+            const dayType = record[`${dayPrefix}Soort`] || DAY_TYPES.NORMAAL;
+            
+            // Calculate hours
+            const hours = startTime === '--:--' || endTime === '--:--' ? 
+                0 : calculateHoursWorked(startTime, endTime);
+            
+            // Determine if it's a free day (VVD)
+            const isFreeDag = dayType === DAY_TYPES.VVD || 
+                            (startTime === '--:--' && endTime === '--:--');
+            
+            workHours[day] = {
+                start: startTime,
+                end: endTime,
+                hours: hours,
+                type: dayType,
+                isFreeDag: isFreeDag
+            };
+        });
+        
+        return workHours;
     };
 
     const handleSave = async () => {
@@ -242,8 +398,49 @@ export const WorkHoursTab = ({ user, data }) => {
     };
 
     return h('div', null,
+        // Loading indicator while fetching data
+        isLoadingData && h('div', { 
+            style: { 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                padding: '40px',
+                background: '#f8f9fa',
+                borderRadius: '8px',
+                marginBottom: '20px'
+            } 
+        },
+            h('div', { 
+                style: { 
+                    textAlign: 'center' 
+                } 
+            },
+                h('div', { 
+                    className: 'loading-spinner', 
+                    style: { 
+                        width: '40px', 
+                        height: '40px', 
+                        border: '4px solid #e3e3e3', 
+                        borderTop: '4px solid #007bff', 
+                        borderRadius: '50%', 
+                        animation: 'spin 1s linear infinite',
+                        margin: '0 auto 16px'
+                    } 
+                }),
+                h('p', { 
+                    style: { 
+                        color: '#6c757d', 
+                        margin: '0',
+                        fontSize: '14px'
+                    } 
+                }, 'Je bestaande werktijden worden geladen...')
+            )
+        ),
+
+        // Main content (only show when not loading)
+        !isLoadingData && [
         // Schedule Type Selection Card (now includes the main header)
-        h('div', { className: 'card' },
+        h('div', { className: 'card', key: 'schedule-card' },
             h('h3', { className: 'card-title' }, 
                 h('svg', { 
                     width: '24', 
@@ -258,7 +455,20 @@ export const WorkHoursTab = ({ user, data }) => {
                         clipRule: 'evenodd' 
                     })
                 ),
-                'Mijn Werkroosters'
+                'Mijn Werkroosters',
+                // Small indicator when existing data is loaded
+                hasExistingData && h('span', { 
+                    style: { 
+                        marginLeft: '10px',
+                        fontSize: '12px',
+                        color: '#28a745',
+                        fontWeight: '500',
+                        background: '#d4edda',
+                        padding: '2px 6px',
+                        borderRadius: '12px',
+                        border: '1px solid #c3e6cb'
+                    } 
+                }, '✓ Bestaande gegevens geladen')
             ),
             h('p', { className: 'text-muted mb-3' }, 
                 'Stel hier je standaard werktijden in. Dit bepaalt hoe je werkdagen in het rooster worden weergegeven.'
@@ -665,9 +875,15 @@ export const WorkHoursTab = ({ user, data }) => {
                     padding: '8px 12px',
                     borderRadius: '4px',
                     fontSize: '14px',
-                    backgroundColor: feedback.type === 'success' ? '#d4edda' : '#f8d7da',
-                    color: feedback.type === 'success' ? '#155724' : '#721c24',
-                    border: feedback.type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
+                    backgroundColor: feedback.type === 'success' ? '#d4edda' : 
+                                    feedback.type === 'error' ? '#f8d7da' : 
+                                    feedback.type === 'info' ? '#d1ecf1' : '#f8d7da',
+                    color: feedback.type === 'success' ? '#155724' : 
+                           feedback.type === 'error' ? '#721c24' : 
+                           feedback.type === 'info' ? '#0c5460' : '#721c24',
+                    border: feedback.type === 'success' ? '1px solid #c3e6cb' : 
+                            feedback.type === 'error' ? '1px solid #f5c6cb' : 
+                            feedback.type === 'info' ? '1px solid #bee5eb' : '1px solid #f5c6cb'
                 }
             }, feedback.message),
             h('button', {
@@ -746,5 +962,6 @@ export const WorkHoursTab = ({ user, data }) => {
                 )
             )
         )
+        ] // End of conditional main content array
     );
 };
