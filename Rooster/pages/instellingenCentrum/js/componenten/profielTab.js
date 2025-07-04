@@ -3,7 +3,7 @@
  * @description Profile Tab Component for Settings Page
  */
 
-import { getUserInfo } from '../../../js/services/sharepointService.js';
+import { getUserInfo, fetchSharePointList } from '../../../js/services/sharepointService.js';
 
 const { useState, useEffect, createElement: h } = React;
 
@@ -12,6 +12,9 @@ const { useState, useEffect, createElement: h } = React;
 // =====================
 export const ProfileTab = ({ user, data }) => {
     const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
+    const [teams, setTeams] = useState([]);
+    const [functies, setFuncties] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         naam: user?.Title || '',
         username: '',
@@ -41,6 +44,35 @@ export const ProfileTab = ({ user, data }) => {
             }));
         }
     }, [user, formData.username]);
+
+    // Load Teams and Functies from SharePoint
+    useEffect(() => {
+        const loadDropdownData = async () => {
+            try {
+                setLoading(true);
+                
+                // Load Teams (using Naam column)
+                const teamsData = await fetchSharePointList('Teams');
+                if (teamsData && Array.isArray(teamsData)) {
+                    setTeams(teamsData.filter(team => team.Actief === true || team.Actief === undefined));
+                }
+
+                // Load Functions (using Title column)
+                const functiesData = await fetchSharePointList('keuzelijstFuncties');
+                if (functiesData && Array.isArray(functiesData)) {
+                    setFuncties(functiesData);
+                }
+
+                console.log('Dropdown data loaded:', { teams: teamsData?.length, functies: functiesData?.length });
+            } catch (error) {
+                console.error('Error loading dropdown data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadDropdownData();
+    }, []);
 
     const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
 
@@ -185,14 +217,16 @@ export const ProfileTab = ({ user, data }) => {
                     h('select', {
                         className: 'form-input',
                         value: formData.team,
-                        onChange: (e) => handleInputChange('team', e.target.value)
+                        onChange: (e) => handleInputChange('team', e.target.value),
+                        disabled: loading
                     },
-                        h('option', { value: '' }, 'Selecteer team...'),
-                        h('option', { value: 'ICT' }, 'ICT'),
-                        h('option', { value: 'HR' }, 'Human Resources'),
-                        h('option', { value: 'Finance' }, 'Finance'),
-                        h('option', { value: 'Operations' }, 'Operations'),
-                        h('option', { value: 'Marketing' }, 'Marketing')
+                        h('option', { value: '' }, loading ? 'Laden...' : 'Selecteer team...'),
+                        teams.map(team =>
+                            h('option', { 
+                                key: team.ID || team.Id, 
+                                value: team.Naam 
+                            }, team.Naam)
+                        )
                     )
                 ),
                 h('div', { className: 'form-group' },
@@ -200,14 +234,16 @@ export const ProfileTab = ({ user, data }) => {
                     h('select', {
                         className: 'form-input',
                         value: formData.functie,
-                        onChange: (e) => handleInputChange('functie', e.target.value)
+                        onChange: (e) => handleInputChange('functie', e.target.value),
+                        disabled: loading
                     },
-                        h('option', { value: '' }, 'Selecteer functie...'),
-                        h('option', { value: 'Developer' }, 'Developer'),
-                        h('option', { value: 'Manager' }, 'Manager'),
-                        h('option', { value: 'Analyst' }, 'Analyst'),
-                        h('option', { value: 'Coordinator' }, 'Coordinator'),
-                        h('option', { value: 'Specialist' }, 'Specialist')
+                        h('option', { value: '' }, loading ? 'Laden...' : 'Selecteer functie...'),
+                        functies.map(functie =>
+                            h('option', { 
+                                key: functie.ID || functie.Id, 
+                                value: functie.Title 
+                            }, functie.Title)
+                        )
                     )
                 )
             )
