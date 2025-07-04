@@ -520,7 +520,7 @@ export const WorkHoursTab = ({ user, data }) => {
                                 fontWeight: 'bold'
                             } 
                         }, 'Normaal'),
-                        h('span', { style: { color: '#495057' } }, 'Volledige werkdag (07:00-11:00 start, 15:00-18:00+ eind)')
+                        h('span', { style: { color: '#495057' } }, 'Volledige werkdag (start 07:00-10:00, eind 15:00-19:00)')
                     ),
                     h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
                         h('span', { 
@@ -533,7 +533,7 @@ export const WorkHoursTab = ({ user, data }) => {
                                 fontWeight: 'bold'
                             } 
                         }, 'VVO'),
-                        h('span', { style: { color: '#495057' } }, 'Vaste Vrije Ochtend (start ≥12:00, eind ≥13:00)')
+                        h('span', { style: { color: '#495057' } }, 'Vaste Vrije Ochtend (start 12:00+, geen ochtendwerk)')
                     ),
                     h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
                         h('span', { 
@@ -546,7 +546,7 @@ export const WorkHoursTab = ({ user, data }) => {
                                 fontWeight: 'bold'
                             } 
                         }, 'VVM'),
-                        h('span', { style: { color: '#495057' } }, 'Vaste Vrije Middag (start <12:00, eind ≤13:00)')
+                        h('span', { style: { color: '#495057' } }, 'Vaste Vrije Middag (start <13:00, eind <13:00)')
                     ),
                     h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
                         h('span', { 
@@ -559,7 +559,7 @@ export const WorkHoursTab = ({ user, data }) => {
                                 fontWeight: 'bold'
                             } 
                         }, 'VVD'),
-                        h('span', { style: { color: '#495057' } }, 'Vaste Vrije Dag (hele dag vrij)')
+                        h('span', { style: { color: '#495057' } }, 'Vaste Vrije Dag (checkbox aangevinkt)')
                     )
                 ),
                 h('p', { style: { margin: '10px 0 0 0', fontSize: '11px', color: '#6c757d', fontStyle: 'italic' } },
@@ -757,13 +757,22 @@ export const WorkHoursTab = ({ user, data }) => {
             h('div', { className: 'card-header-with-actions' },
                 h('h3', { className: 'card-title' }, 
                     scheduleType === 'rotating' ? 
-                        `⏰ Werktijden voor Week ${activeWeek}` : 
-                        '⏰ Mijn Werktijden'
+                        `Werktijden voor Week ${activeWeek}` : 
+                        'Mijn Werktijden'
                 ),
-                // Integrated bulk time setter
-                h('div', { className: 'bulk-time-setter' },
+                // Integrated bulk time setter - moved to center/left
+                h('div', { 
+                    className: 'bulk-time-setter',
+                    style: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '0.5rem',
+                        marginTop: '1rem'
+                    }
+                },
                     h('label', { className: 'form-label' }, 
-                        '⚡ Snelle instelling voor alle werkdagen:'
+                        'Snelle instelling voor alle werkdagen:'
                     ),
                     h('div', { className: 'bulk-time-inputs' },
                         h('input', {
@@ -785,10 +794,10 @@ export const WorkHoursTab = ({ user, data }) => {
                             className: 'btn btn-secondary',
                             onClick: handleBulkTimeSet,
                             title: 'Pas deze tijden toe op alle werkdagen (vrije dagen blijven ongewijzigd)'
-                        }, '✓ Toepassen op alle dagen')
+                        }, 'Toepassen op alle dagen')
                     ),
                     h('small', { className: 'text-muted' }, 
-                        'Handig als u meestal dezelfde tijden werkt. Vrije dagen worden niet overschreven.'
+                        'Handig als je meestal dezelfde tijden werkt. Vrije dagen worden niet overschreven.'
                     )
                 )
             ),
@@ -798,11 +807,11 @@ export const WorkHoursTab = ({ user, data }) => {
                     h('thead', null,
                         h('tr', null,
                             h('th', null, 'Weekdag'),
-                            h('th', null, '🕘 Begin'),
-                            h('th', null, '🕕 Einde'),
-                            h('th', null, '⏱️ Totaal'),
-                            h('th', null, '🏷️ Werkdag type'),
-                            h('th', null, '🏠 Vrij/Thuis')
+                            h('th', null, 'Begin'),
+                            h('th', null, 'Einde'),
+                            h('th', null, 'Totaal'),
+                            h('th', null, 'Werkdag type'),
+                            h('th', null, 'Vrij/Thuis')
                         )
                     ),
                     h('tbody', null,
@@ -892,7 +901,7 @@ export const WorkHoursTab = ({ user, data }) => {
                 disabled: isLoading || !userInfo,
                 style: { fontSize: '16px', padding: '12px 24px' }
             }, 
-                isLoading ? 'Bezig met opslaan...' : 'Mijn werktijden opslaan'
+                isLoading ? 'Bezig met opslaan...' : 'Opslaan'
             ),
             h('p', { 
                 className: 'text-muted', 
