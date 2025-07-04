@@ -11,7 +11,6 @@ const { useState, useEffect, createElement: h } = React;
 // Profile Tab Component
 // =====================
 export const ProfileTab = ({ user, data }) => {
-    const [isEditing, setIsEditing] = useState(false);
     const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
     const [formData, setFormData] = useState({
         naam: user?.Title || '',
@@ -70,8 +69,8 @@ export const ProfileTab = ({ user, data }) => {
 
     const handleSave = () => {
         // Save logic here
-        setIsEditing(false);
         console.log('Profiel opgeslagen:', formData);
+        // Here you could show a success message or handle the save response
     };
 
     return h('div', null,
@@ -95,8 +94,17 @@ export const ProfileTab = ({ user, data }) => {
             h('p', { className: 'text-muted mb-4' }, 'Bekijk en beheer uw persoonlijke informatie.')
         ),
 
-        // Profile Header Card
-        h('div', { className: 'card profile-header-card' },
+        // Combined Profile and Data Card
+        h('div', { className: 'card' },
+            h('div', { className: 'card-header-with-actions' },
+                h('h3', { className: 'card-title' }, 'Jouw gegevens'),
+                h('button', { 
+                    className: 'btn btn-primary',
+                    onClick: handleSave
+                }, 'Opslaan')
+            ),
+            
+            // Profile section with avatar
             h('div', { className: 'profile-avatar-section' },
                 h('div', { className: 'profile-avatar' },
                     sharePointUser.IsLoading ? 
@@ -123,19 +131,10 @@ export const ProfileTab = ({ user, data }) => {
                         h('span', { className: 'badge badge-primary' }, 'Actief'),
                         h('span', { className: 'badge badge-secondary' }, 'Medewerker')
                     )
-                ),
-                h('div', { className: 'profile-actions' },
-                    h('button', {
-                        className: `btn ${isEditing ? 'btn-secondary' : 'btn-primary'}`,
-                        onClick: () => setIsEditing(!isEditing)
-                    }, isEditing ? 'Annuleren' : 'Bewerken')
                 )
-            )
-        ),
-
-        // Personal Information Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 'Persoonlijke Gegevens'),
+            ),
+            
+            // Form fields
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Volledige naam'),
@@ -143,7 +142,6 @@ export const ProfileTab = ({ user, data }) => {
                         type: 'text',
                         className: 'form-input',
                         value: formData.naam,
-                        readOnly: !isEditing,
                         onChange: (e) => handleInputChange('naam', e.target.value)
                     })
                 ),
@@ -153,7 +151,8 @@ export const ProfileTab = ({ user, data }) => {
                         type: 'email',
                         className: 'form-input',
                         value: formData.email,
-                        readOnly: true
+                        readOnly: true,
+                        style: { backgroundColor: '#f8fafc', color: '#64748b' }
                     })
                 )
             ),
@@ -164,7 +163,6 @@ export const ProfileTab = ({ user, data }) => {
                         type: 'date',
                         className: 'form-input',
                         value: formData.geboortedatum,
-                        readOnly: !isEditing,
                         onChange: (e) => handleInputChange('geboortedatum', e.target.value)
                     })
                 ),
@@ -174,17 +172,11 @@ export const ProfileTab = ({ user, data }) => {
                         type: 'tel',
                         className: 'form-input',
                         value: formData.telefoon,
-                        readOnly: !isEditing,
                         placeholder: '+31 6 12345678',
                         onChange: (e) => handleInputChange('telefoon', e.target.value)
                     })
                 )
-            )
-        ),
-
-        // Work Information Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 'Werk Informatie'),
+            ),
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Functie'),
@@ -192,7 +184,6 @@ export const ProfileTab = ({ user, data }) => {
                         type: 'text',
                         className: 'form-input',
                         value: formData.functie,
-                        readOnly: !isEditing,
                         placeholder: 'Uw functietitel...',
                         onChange: (e) => handleInputChange('functie', e.target.value)
                     })
@@ -202,7 +193,6 @@ export const ProfileTab = ({ user, data }) => {
                     h('select', {
                         className: 'form-input',
                         value: formData.afdeling,
-                        disabled: !isEditing,
                         onChange: (e) => handleInputChange('afdeling', e.target.value)
                     },
                         h('option', { value: '' }, 'Selecteer afdeling...'),
@@ -221,7 +211,6 @@ export const ProfileTab = ({ user, data }) => {
                         type: 'text',
                         className: 'form-input',
                         value: formData.manager,
-                        readOnly: !isEditing,
                         placeholder: 'Naam van uw manager...',
                         onChange: (e) => handleInputChange('manager', e.target.value)
                     })
@@ -232,24 +221,9 @@ export const ProfileTab = ({ user, data }) => {
                         type: 'date',
                         className: 'form-input',
                         value: formData.startdatum,
-                        readOnly: !isEditing,
                         onChange: (e) => handleInputChange('startdatum', e.target.value)
                     })
                 )
-            )
-        ),
-
-        // Save Actions (only show when editing)
-        isEditing && h('div', { className: 'card' },
-            h('div', { className: 'settings-actions' },
-                h('button', { 
-                    className: 'btn btn-primary',
-                    onClick: handleSave
-                }, 'Wijzigingen Opslaan'),
-                h('button', { 
-                    className: 'btn btn-secondary',
-                    onClick: () => setIsEditing(false)
-                }, 'Annuleren')
             )
         )
     );

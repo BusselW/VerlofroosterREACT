@@ -8,8 +8,6 @@
 const { useState, createElement: h } = React;
 
 export const SettingsTab = ({ user, data }) => {
-    const [notifications, setNotifications] = useState(true);
-    const [emailUpdates, setEmailUpdates] = useState(false);
     const [weekendDisplay, setWeekendDisplay] = useState(true);
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [theme, setTheme] = useState('light');
@@ -20,8 +18,6 @@ export const SettingsTab = ({ user, data }) => {
 
     const handleSaveSettings = () => {
         const settings = {
-            notifications,
-            emailUpdates,
             weekendDisplay,
             autoRefresh,
             theme,
@@ -34,8 +30,6 @@ export const SettingsTab = ({ user, data }) => {
     };
 
     const handleResetSettings = () => {
-        setNotifications(true);
-        setEmailUpdates(false);
         setWeekendDisplay(true);
         setAutoRefresh(true);
         setTheme('light');
@@ -64,68 +58,6 @@ export const SettingsTab = ({ user, data }) => {
                 'Instellingen'
             ),
             h('p', { className: 'text-muted mb-4' }, 'Configureer uw persoonlijke voorkeuren en applicatie-instellingen.')
-        ),
-
-        // Notification Settings Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 
-                h('svg', { 
-                    width: '20', 
-                    height: '20', 
-                    fill: 'currentColor', 
-                    viewBox: '0 0 20 20',
-                    style: { marginRight: '0.5rem' }
-                }, 
-                    h('path', { 
-                        d: 'M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z' 
-                    })
-                ),
-                'Meldingen'
-            ),
-            h('div', { className: 'settings-section' },
-                h('div', { className: 'setting-item' },
-                    h('label', { className: 'setting-label' },
-                        h('input', {
-                            type: 'checkbox',
-                            checked: notifications,
-                            onChange: (e) => setNotifications(e.target.checked),
-                            className: 'setting-checkbox'
-                        }),
-                        h('div', { className: 'setting-content' },
-                            h('span', { className: 'setting-text' }, 'Push meldingen'),
-                            h('span', { className: 'setting-description' }, 'Ontvang direct meldingen voor belangrijke updates')
-                        )
-                    )
-                ),
-                h('div', { className: 'setting-item' },
-                    h('label', { className: 'setting-label' },
-                        h('input', {
-                            type: 'checkbox',
-                            checked: emailUpdates,
-                            onChange: (e) => setEmailUpdates(e.target.checked),
-                            className: 'setting-checkbox'
-                        }),
-                        h('div', { className: 'setting-content' },
-                            h('span', { className: 'setting-text' }, 'E-mail samenvattingen'),
-                            h('span', { className: 'setting-description' }, 'Ontvang dagelijkse/wekelijkse samenvattingen per e-mail')
-                        )
-                    )
-                ),
-                h('div', { className: 'setting-item' },
-                    h('label', { className: 'setting-label' },
-                        h('input', {
-                            type: 'checkbox',
-                            checked: autoRefresh,
-                            onChange: (e) => setAutoRefresh(e.target.checked),
-                            className: 'setting-checkbox'
-                        }),
-                        h('div', { className: 'setting-content' },
-                            h('span', { className: 'setting-text' }, 'Automatisch vernieuwen'),
-                            h('span', { className: 'setting-description' }, 'Vernieuw gegevens automatisch elke 5 minuten')
-                        )
-                    )
-                )
-            )
         ),
 
         // Display Settings Card
