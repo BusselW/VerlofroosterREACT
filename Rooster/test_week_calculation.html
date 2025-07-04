@@ -1,109 +1,675 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
-    <title>Week Type Calculation Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulerende Werkroosters - Testomgeving</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .controls-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .controls-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .week-config {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .week-block {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .week-block h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .week-a h3 {
+            background: #e8f5e8;
+            color: #27ae60;
+        }
+
+        .week-b h3 {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .day-config {
+            display: grid;
+            gap: 10px;
+        }
+
+        .day-row {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .day-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .roster-view {
+            margin-top: 30px;
+        }
+
+        .roster-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .week-display {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .week-header {
+            padding: 15px 20px;
+            font-weight: 600;
+            text-align: center;
+            color: white;
+        }
+
+        .week-type-a .week-header {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .week-type-b .week-header {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .day-cell {
+            padding: 15px 10px;
+            text-align: center;
+            border-right: 1px solid #e1e5e9;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .day-cell:last-child {
+            border-right: none;
+        }
+
+        .day-header {
+            font-weight: 600;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .day-content {
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .day-date {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .day-type {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .day-type.vvm {
+            background: #e8f5e8;
+            color: #27ae60;
+        }
+
+        .day-type.vvd {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .day-type.normaal {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .day-type.flexibel {
+            background: #f3e5f5;
+            color: #9c27b0;
+        }
+
+        .weekend {
+            background: #f8f9fa;
+            color: #95a5a6;
+        }
+
+        .calculation-details {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .calculation-details h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .week-config {
+                grid-template-columns: 1fr;
+            }
+            
+            .days-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Week Type Calculation Test</h1>
-    <div id="results"></div>
+    <div class="container">
+        <div class="header">
+            <h1>🗓️ Roulerende Werkroosters</h1>
+            <p>Test- en demonstratieomgeving voor wisselende A/B week schema's</p>
+        </div>
+
+        <div class="content">
+            <div class="controls-section">
+                <h2>⚙️ Configuratie</h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cycleStartDate">Startdatum Cyclus:</label>
+                        <input type="date" id="cycleStartDate" value="2025-07-04">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testStartDate">Test Begindatum:</label>
+                        <input type="date" id="testStartDate" value="2025-06-30">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testWeeks">Aantal Weken Tonen:</label>
+                        <select id="testWeeks">
+                            <option value="2">2 weken</option>
+                            <option value="3">3 weken</option>
+                            <option value="4" selected>4 weken</option>
+                            <option value="6">6 weken</option>
+                            <option value="8">8 weken</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="week-config">
+                    <div class="week-block week-a">
+                        <h3>Week A Schema</h3>
+                        <div class="day-config">
+                            <div class="day-row">
+                                <span class="day-label">Maandag:</span>
+                                <select id="weekA-monday">
+                                    <option value="VVM" selected>VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal">Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Dinsdag:</span>
+                                <select id="weekA-tuesday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Woensdag:</span>
+                                <select id="weekA-wednesday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Donderdag:</span>
+                                <select id="weekA-thursday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Vrijdag:</span>
+                                <select id="weekA-friday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="week-block week-b">
+                        <h3>Week B Schema</h3>
+                        <div class="day-config">
+                            <div class="day-row">
+                                <span class="day-label">Maandag:</span>
+                                <select id="weekB-monday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Dinsdag:</span>
+                                <select id="weekB-tuesday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Woensdag:</span>
+                                <select id="weekB-wednesday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Donderdag:</span>
+                                <select id="weekB-thursday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD">VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal" selected>Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                            <div class="day-row">
+                                <span class="day-label">Vrijdag:</span>
+                                <select id="weekB-friday">
+                                    <option value="VVM">VVM - Vrije Voormiddag</option>
+                                    <option value="VVD" selected>VVD - Vrije Volledige Dag</option>
+                                    <option value="Normaal">Normaal - Volledige Werkdag</option>
+                                    <option value="Flexibel">Flexibel - Flexibele Start</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn" onclick="updateRoster()">🔄 Rooster Bijwerken</button>
+                </div>
+            </div>
+
+            <div class="roster-view">
+                <h2>📅 Rooster Weergave</h2>
+                <div id="rosterDisplay"></div>
+            </div>
+
+            <div class="calculation-details">
+                <h3>🔍 Berekeningsdetails</h3>
+                <div id="calculationDetails"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Fixed week calculation function
+        // Nederlandse maanden en dagen
+        const dutchMonths = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 
+                           'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+        const dutchDays = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+        const dutchDaysShort = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+
+        // Verbeterde week berekening functie
         function calculateWeekType(targetDate, cycleStartDate) {
             if (!cycleStartDate || !(cycleStartDate instanceof Date)) {
-                return 'A'; // Default to week A if no cycle start date
+                return { weekType: 'A', error: 'Geen geldige startdatum cyclus' };
             }
            
-            // Calculate which calendar week each date falls into
-            // We use Monday as the start of the week (getDay(): Sun=0, Mon=1, ..., Sat=6)
+            // Bereken welke kalenderweek elke datum valt
+            // We gebruiken maandag als start van de week
             const getWeekStartDate = (date) => {
                 const d = new Date(date);
-                const day = d.getDay(); // 0 = Sunday, 1 = Monday, etc.
-                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+                const day = d.getDay(); // 0 = zondag, 1 = maandag, etc.
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Pas aan naar maandag
                 d.setDate(diff);
                 d.setHours(0, 0, 0, 0);
                 return d;
             };
            
-            // Get the Monday of the week containing the cycle start date
+            // Krijg de maandag van de week die de cyclus startdatum bevat
             const cycleWeekStart = getWeekStartDate(cycleStartDate);
             
-            // Get the Monday of the week containing the target date
+            // Krijg de maandag van de week die de doeldatum bevat
             const targetWeekStart = getWeekStartDate(targetDate);
            
-            // Calculate the number of weeks between these Mondays
+            // Bereken het aantal weken tussen deze maandagen
             const timeDiff = targetWeekStart.getTime() - cycleWeekStart.getTime();
             const weeksSinceCycleStart = Math.floor(timeDiff / (7 * 24 * 60 * 60 * 1000));
            
-            // Handle negative weeks (dates before cycle start) properly
-            // Even weeks = A, Odd weeks = B (using mathematical modulo to handle negatives)
+            // Behandel negatieve weken (datums voor cyclus start) correct
+            // Even weken = A, Oneven weken = B (gebruik wiskundige modulo voor negatieven)
             const weekType = ((weeksSinceCycleStart % 2) + 2) % 2 === 0 ? 'A' : 'B';
             
             return {
                 weekType,
-                cycleWeekStart: cycleWeekStart.toLocaleDateString(),
-                targetWeekStart: targetWeekStart.toLocaleDateString(),
-                weeksSinceCycleStart
+                cycleWeekStart: cycleWeekStart,
+                targetWeekStart: targetWeekStart,
+                weeksSinceCycleStart,
+                daysSinceCycleStart: Math.floor(timeDiff / (24 * 60 * 60 * 1000))
             };
         }
 
-        // Test with your data: CycleStartDate = July 4, 2025 (Friday)
-        const cycleStartDate = new Date(2025, 6, 4); // July 4, 2025
-        
-        const testDates = [
-            // Week before cycle start
-            new Date(2025, 5, 30), // June 30, 2025 (Monday)
-            new Date(2025, 6, 1),  // July 1, 2025 (Tuesday)
-            new Date(2025, 6, 2),  // July 2, 2025 (Wednesday)
-            new Date(2025, 6, 3),  // July 3, 2025 (Thursday)
-            
-            // Week of cycle start
-            new Date(2025, 6, 4),  // July 4, 2025 (Friday) - Cycle start
-            new Date(2025, 6, 5),  // July 5, 2025 (Saturday)
-            new Date(2025, 6, 6),  // July 6, 2025 (Sunday)
-            
-            // Next week
-            new Date(2025, 6, 7),  // July 7, 2025 (Monday)
-            new Date(2025, 6, 8),  // July 8, 2025 (Tuesday)
-            new Date(2025, 6, 9),  // July 9, 2025 (Wednesday)
-            new Date(2025, 6, 10), // July 10, 2025 (Thursday)
-            new Date(2025, 6, 11), // July 11, 2025 (Friday)
-            new Date(2025, 6, 12), // July 12, 2025 (Saturday)
-            new Date(2025, 6, 13), // July 13, 2025 (Sunday)
-            
-            // Week after
-            new Date(2025, 6, 14), // July 14, 2025 (Monday)
-            new Date(2025, 6, 15), // July 15, 2025 (Tuesday)
-        ];
+        function formatDutchDate(date) {
+            const day = date.getDate();
+            const month = dutchMonths[date.getMonth()];
+            const year = date.getFullYear();
+            const weekday = dutchDays[date.getDay()];
+            return `${weekday} ${day} ${month} ${year}`;
+        }
 
-        let results = '<h2>Test Results:</h2>';
-        results += `<p><strong>Cycle Start Date:</strong> ${cycleStartDate.toLocaleDateString()} (${cycleStartDate.toLocaleDateString('en-US', {weekday: 'long'})})</p>`;
-        results += '<table border="1" style="border-collapse: collapse;">';
-        results += '<tr><th>Date</th><th>Day</th><th>Week Type</th><th>Week Start (Monday)</th><th>Weeks Since Cycle</th></tr>';
-        
-        testDates.forEach(date => {
-            const result = calculateWeekType(date, cycleStartDate);
-            const dayName = date.toLocaleDateString('en-US', {weekday: 'long'});
-            results += `<tr>
-                <td>${date.toLocaleDateString()}</td>
-                <td>${dayName}</td>
-                <td><strong>${result.weekType}</strong></td>
-                <td>${result.targetWeekStart}</td>
-                <td>${result.weeksSinceCycleStart}</td>
-            </tr>`;
+        function getWeekConfig(weekType) {
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            const config = {};
+            
+            days.forEach(day => {
+                const elementId = `week${weekType}-${day}`;
+                const element = document.getElementById(elementId);
+                config[day] = element ? element.value : 'Normaal';
+            });
+            
+            return config;
+        }
+
+        function updateRoster() {
+            const cycleStartInput = document.getElementById('cycleStartDate').value;
+            const testStartInput = document.getElementById('testStartDate').value;
+            const testWeeksCount = parseInt(document.getElementById('testWeeks').value);
+
+            if (!cycleStartInput || !testStartInput) {
+                alert('Vul alle datums in!');
+                return;
+            }
+
+            const cycleStartDate = new Date(cycleStartInput);
+            const testStartDate = new Date(testStartInput);
+            
+            // Zorg ervoor dat testStartDate een maandag is
+            const testStartDay = testStartDate.getDay();
+            if (testStartDay !== 1) { // Als het geen maandag is
+                const diff = testStartDay === 0 ? -6 : 1 - testStartDay;
+                testStartDate.setDate(testStartDate.getDate() + diff);
+            }
+
+            const weekAConfig = getWeekConfig('A');
+            const weekBConfig = getWeekConfig('B');
+
+            let rosterHTML = '';
+            let detailsHTML = '<div class="details-grid">';
+
+            // Toon details van de cyclus configuratie
+            detailsHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">Startdatum Cyclus</div>
+                    <div class="detail-value">${formatDutchDate(cycleStartDate)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Test Begindatum</div>
+                    <div class="detail-value">${formatDutchDate(testStartDate)}</div>
+                </div>
+            `;
+
+            for (let week = 0; week < testWeeksCount; week++) {
+                const weekStartDate = new Date(testStartDate);
+                weekStartDate.setDate(testStartDate.getDate() + (week * 7));
+                
+                const calculation = calculateWeekType(weekStartDate, cycleStartDate);
+                const weekType = calculation.weekType;
+                const config = weekType === 'A' ? weekAConfig : weekBConfig;
+
+                rosterHTML += `
+                    <div class="week-display week-type-${weekType.toLowerCase()}">
+                        <div class="week-header">
+                            Week ${weekType} - ${formatDutchDate(weekStartDate)} t/m ${formatDutchDate(new Date(weekStartDate.getTime() + 6 * 24 * 60 * 60 * 1000))}
+                        </div>
+                        <div class="days-grid">
+                            <div class="day-cell day-header">Ma</div>
+                            <div class="day-cell day-header">Di</div>
+                            <div class="day-cell day-header">Wo</div>
+                            <div class="day-cell day-header">Do</div>
+                            <div class="day-cell day-header">Vr</div>
+                            <div class="day-cell day-header weekend">Za</div>
+                            <div class="day-cell day-header weekend">Zo</div>
+                `;
+
+                const workdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+                
+                for (let day = 0; day < 7; day++) {
+                    const currentDate = new Date(weekStartDate);
+                    currentDate.setDate(weekStartDate.getDate() + day);
+                    
+                    const isWeekend = day >= 5;
+                    let dayTypeClass = '';
+                    let dayTypeText = '';
+                    
+                    if (!isWeekend) {
+                        const workday = workdays[day];
+                        const dayType = config[workday];
+                        dayTypeClass = dayType.toLowerCase();
+                        dayTypeText = dayType;
+                    } else {
+                        dayTypeClass = 'weekend';
+                        dayTypeText = 'Weekend';
+                    }
+
+                    rosterHTML += `
+                        <div class="day-cell ${isWeekend ? 'weekend' : ''}">
+                            <div class="day-content">
+                                <div class="day-date">${currentDate.getDate()}</div>
+                                <div class="day-type ${dayTypeClass}">${dayTypeText}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                rosterHTML += '</div></div>';
+
+                // Voeg details toe voor elke week
+                detailsHTML += `
+                    <div class="detail-item">
+                        <div class="detail-label">Week ${week + 1} (${formatDutchDate(weekStartDate)})</div>
+                        <div class="detail-value">
+                            Type: <strong>Week ${weekType}</strong><br>
+                            Weken sinds cyclus: ${calculation.weeksSinceCycleStart}<br>
+                            Dagen sinds cyclus: ${calculation.daysSinceCycleStart}
+                        </div>
+                    </div>
+                `;
+            }
+
+            detailsHTML += '</div>';
+
+            document.getElementById('rosterDisplay').innerHTML = rosterHTML;
+            document.getElementById('calculationDetails').innerHTML = detailsHTML;
+        }
+
+        // Initiële weergave bij laden van pagina
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRoster();
         });
+
+        // Update automatisch bij wijzigingen
+        document.getElementById('cycleStartDate').addEventListener('change', updateRoster);
+        document.getElementById('testStartDate').addEventListener('change', updateRoster);
+        document.getElementById('testWeeks').addEventListener('change', updateRoster);
         
-        results += '</table>';
-        
-        results += '<h3>Expected Behavior:</h3>';
-        results += '<ul>';
-        results += '<li>All days within the same calendar week should have the same Week Type</li>';
-        results += '<li>Week containing July 4, 2025 should be Week A (cycle start week)</li>';
-        results += '<li>Next week (July 7-13) should be Week B</li>';
-        results += '<li>Week after (July 14+) should be Week A again</li>';
-        results += '</ul>';
-        
-        document.getElementById('results').innerHTML = results;
+        // Update bij wijzigingen in week configuraties
+        ['weekA-monday', 'weekA-tuesday', 'weekA-wednesday', 'weekA-thursday', 'weekA-friday',
+         'weekB-monday', 'weekB-tuesday', 'weekB-wednesday', 'weekB-thursday', 'weekB-friday'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('change', updateRoster);
+            }
+        });
     </script>
 </body>
 </html>
