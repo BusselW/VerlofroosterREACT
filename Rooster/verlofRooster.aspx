@@ -376,32 +376,19 @@
                         // Dropdown menu
                         settingsDropdownOpen && h('div', { className: 'user-dropdown-menu' },
                             h('div', { className: 'dropdown-item-group' },
-                                h('button', {
-                                    className: 'dropdown-item',
-                                    onClick: () => {
-                                        navigateTo('gInstellingen.aspx');
-                                        setSettingsDropdownOpen(false);
-                                    }
-                                },
-                                    h('i', { className: 'fas fa-user-edit' }),
-                                    h('div', { className: 'dropdown-item-content' },
-                                        h('span', { className: 'dropdown-item-title' }, 'Persoonlijke gegevens & Werkdagen'),
-                                        h('span', { className: 'dropdown-item-description' }, 'Beheer uw profiel en werkrooster')
-                                    )
-                                ),
-                                h('button', {
-                                    className: 'dropdown-item',
-                                    onClick: () => {
-                                        navigateTo('gInstellingen.aspx#instellingen');
-                                        setSettingsDropdownOpen(false);
-                                    }
-                                },
-                                    h('i', { className: 'fas fa-cog' }),
-                                    h('div', { className: 'dropdown-item-content' },
-                                        h('span', { className: 'dropdown-item-title' }, 'Rooster instellingen'),
-                                        h('span', { className: 'dropdown-item-description' }, 'Configureer weergave voorkeuren')
-                                    )
-                                )
+                h('button', {
+                    className: 'dropdown-item',
+                    onClick: () => {
+                        navigateTo('pages/instellingenCentrum/instellingenCentrumN.aspx');
+                        setSettingsDropdownOpen(false);
+                    }
+                },
+                    h('i', { className: 'fas fa-user-edit' }),
+                    h('div', { className: 'dropdown-item-content' },
+                        h('span', { className: 'dropdown-item-title' }, 'Persoonlijke instellingen'),
+                        h('span', { className: 'dropdown-item-description' }, 'Beheer uw profiel, werktijden en voorkeuren')
+                    )
+                )
                             )
                         )
                     )
