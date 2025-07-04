@@ -625,11 +625,17 @@ body {
 }
 
 .free-day-row {
-    background-color: #fef2f2;
+    background-color: #fef2f2 !important;
+    opacity: 0.7;
 }
 
 .free-day-row:hover {
-    background-color: #fee2e2;
+    background-color: #fee2e2 !important;
+}
+
+.free-day-row input:disabled {
+    background-color: #f8f9fa;
+    color: #adb5bd;
 }
 
 .day-cell {
@@ -667,6 +673,12 @@ body {
     border-radius: 12px;
     padding: 0.25rem 0.75rem;
     text-transform: uppercase;
+    cursor: help;
+    transition: transform 0.2s ease;
+}
+
+.day-type-badge:hover {
+    transform: scale(1.05);
 }
 
 /* Settings Styles */
@@ -795,6 +807,7 @@ body {
 .info-label {
     font-weight: 500;
     color: #546e7a;
+    font-size: 0.875rem;
 }
 
 .info-value {
@@ -923,5 +936,50 @@ body {
     .time-input {
         max-width: 80px;
     }
+}
+
+/* Bulk time input styles */
+.time-separator {
+    font-weight: 500;
+    color: #546e7a;
+    margin: 0 0.5rem;
+}
+
+/* Work hours overview enhancements */
+.work-hours-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.hours-summary {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    flex: 1;
+}
+
+.summary-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #546e7a;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.summary-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    font-family: 'JetBrains Mono', monospace;
 }
 

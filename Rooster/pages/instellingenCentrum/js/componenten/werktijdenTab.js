@@ -14,6 +14,19 @@ import {
     leesItems, 
     bewerkItem 
 } from '../../../../js/services/sharepointCRUD.js';
+import {
+    DAY_TYPES,
+    DAY_TYPE_LABELS,
+    DEFAULT_DAY_TYPE_COLORS,
+    determineWorkDayType,
+    getWorkDayTypeDisplay,
+    calculateHoursWorked,
+    getDayTypeStyle,
+    validateTimeRange,
+    generateWorkScheduleData,
+    DEFAULT_WORK_HOURS,
+    WORK_DAYS
+} from './DagIndicators.js';
 
 const { useState, createElement: h } = React;
 
@@ -27,21 +40,17 @@ export const WorkHoursTab = ({ user, data }) => {
     const [userInfo, setUserInfo] = useState(null);
     const [scheduleType, setScheduleType] = useState('fixed'); // 'fixed' or 'rotating'
     const [activeWeek, setActiveWeek] = useState('A');
-    const [workHours, setWorkHours] = useState({
-        monday: { start: '09:00', end: '17:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        tuesday: { start: '09:00', end: '17:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        wednesday: { start: '09:00', end: '17:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        thursday: { start: '09:00', end: '17:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        friday: { start: '09:00', end: '17:00', hours: 8, type: 'Normaal', isFreeDag: false }
-    });
+    const [workHours, setWorkHours] = useState(DEFAULT_WORK_HOURS);
     const [workHoursB, setWorkHoursB] = useState({
-        monday: { start: '10:00', end: '18:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        tuesday: { start: '10:00', end: '18:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        wednesday: { start: '10:00', end: '18:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        thursday: { start: '10:00', end: '18:00', hours: 8, type: 'Normaal', isFreeDag: false },
-        friday: { start: '--:--', end: '--:--', hours: 0, type: 'VVD', isFreeDag: true }
+        monday: { start: '10:00', end: '18:00', hours: 8, type: DAY_TYPES.NORMAAL, isFreeDag: false },
+        tuesday: { start: '10:00', end: '18:00', hours: 8, type: DAY_TYPES.NORMAAL, isFreeDag: false },
+        wednesday: { start: '10:00', end: '18:00', hours: 8, type: DAY_TYPES.NORMAAL, isFreeDag: false },
+        thursday: { start: '10:00', end: '18:00', hours: 8, type: DAY_TYPES.NORMAAL, isFreeDag: false },
+        friday: { start: '--:--', end: '--:--', hours: 0, type: DAY_TYPES.VVD, isFreeDag: true }
     });
     const [bulkTimes, setBulkTimes] = useState({ start: '09:00', end: '17:00' });
+    const [ingangsdatum, setIngangsdatum] = useState(new Date().toISOString().split('T')[0]);
+    const [cycleStartDate, setCycleStartDate] = useState(new Date().toISOString().split('T')[0]);
 
     // Load user data
     React.useEffect(() => {
@@ -63,20 +72,53 @@ export const WorkHoursTab = ({ user, data }) => {
         setFeedback(null);
         
         try {
-            // TODO: Implement save logic to SharePoint
-            // This will involve creating/updating records in the work hours list
-            // Example structure for the save data:
-            const saveData = {
-                scheduleType,
-                workHours,
-                workHoursB: scheduleType === 'rotating' ? workHoursB : null,
-                userId: userInfo?.LoginName
-            };
-            
-            // Simulate save for now
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            setFeedback({ type: 'success', message: 'Werktijden succesvol opgeslagen!' });
+            if (scheduleType === 'rotating') {
+                // Save both Week A and Week B for rotating schedules
+                const savePromises = [];
+                
+                // Prepare Week A data
+                const weekAData = generateWorkScheduleData(workHours, {
+                    weekType: 'A',
+                    isRotating: true,
+                    userId: userInfo?.LoginName,
+                    ingangsdatum,
+                    cycleStartDate
+                });
+                
+                // Prepare Week B data  
+                const weekBData = generateWorkScheduleData(workHoursB, {
+                    weekType: 'B',
+                    isRotating: true,
+                    userId: userInfo?.LoginName,
+                    ingangsdatum,
+                    cycleStartDate
+                });
+                
+                console.log('Saving rotating schedule - Week A:', weekAData);
+                console.log('Saving rotating schedule - Week B:', weekBData);
+                
+                // Save both weeks
+                savePromises.push(createSharePointListItem('UrenPerWeek', weekAData));
+                savePromises.push(createSharePointListItem('UrenPerWeek', weekBData));
+                
+                await Promise.all(savePromises);
+                
+                setFeedback({ type: 'success', message: 'Roterend werkrooster (Week A & B) succesvol opgeslagen!' });
+            } else {
+                // Save single fixed schedule
+                const scheduleData = generateWorkScheduleData(workHours, {
+                    weekType: null,
+                    isRotating: false,
+                    userId: userInfo?.LoginName,
+                    ingangsdatum
+                });
+                
+                console.log('Saving fixed schedule:', scheduleData);
+                
+                await createSharePointListItem('UrenPerWeek', scheduleData);
+                
+                setFeedback({ type: 'success', message: 'Werkrooster succesvol opgeslagen!' });
+            }
         } catch (error) {
             console.error('Error saving work hours:', error);
             setFeedback({ type: 'error', message: 'Fout bij opslaan van werktijden. Probeer opnieuw.' });
@@ -87,28 +129,7 @@ export const WorkHoursTab = ({ user, data }) => {
         }
     };
 
-    const days = [
-        { key: 'monday', label: 'Maandag', short: 'Ma' },
-        { key: 'tuesday', label: 'Dinsdag', short: 'Di' },
-        { key: 'wednesday', label: 'Woensdag', short: 'Wo' },
-        { key: 'thursday', label: 'Donderdag', short: 'Do' },
-        { key: 'friday', label: 'Vrijdag', short: 'Vr' }
-    ];
-
-    const dayTypes = [
-        { value: 'Normaal', label: 'Normaal', color: '#27ae60' },
-        { value: 'VVD', label: 'Volledige Vrije Dag', color: '#e74c3c' },
-        { value: 'VVO', label: 'Vrije Voormiddag', color: '#f39c12' },
-        { value: 'VVM', label: 'Vrije Namiddag', color: '#f39c12' }
-    ];
-
-    const calculateHours = (start, end) => {
-        if (!start || !end || start === '--:--' || end === '--:--') return 0;
-        const startTime = new Date(`2000-01-01T${start}:00`);
-        const endTime = new Date(`2000-01-01T${end}:00`);
-        if (endTime <= startTime) return 0;
-        return Math.round(((endTime - startTime) / (1000 * 60 * 60)) * 10) / 10;
-    };
+    const days = WORK_DAYS;
 
     const getCurrentWeekHours = () => {
         const currentHours = scheduleType === 'rotating' && activeWeek === 'B' ? workHoursB : workHours;
@@ -123,21 +144,35 @@ export const WorkHoursTab = ({ user, data }) => {
             const updated = { ...prev };
             updated[day] = { ...updated[day], [field]: value };
             
-            // Recalculate hours if start or end time changed
+            // Recalculate hours and type if start or end time changed
             if (field === 'start' || field === 'end') {
-                const hours = calculateHours(
-                    field === 'start' ? value : updated[day].start,
-                    field === 'end' ? value : updated[day].end
-                );
-                updated[day].hours = hours;
+                const newStart = field === 'start' ? value : updated[day].start;
+                const newEnd = field === 'end' ? value : updated[day].end;
                 
-                // Auto-determine day type based on times
-                if (updated[day].isFreeDag) {
-                    updated[day].type = 'VVD';
-                } else if (!value || value === '--:--') {
-                    updated[day].type = 'VVD';
-                } else {
-                    updated[day].type = 'Normaal';
+                // Calculate hours
+                updated[day].hours = calculateHoursWorked(newStart, newEnd);
+                
+                // Determine day type using the new logic
+                updated[day].type = determineWorkDayType(newStart, newEnd, updated[day].isFreeDag);
+            } else if (field === 'isFreeDag') {
+                // Update day type when free day status changes
+                updated[day].type = determineWorkDayType(
+                    updated[day].start, 
+                    updated[day].end, 
+                    value
+                );
+                
+                // If marking as free day, clear the times and set hours to 0
+                if (value) {
+                    updated[day].start = '--:--';
+                    updated[day].end = '--:--';
+                    updated[day].hours = 0;
+                } else if (updated[day].start === '--:--' || updated[day].end === '--:--') {
+                    // If unmarking free day but times are still --:--, set default times
+                    updated[day].start = '09:00';
+                    updated[day].end = '17:00';
+                    updated[day].hours = calculateHoursWorked('09:00', '17:00');
+                    updated[day].type = determineWorkDayType('09:00', '17:00', false);
                 }
             }
             
@@ -155,24 +190,12 @@ export const WorkHoursTab = ({ user, data }) => {
                 if (!updated[day.key].isFreeDag) {
                     updated[day.key].start = bulkTimes.start;
                     updated[day.key].end = bulkTimes.end;
-                    updated[day.key].hours = calculateHours(bulkTimes.start, bulkTimes.end);
-                    updated[day.key].type = 'Normaal';
+                    updated[day.key].hours = calculateHoursWorked(bulkTimes.start, bulkTimes.end);
+                    updated[day.key].type = determineWorkDayType(bulkTimes.start, bulkTimes.end, false);
                 }
             });
             return updated;
         });
-    };
-
-    const getDayTypeStyle = (type) => {
-        const dayType = dayTypes.find(dt => dt.value === type);
-        return {
-            backgroundColor: dayType?.color || '#e0e0e0',
-            color: 'white',
-            padding: '0.25rem 0.5rem',
-            borderRadius: '12px',
-            fontSize: '0.75rem',
-            fontWeight: '500'
-        };
     };
 
     return h('div', null,
@@ -221,6 +244,29 @@ export const WorkHoursTab = ({ user, data }) => {
                     }),
                     h('span', null, 'Roulerend schema'),
                     h('small', { className: 'text-muted' }, 'Afwisselend Week A en Week B')
+                )
+            ),
+            
+            // Date inputs
+            h('div', { className: 'form-row', style: { marginTop: '1.5rem' } },
+                h('div', { className: 'form-group' },
+                    h('label', { className: 'form-label' }, 'Ingangsdatum'),
+                    h('input', {
+                        type: 'date',
+                        className: 'form-input',
+                        value: ingangsdatum,
+                        onChange: (e) => setIngangsdatum(e.target.value)
+                    })
+                ),
+                scheduleType === 'rotating' && h('div', { className: 'form-group' },
+                    h('label', { className: 'form-label' }, 'Cyclus startdatum'),
+                    h('input', {
+                        type: 'date',
+                        className: 'form-input',
+                        value: cycleStartDate,
+                        onChange: (e) => setCycleStartDate(e.target.value)
+                    }),
+                    h('small', { className: 'text-muted' }, 'Wanneer Week A begint in de 2-weken cyclus')
                 )
             )
         ),
@@ -322,7 +368,8 @@ export const WorkHoursTab = ({ user, data }) => {
                                 h('td', null,
                                     h('span', { 
                                         className: 'day-type-badge',
-                                        style: getDayTypeStyle(dayData.type)
+                                        style: getDayTypeStyle(dayData.type),
+                                        title: getWorkDayTypeDisplay(dayData.type)
                                     }, dayData.type)
                                 ),
                                 h('td', null,
@@ -348,7 +395,7 @@ export const WorkHoursTab = ({ user, data }) => {
             h('button', {
                 className: 'btn btn-primary save-btn',
                 onClick: handleSave,
-                disabled: isLoading
+                disabled: isLoading || !userInfo
             }, 
                 isLoading ? 'Opslaan...' : 'Werktijden Opslaan'
             )
@@ -368,6 +415,17 @@ export const WorkHoursTab = ({ user, data }) => {
                     h('div', { className: 'summary-item' },
                         h('span', { className: 'summary-label' }, 'Gemiddeld per dag:'),
                         h('span', { className: 'summary-value' }, `${(getCurrentWeekHours() / 5).toFixed(1)} uur`)
+                    )
+                ),
+                
+                scheduleType === 'rotating' && h('div', { className: 'info-grid', style: { marginTop: '1rem' } },
+                    h('div', { className: 'info-item' },
+                        h('span', { className: 'info-label' }, 'Cyclus start:'),
+                        h('span', { className: 'info-value' }, new Date(cycleStartDate).toLocaleDateString('nl-NL'))
+                    ),
+                    h('div', { className: 'info-item' },
+                        h('span', { className: 'info-label' }, 'Ingangsdatum:'),
+                        h('span', { className: 'info-value' }, new Date(ingangsdatum).toLocaleDateString('nl-NL'))
                     )
                 )
             )
