@@ -342,7 +342,7 @@ export const ProfileTab = ({ user, data }) => {
                         border: saveMessage.type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
                     }
                 }, saveMessage.text),
-                // Save button
+                // Save button - already right-aligned
                 h('button', { 
                     className: 'btn btn-primary',
                     onClick: handleSave,

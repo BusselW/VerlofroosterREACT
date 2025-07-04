@@ -274,10 +274,10 @@ export const WorkHoursTab = ({ user, data }) => {
                     '💡 Hoe werkt dit?'
                 ),
                 h('ul', { style: { margin: '0', paddingLeft: '20px', fontSize: '13px', color: '#6c757d' } },
-                    h('li', null, '📅 Kies tussen een vast werkschema (elke week hetzelfde) of een roulerend schema (Week A en Week B wisselen af)'),
-                    h('li', null, '🕐 Stel voor elke werkdag uw begin- en eindtijden in'),
-                    h('li', null, '🏠 Markeer vrije dagen of dagen met speciale werktijden (zoals thuiswerken)'),
-                    h('li', null, '✅ Het systeem berekent automatisch uw totaal aantal uren per week')
+                    h('li', null, 'Kies tussen een vast werkschema (elke week hetzelfde) of een roulerend schema (Week A en Week B wisselen af)'),
+                    h('li', null, 'Stel voor elke werkdag uw begin- en eindtijden in'),
+                    h('li', null, 'Markeer vrije dagen of dagen met speciale werktijden (zoals thuiswerken)'),
+                    h('li', null, 'Het systeem berekent automatisch uw totaal aantal uren per week')
                 )
             ),
             h('div', { className: 'day-types-info', style: { 
@@ -357,8 +357,8 @@ export const WorkHoursTab = ({ user, data }) => {
                         checked: scheduleType === 'fixed',
                         onChange: (e) => setScheduleType(e.target.value)
                     }),
-                    h('span', null, '📅 Vast werkschema'),
-                    h('small', { className: 'text-muted' }, 'Elke week werkt u dezelfde tijden (standaard keuze)')
+                    h('span', null, 'Vast werkschema'),
+                    h('small', { className: 'text-muted' }, 'Dit gebruik je als iedere werkweek dezelfde uren zijn')
                 ),
                 h('label', { className: 'radio-option' },
                     h('input', {
@@ -368,8 +368,48 @@ export const WorkHoursTab = ({ user, data }) => {
                         checked: scheduleType === 'rotating',
                         onChange: (e) => setScheduleType(e.target.value)
                     }),
-                    h('span', null, '🔄 Roulerend werkschema'),
-                    h('small', { className: 'text-muted' }, 'Week A en Week B wisselen om de week af (bijvoorbeeld: week 1 = Week A, week 2 = Week B, week 3 = Week A, etc.)')
+                    h('span', null, 'Roulerend werkschema'),
+                    h('small', { className: 'text-muted' }, 'Voor mensen die Week A en Week B afwisselen')
+                )
+            ),
+
+            // Additional explanation for rotating schedule
+            scheduleType === 'rotating' && h('div', { 
+                className: 'rotating-explanation',
+                style: { 
+                    background: '#fff3cd', 
+                    border: '1px solid #ffeaa7', 
+                    borderRadius: '8px', 
+                    padding: '20px', 
+                    margin: '15px 0'
+                } 
+            },
+                h('h4', { 
+                    style: { 
+                        margin: '0 0 15px 0', 
+                        color: '#856404', 
+                        fontSize: '16px',
+                        fontWeight: '600'
+                    } 
+                }, 'Hoe werkt een roulerend werkschema?'),
+                h('div', { 
+                    style: { 
+                        color: '#856404', 
+                        fontSize: '14px',
+                        lineHeight: '1.5'
+                    } 
+                },
+                    h('p', { style: { margin: '0 0 10px 0' } }, 
+                        'Bij een roulerend schema werk je niet elke week hetzelfde. In plaats daarvan wissel je tussen twee verschillende schema\'s:'
+                    ),
+                    h('ul', { style: { margin: '0 0 15px 0', paddingLeft: '20px' } },
+                        h('li', { style: { marginBottom: '5px' } }, 'Week A: bijvoorbeeld maandag t/m donderdag werken, vrijdag vrij'),
+                        h('li', { style: { marginBottom: '5px' } }, 'Week B: bijvoorbeeld maandag vrij, dinsdag t/m vrijdag werken'),
+                        h('li', { style: { marginBottom: '5px' } }, 'Deze weken wisselen elkaar af: A-B-A-B-A-B...')
+                    ),
+                    h('p', { style: { margin: '0', fontWeight: '500' } }, 
+                        'Het systeem berekent automatisch welke week van toepassing is op basis van de startdatum die u instelt.'
+                    )
                 )
             ),
 
@@ -392,7 +432,7 @@ export const WorkHoursTab = ({ user, data }) => {
                         fontSize: '16px',
                         fontWeight: '600'
                     } 
-                }, '🧪 Niet zeker welke cyclus u moet invullen?'),
+                }, 'Niet zeker welke cyclus u moet invullen?'),
                 h('p', { 
                     style: { 
                         margin: '0 0 15px 0', 
@@ -420,8 +460,8 @@ export const WorkHoursTab = ({ user, data }) => {
                         // Open playground in new tab
                         const baseUrl = window.location.origin;
                         const currentPath = window.location.pathname;
-                        // Navigate from /pages/instellingenCentrum/ to /pages/Instellingen/testen/
-                        const playgroundUrl = baseUrl + '/Rooster/pages/Instellingen/testen/playground.aspx';
+                        // Navigate to the playground in the same directory structure
+                        const playgroundUrl = baseUrl + '/Rooster/pages/instellingenCentrum/testen/playground.aspx';
                         window.open(playgroundUrl, '_blank');
                     },
                     onMouseOver: (e) => {
@@ -432,14 +472,14 @@ export const WorkHoursTab = ({ user, data }) => {
                         e.target.style.transform = 'translateY(0)';
                         e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                     }
-                }, '🧪 Test mijn A/B week rooster eerst →')
+                }, 'Test mijn A/B week rooster eerst')
             ),
             
             // Date inputs
             h('div', { className: 'form-row', style: { marginTop: '1.5rem' } },
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 
-                        '📅 Vanaf welke datum gelden deze werktijden?'
+                        'Vanaf welke datum gelden deze werktijden?'
                     ),
                     h('input', {
                         type: 'date',
@@ -453,7 +493,7 @@ export const WorkHoursTab = ({ user, data }) => {
                 ),
                 scheduleType === 'rotating' && h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 
-                        '🔄 Op welke datum begint Week A van uw cyclus?'
+                        'Op welke datum begint Week A van uw cyclus?'
                     ),
                     h('input', {
                         type: 'date',
@@ -471,7 +511,7 @@ export const WorkHoursTab = ({ user, data }) => {
         // Week selector for rotating schedules
         scheduleType === 'rotating' && h('div', { className: 'card' },
             h('h3', { className: 'card-title' }, 
-                '🔄 Welke week wilt u instellen?'
+                'Welke week wilt u instellen?'
             ),
             h('p', { className: 'text-muted mb-3' }, 
                 'U kunt verschillende werktijden instellen voor Week A en Week B. Klik hieronder op de week die u wilt bewerken.'
@@ -539,7 +579,7 @@ export const WorkHoursTab = ({ user, data }) => {
                 h('table', { className: 'schedule-table' },
                     h('thead', null,
                         h('tr', null,
-                            h('th', null, '📅 Weekdag'),
+                            h('th', null, 'Weekdag'),
                             h('th', null, '🕘 Begin'),
                             h('th', null, '🕕 Einde'),
                             h('th', null, '⏱️ Totaal'),
@@ -600,9 +640,10 @@ export const WorkHoursTab = ({ user, data }) => {
         ),
 
         // Save Button
-        h('div', { className: 'save-section' },
+        h('div', { className: 'save-section', style: { textAlign: 'right' } },
             feedback && h('div', { 
-                className: `feedback-message ${feedback.type}` 
+                className: `feedback-message ${feedback.type}`,
+                style: { textAlign: 'left', marginBottom: '10px' }
             }, feedback.message),
             h('button', {
                 className: 'btn btn-primary save-btn',
@@ -610,9 +651,9 @@ export const WorkHoursTab = ({ user, data }) => {
                 disabled: isLoading || !userInfo,
                 style: { fontSize: '16px', padding: '12px 24px' }
             }, 
-                isLoading ? '💾 Bezig met opslaan...' : '💾 Mijn werktijden opslaan'
+                isLoading ? 'Bezig met opslaan...' : 'Mijn werktijden opslaan'
             ),
-            h('p', { className: 'text-muted', style: { marginTop: '10px', fontSize: '13px' } },
+            h('p', { className: 'text-muted', style: { marginTop: '10px', fontSize: '13px', textAlign: 'left' } },
                 'Na het opslaan worden uw nieuwe werktijden gebruikt in het rooster. Dit kan even duren voordat het overal zichtbaar is.'
             )
         ),
@@ -642,11 +683,11 @@ export const WorkHoursTab = ({ user, data }) => {
                 
                 scheduleType === 'rotating' && h('div', { className: 'info-grid', style: { marginTop: '1rem' } },
                     h('div', { className: 'info-item' },
-                        h('span', { className: 'info-label' }, '🔄 Week A start datum:'),
+                        h('span', { className: 'info-label' }, 'Week A start datum:'),
                         h('span', { className: 'info-value' }, new Date(cycleStartDate).toLocaleDateString('nl-NL'))
                     ),
                     h('div', { className: 'info-item' },
-                        h('span', { className: 'info-label' }, '📅 Schema geldig vanaf:'),
+                        h('span', { className: 'info-label' }, 'Schema geldig vanaf:'),
                         h('span', { className: 'info-value' }, new Date(ingangsdatum).toLocaleDateString('nl-NL'))
                     )
                 ),

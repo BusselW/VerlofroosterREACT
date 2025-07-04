@@ -1,10 +1,546 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roulerende Werkroosters - Testomgeving</title>
+    <title>A/B Week Rooster Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:," />
+
+    <!-- React Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Configuration -->
+    <script src="../../../js/config/configLijst.js"></script>
+
+    <!-- Use the same styles as the settings page -->
+    <link href="../css/instellingencentrum_s.css" rel="stylesheet">
+    
+    <!-- Additional playground styles -->
     <style>
+        .playground-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .playground-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .playground-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .help-section {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .help-section h2 {
+            color: #0c5460;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .help-section ul {
+            color: #495057;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+
+        .week-config-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .week-block {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .week-block h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .week-a h3 {
+            background: #e8f5e8;
+            color: #27ae60;
+        }
+
+        .week-b h3 {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .day-row {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .day-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        .day-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .preview-section {
+            margin-top: 30px;
+        }
+
+        .week-display {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .week-header {
+            padding: 15px 20px;
+            font-weight: 600;
+            text-align: center;
+            color: white;
+        }
+
+        .week-type-a .week-header {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .week-type-b .week-header {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .day-cell {
+            padding: 15px 10px;
+            text-align: center;
+            border-right: 1px solid #e1e5e9;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .day-cell:last-child {
+            border-right: none;
+        }
+
+        .day-header {
+            font-weight: 600;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .day-content {
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .day-date {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .day-type {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .day-type.vvm {
+            background: #e8f5e8;
+            color: #27ae60;
+        }
+
+        .day-type.vvd {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .day-type.normaal {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .day-type.flexibel {
+            background: #f3e5f5;
+            color: #9c27b0;
+        }
+
+        .weekend {
+            background: #f8f9fa;
+            color: #95a5a6;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .week-config-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .days-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="playground-header">
+        <h1>A/B Week Rooster Tester</h1>
+        <p>Test hoe uw roulerende werkschema eruit ziet voordat u het instelt</p>
+    </div>
+
+    <div id="root"></div>
+
+    <script type="module">
+        const { useState, useEffect, createElement: h, Fragment } = React;
+
+        // Nederlandse maanden en dagen
+        const dutchMonths = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 
+                           'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+        const dutchDays = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+        const dutchDaysShort = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'];
+
+        // Week calculation function (same as main calendar)
+        function calculateWeekType(targetDate, cycleStartDate) {
+            if (!cycleStartDate || !(cycleStartDate instanceof Date)) {
+                return { weekType: 'A', error: 'Geen geldige startdatum cyclus' };
+            }
+           
+            const getWeekStartDate = (date) => {
+                const d = new Date(date);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                d.setDate(diff);
+                d.setHours(0, 0, 0, 0);
+                return d;
+            };
+           
+            const cycleWeekStart = getWeekStartDate(cycleStartDate);
+            const targetWeekStart = getWeekStartDate(targetDate);
+           
+            const timeDiff = targetWeekStart.getTime() - cycleWeekStart.getTime();
+            const weeksSinceCycleStart = Math.floor(timeDiff / (7 * 24 * 60 * 60 * 1000));
+           
+            const weekType = ((weeksSinceCycleStart % 2) + 2) % 2 === 0 ? 'A' : 'B';
+            
+            return {
+                weekType,
+                cycleWeekStart: cycleWeekStart,
+                targetWeekStart: targetWeekStart,
+                weeksSinceCycleStart
+            };
+        }
+
+        function formatDutchDate(date) {
+            const day = date.getDate();
+            const month = dutchMonths[date.getMonth()];
+            const year = date.getFullYear();
+            const weekday = dutchDays[date.getDay()];
+            return `${weekday} ${day} ${month} ${year}`;
+        }
+
+        // =====================
+        // Main Playground Component
+        // =====================
+        const PlaygroundApp = () => {
+            const [cycleStartDate, setCycleStartDate] = useState('2025-07-07');
+            const [weekAConfig, setWeekAConfig] = useState({
+                monday: 'Normaal',
+                tuesday: 'Normaal',
+                wednesday: 'Normaal',
+                thursday: 'Normaal',
+                friday: 'VVD'
+            });
+            const [weekBConfig, setWeekBConfig] = useState({
+                monday: 'VVD',
+                tuesday: 'Normaal',
+                wednesday: 'Normaal',
+                thursday: 'Normaal',
+                friday: 'Normaal'
+            });
+
+            const updateWeekConfig = (week, day, value) => {
+                if (week === 'A') {
+                    setWeekAConfig(prev => ({ ...prev, [day]: value }));
+                } else {
+                    setWeekBConfig(prev => ({ ...prev, [day]: value }));
+                }
+            };
+
+            const generatePreview = () => {
+                if (!cycleStartDate) return [];
+
+                const cycleStart = new Date(cycleStartDate);
+                const today = new Date();
+                const dayOfWeek = today.getDay();
+                const daysUntilMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
+                const startDate = new Date(today);
+                startDate.setDate(today.getDate() + daysUntilMonday);
+
+                const weeks = [];
+                for (let week = 0; week < 4; week++) {
+                    const weekStartDate = new Date(startDate);
+                    weekStartDate.setDate(startDate.getDate() + (week * 7));
+                    
+                    const calculation = calculateWeekType(weekStartDate, cycleStart);
+                    const weekType = calculation.weekType;
+                    const config = weekType === 'A' ? weekAConfig : weekBConfig;
+
+                    const days = [];
+                    for (let day = 0; day < 7; day++) {
+                        const currentDate = new Date(weekStartDate);
+                        currentDate.setDate(weekStartDate.getDate() + day);
+                        
+                        const isWeekend = day === 0 || day === 6;
+                        let dayType = '';
+                        
+                        if (!isWeekend) {
+                            const workdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+                            const workday = workdays[day - 1];
+                            dayType = config[workday];
+                        } else {
+                            dayType = 'Weekend';
+                        }
+
+                        days.push({
+                            date: currentDate,
+                            dayType,
+                            isWeekend
+                        });
+                    }
+
+                    weeks.push({
+                        weekNumber: week + 1,
+                        weekType,
+                        startDate: weekStartDate,
+                        days
+                    });
+                }
+
+                return weeks;
+            };
+
+            const weeks = generatePreview();
+
+            return h('div', { className: 'container' },
+                h('div', { className: 'help-section' },
+                    h('h2', null, 'Hoe gebruik je deze tester?'),
+                    h('ul', null,
+                        h('li', null, h('strong', null, 'Week A startdatum:'), ' Kies een maandag waarop Week A begint'),
+                        h('li', null, h('strong', null, 'Week schema\'s:'), ' Stel in welke dagen u in Week A en Week B werkt'),
+                        h('li', null, h('strong', null, 'Bekijk resultaat:'), ' Zie hieronder hoe de komende 4 weken eruit zien'),
+                        h('li', null, h('strong', null, 'Tevreden?'), ' Ga terug naar ', 
+                            h('a', { 
+                                href: '../instellingenCentrumN.aspx',
+                                style: { color: '#3498db', textDecoration: 'none', fontWeight: '600' }
+                            }, 'Persoonlijke Instellingen'), ' en vul dezelfde gegevens in')
+                    )
+                ),
+
+                h('div', { className: 'card' },
+                    h('h3', { className: 'card-title' }, 'Uw roulerende schema instellen'),
+                    
+                    h('div', { className: 'form-group' },
+                        h('label', { className: 'form-label' }, 'Op welke maandag begint Week A?'),
+                        h('input', {
+                            type: 'date',
+                            className: 'form-input',
+                            value: cycleStartDate,
+                            onChange: (e) => setCycleStartDate(e.target.value)
+                        }),
+                        h('small', { className: 'text-muted' }, 
+                            'Kies bij voorkeur een maandag in de nabije toekomst'
+                        )
+                    ),
+
+                    h('div', { className: 'week-config-container' },
+                        h('div', { className: 'week-block week-a' },
+                            h('h3', null, 'Week A - Wat werk je deze week?'),
+                            h('div', { className: 'day-config' },
+                                ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].map(day => {
+                                    const dayNames = {
+                                        monday: 'Maandag',
+                                        tuesday: 'Dinsdag', 
+                                        wednesday: 'Woensdag',
+                                        thursday: 'Donderdag',
+                                        friday: 'Vrijdag'
+                                    };
+                                    
+                                    return h('div', { key: day, className: 'day-row' },
+                                        h('span', { className: 'day-label' }, dayNames[day] + ':'),
+                                        h('select', {
+                                            className: 'day-select',
+                                            value: weekAConfig[day],
+                                            onChange: (e) => updateWeekConfig('A', day, e.target.value)
+                                        },
+                                            h('option', { value: 'Normaal' }, 'Gewoon werken'),
+                                            h('option', { value: 'VVM' }, 'Vrije voormiddag'),
+                                            h('option', { value: 'VVD' }, 'Niet werken'),
+                                            h('option', { value: 'Flexibel' }, 'Flexibele tijd')
+                                        )
+                                    );
+                                })
+                            )
+                        ),
+
+                        h('div', { className: 'week-block week-b' },
+                            h('h3', null, 'Week B - Wat werk je deze week?'),
+                            h('div', { className: 'day-config' },
+                                ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].map(day => {
+                                    const dayNames = {
+                                        monday: 'Maandag',
+                                        tuesday: 'Dinsdag',
+                                        wednesday: 'Woensdag', 
+                                        thursday: 'Donderdag',
+                                        friday: 'Vrijdag'
+                                    };
+                                    
+                                    return h('div', { key: day, className: 'day-row' },
+                                        h('span', { className: 'day-label' }, dayNames[day] + ':'),
+                                        h('select', {
+                                            className: 'day-select',
+                                            value: weekBConfig[day],
+                                            onChange: (e) => updateWeekConfig('B', day, e.target.value)
+                                        },
+                                            h('option', { value: 'Normaal' }, 'Gewoon werken'),
+                                            h('option', { value: 'VVM' }, 'Vrije voormiddag'),
+                                            h('option', { value: 'VVD' }, 'Niet werken'),
+                                            h('option', { value: 'Flexibel' }, 'Flexibele tijd')
+                                        )
+                                    );
+                                })
+                            )
+                        )
+                    )
+                ),
+
+                h('div', { className: 'card preview-section' },
+                    h('h3', { className: 'card-title' }, 'Zo ziet uw rooster eruit (komende 4 weken)'),
+                    
+                    ...weeks.map((week, index) =>
+                        h('div', { 
+                            key: index, 
+                            className: `week-display week-type-${week.weekType.toLowerCase()}` 
+                        },
+                            h('div', { className: 'week-header' },
+                                `Week ${week.weekNumber}: Week ${week.weekType} - ${formatDutchDate(week.startDate)}`
+                            ),
+                            h('div', { className: 'days-grid' },
+                                // Headers
+                                ...dutchDaysShort.map(dayName =>
+                                    h('div', { 
+                                        key: dayName,
+                                        className: `day-cell day-header ${dayName === 'Zo' || dayName === 'Za' ? 'weekend' : ''}` 
+                                    }, dayName)
+                                ),
+                                // Days
+                                ...week.days.map((day, dayIndex) =>
+                                    h('div', { 
+                                        key: dayIndex,
+                                        className: `day-cell ${day.isWeekend ? 'weekend' : ''}` 
+                                    },
+                                        h('div', { className: 'day-content' },
+                                            h('div', { className: 'day-date' }, 
+                                                `${day.date.getDate()}/${day.date.getMonth() + 1}`
+                                            ),
+                                            h('div', { 
+                                                className: `day-type ${day.dayType.toLowerCase()}` 
+                                            }, day.dayType)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
+
+                h('div', { style: { textAlign: 'center', marginTop: '30px' } },
+                    h('a', { 
+                        href: '../instellingenCentrumN.aspx',
+                        className: 'back-link'
+                    }, 'Terug naar Persoonlijke Instellingen')
+                )
+            );
+        };
+
+        // Initialize the application
+        const initializePlayground = () => {
+            const container = document.getElementById('root');
+            if (container) {
+                const root = ReactDOM.createRoot(container);
+                root.render(h(PlaygroundApp));
+                console.log('Playground initialized successfully');
+            } else {
+                console.error('Root container not found');
+            }
+        };
+
+        // Start the application
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePlayground);
+        } else {
+            initializePlayground();
+        }
+</body>
+
+</html>
         * {
             margin: 0;
             padding: 0;
