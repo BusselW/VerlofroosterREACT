@@ -34,13 +34,13 @@ export const DEFAULT_DAY_TYPE_COLORS = {
 
 /**
  * Determines the work day type based on start time, end time, and free day status
- * Updated logic based on user requirements:
+ * Corrected logic based on user requirements:
  * 
  * - VVD: Vrije Dag checkbox is checked (overrides all, disables time pickers)
+ * - Flexibele uren: ONLY when time pickers are BLANK and VVD checkbox is UNCHECKED
  * - VVO: Morning off - employee starts at 12:00+ (no work before 13:00)
  * - VVM: Afternoon off - employee starts before 13:00 AND ends before 13:00
- * - Normaal: Flexible start 07:00-10:00, standard end 15:00-19:00 (full working day)
- * - Flexibele uren: Empty/undefined times (prevents "not working" when times are flexible)
+ * - Normaal: All other cases with filled time pickers (doesn't fit VVO/VVM patterns)
  * 
  * Key definitions:
  * - Morning = time before 13:00
@@ -60,10 +60,10 @@ export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
         return DAY_TYPES.VVD;
     }
     
-    // Step 2: Flexibele uren - Check for empty/undefined times (--:-- format or empty)
+    // Step 2: Flexibele uren - ONLY when time pickers are BLANK and VVD checkbox is UNCHECKED
     if (!startTime || !endTime || startTime === '--:--' || endTime === '--:--' || 
         startTime.trim() === '' || endTime.trim() === '') {
-        console.log('Flexibele uren: Empty or undefined times detected');
+        console.log('Flexibele uren: Empty or undefined times detected (and VVD not checked)');
         return DAY_TYPES.FLEXIBEL;
     }
     
@@ -76,7 +76,7 @@ export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
         return DAY_TYPES.FLEXIBEL;
     }
     
-    // Step 4: Check for no work (start and end times are the same)
+    // Step 4: Check for no work (start and end times are the same) - treat as flexible
     if (startTime === endTime) {
         console.log('Flexibele uren: Start and end times are identical');
         return DAY_TYPES.FLEXIBEL;
@@ -91,12 +91,8 @@ export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
     // Step 5: Define time boundaries
     const morningEnd = 13 * 60;        // 13:00 - End of morning period
     const middagStart = 12 * 60;       // 12:00 - Start of middag period
-    const normaalStartEarly = 7 * 60;  // 07:00 - Earliest normal start
-    const normaalStartLate = 10 * 60;  // 10:00 - Latest normal start (updated from 11:00)
-    const normaalEndEarly = 15 * 60;   // 15:00 - Earliest normal end
-    const normaalEndLate = 19 * 60;    // 19:00 - Latest normal end (updated from 18:00)
     
-    // Step 6: Apply the corrected logic
+    // Step 6: Apply the corrected logic - if times are filled, determine VVO/VVM/Normaal
     
     // VVM: Afternoon off - worked morning only (starts before 13:00 AND ends before 13:00)
     if (startMinutes < morningEnd && endMinutes < morningEnd) {
@@ -110,16 +106,9 @@ export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
         return DAY_TYPES.VVO;
     }
     
-    // Normaal: Full working day (flexible start 07:00-10:00, standard end 15:00-19:00)
-    if (startMinutes >= normaalStartEarly && startMinutes <= normaalStartLate && 
-        endMinutes >= normaalEndEarly && endMinutes <= normaalEndLate) {
-        console.log('Normaal: Full working day (start 07:00-10:00, end 15:00-19:00)');
-        return DAY_TYPES.NORMAAL;
-    }
-    
-    // All other cases: Flexibele uren (doesn't fit standard patterns)
-    console.log('Flexibele uren: Does not fit VVM/VVO/Normaal patterns');
-    return DAY_TYPES.FLEXIBEL;
+    // Normaal: All other cases with filled time pickers (doesn't fit VVO/VVM patterns)
+    console.log('Normaal: Filled time pickers that don\'t fit VVO/VVM patterns');
+    return DAY_TYPES.NORMAAL;
 }
 
 /**
