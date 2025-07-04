@@ -207,8 +207,9 @@ export const WorkHoursTab = ({ user, data }) => {
     };
 
     return h('div', null,
-        h('div', { className: 'tab-header' },
-            h('h2', null, 
+        // Schedule Type Selection Card (now includes the main header)
+        h('div', { className: 'card' },
+            h('h3', { className: 'card-title' }, 
                 h('svg', { 
                     width: '24', 
                     height: '24', 
@@ -224,12 +225,7 @@ export const WorkHoursTab = ({ user, data }) => {
                 ),
                 'Mijn Werktijden'
             ),
-            h('p', { className: 'text-muted mb-4' }, 'Beheer uw standaard werktijden en werkschema.')
-        ),
-
-        // Schedule Type Selection Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 'Werkschema Type'),
+            h('p', { className: 'text-muted mb-3' }, 'Beheer uw standaard werktijden en werkschema.'),
             h('div', { className: 'schedule-type-selector' },
                 h('label', { className: 'radio-option' },
                     h('input', {
@@ -294,10 +290,13 @@ export const WorkHoursTab = ({ user, data }) => {
             )
         ),
 
-        // Bulk Operations Card
+        // Detailed Schedule Card (now includes bulk operations)
         h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 'Snelle Acties'),
-            h('div', { className: 'bulk-operations' },
+            h('div', { className: 'card-header-with-actions' },
+                h('h3', { className: 'card-title' }, 
+                    scheduleType === 'rotating' ? `Werkschema - Week ${activeWeek}` : 'Werkschema'
+                ),
+                // Integrated bulk time setter
                 h('div', { className: 'bulk-time-setter' },
                     h('label', { className: 'form-label' }, 'Alle dagen instellen:'),
                     h('div', { className: 'bulk-time-inputs' },
@@ -319,15 +318,6 @@ export const WorkHoursTab = ({ user, data }) => {
                             onClick: handleBulkTimeSet
                         }, 'Toepassen')
                     )
-                )
-            )
-        ),
-
-        // Detailed Schedule Card
-        h('div', { className: 'card' },
-            h('div', { className: 'card-header-with-actions' },
-                h('h3', { className: 'card-title' }, 
-                    scheduleType === 'rotating' ? `Werkschema - Week ${activeWeek}` : 'Werkschema'
                 )
             ),
             
