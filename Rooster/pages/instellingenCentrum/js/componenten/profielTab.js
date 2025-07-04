@@ -19,7 +19,6 @@ export const ProfileTab = ({ user, data }) => {
         telefoon: '',
         functie: '',
         afdeling: '',
-        manager: '',
         startdatum: ''
     });
 
@@ -74,26 +73,6 @@ export const ProfileTab = ({ user, data }) => {
     };
 
     return h('div', null,
-        h('div', { className: 'tab-header' },
-            h('h2', null, 
-                h('svg', { 
-                    width: '24', 
-                    height: '24', 
-                    fill: 'currentColor', 
-                    viewBox: '0 0 20 20',
-                    style: { marginRight: '0.5rem' }
-                }, 
-                    h('path', { 
-                        fillRule: 'evenodd', 
-                        d: 'M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z', 
-                        clipRule: 'evenodd' 
-                    })
-                ),
-                'Mijn Profiel'
-            ),
-            h('p', { className: 'text-muted mb-4' }, 'Bekijk en beheer uw persoonlijke informatie.')
-        ),
-
         // Combined Profile and Data Card
         h('div', { className: 'card' },
             h('div', { className: 'card-header-with-actions' },
@@ -205,16 +184,6 @@ export const ProfileTab = ({ user, data }) => {
                 )
             ),
             h('div', { className: 'form-row' },
-                h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Manager'),
-                    h('input', {
-                        type: 'text',
-                        className: 'form-input',
-                        value: formData.manager,
-                        placeholder: 'Naam van uw manager...',
-                        onChange: (e) => handleInputChange('manager', e.target.value)
-                    })
-                ),
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Startdatum'),
                     h('input', {
