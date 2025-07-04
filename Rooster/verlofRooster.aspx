@@ -365,7 +365,7 @@
                                     bottom: '3px',
                                     left: '40px'
                                 },
-                                title: `Uw teamleider is ${userInfo.teamLeader}`
+                                title: `Je teamleider is ${userInfo.teamLeader}`
                             }, `TL: ${userInfo.teamLeader}`),
                             h('i', {
                                 className: `fas fa-chevron-${settingsDropdownOpen ? 'up' : 'down'}`,

@@ -181,6 +181,20 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* Disabled button styles */
+.btn:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .btn-primary {
     background-color: #1e3a8a;
     color: white;
@@ -320,6 +334,83 @@ body {
     outline: none;
     border-color: #1e3a8a;
     box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+/* Read-only and disabled form input styles */
+.form-input:read-only,
+.form-input[readonly] {
+    background-color: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.form-input:read-only:focus,
+.form-input[readonly]:focus {
+    border-color: #e2e8f0;
+    box-shadow: none;
+}
+
+.form-input:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-input:disabled:focus {
+    border-color: #e2e8f0;
+    box-shadow: none;
+}
+
+/* Select elements - read-only and disabled */
+select.form-input:read-only,
+select.form-input[readonly],
+select.form-input:disabled {
+    background-color: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+/* Labels for read-only/disabled fields */
+.form-group:has(.form-input:read-only) .form-label,
+.form-group:has(.form-input[readonly]) .form-label,
+.form-group:has(.form-input:disabled) .form-label {
+    color: #64748b;
+    opacity: 0.8;
+}
+
+/* Radio buttons and checkboxes - disabled styles */
+input[type="radio"]:disabled,
+input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input[type="radio"]:disabled + span,
+input[type="radio"]:disabled + label,
+input[type="checkbox"]:disabled + span,
+input[type="checkbox"]:disabled + label {
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Radio option containers when disabled */
+.radio-option:has(input[type="radio"]:disabled) {
+    border-color: #e2e8f0;
+    background-color: #f8fafc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.radio-option:has(input[type="radio"]:disabled):hover {
+    border-color: #e2e8f0;
+    background-color: #f8fafc;
 }
 
 /* Responsive form adjustments */

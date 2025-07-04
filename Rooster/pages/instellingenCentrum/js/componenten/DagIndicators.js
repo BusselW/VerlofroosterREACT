@@ -8,25 +8,25 @@
 // Day type constants
 export const DAY_TYPES = {
     VVD: 'VVD',                    // Vaste Vrije Dag (Full Free Day)
-    VVO: 'VVO',                    // Vrije Voormiddag (Free Morning)
-    VVM: 'VVM',                    // Vrije Namiddag (Free Afternoon)  
+    VVO: 'VVO',                    // Vaste Vrije Ochtend (Free Morning)
+    VVM: 'VVM',                    // Vaste Vrije Middag (Free Afternoon)  
     NORMAAL: 'Normaal',            // Normal working day
-    FLEXIBEL: 'Flexibele start tijd' // Flexible start time
+    FLEXIBEL: 'Flexibele uren'     // Flexible hours (internal use only)
 };
 
 // Day type display labels
 export const DAY_TYPE_LABELS = {
-    [DAY_TYPES.VVD]: 'Vaste vrije dag',
-    [DAY_TYPES.VVO]: 'Vrije ochtend', 
-    [DAY_TYPES.VVM]: 'Vrije middag',
-    [DAY_TYPES.FLEXIBEL]: 'Flexibele start tijd',
-    [DAY_TYPES.NORMAAL]: 'Normale werkdag'
+    [DAY_TYPES.VVD]: 'VVD - Vaste Vrije Dag',
+    [DAY_TYPES.VVO]: 'VVO - Vaste Vrije Ochtend', 
+    [DAY_TYPES.VVM]: 'VVM - Vaste Vrije Middag',
+    [DAY_TYPES.FLEXIBEL]: 'Flexibele uren',
+    [DAY_TYPES.NORMAAL]: 'Normaal'
 };
 
 // Default day type colors (can be overridden by SharePoint DagenIndicators)
 export const DEFAULT_DAY_TYPE_COLORS = {
     [DAY_TYPES.VVD]: '#e74c3c',      // Red
-    [DAY_TYPES.VVO]: '#f39c12',      // Orange  
+    [DAY_TYPES.VVO]: '#3498db',      // Blue (distinct from VVM)
     [DAY_TYPES.VVM]: '#f39c12',      // Orange
     [DAY_TYPES.FLEXIBEL]: '#9b59b6', // Purple
     [DAY_TYPES.NORMAAL]: '#27ae60'   // Green
@@ -34,25 +34,30 @@ export const DEFAULT_DAY_TYPE_COLORS = {
 
 /**
  * Determines the work day type based on start time, end time, and free day status
- * This follows the same logic as implemented in gInstellingen.aspx
+ * Updated logic for rooster terms:
+ * - VVM: Start before 12:00 and stop before or at exactly 13:00 (morning work, stops at lunch)
+ * - VVO: Start >= 12:00 and stop >= 13:00 (afternoon work, no morning)
+ * - VVD: Checkbox decides (explicit free day)
+ * - Normaal: Start 07:00-11:00, stop 15:00-18:00+ (full day work)
+ * - Flexibele uren: No fixed times (blank fields, not VVD)
  * 
  * @param {string} startTime - Start time in HH:MM format
  * @param {string} endTime - End time in HH:MM format  
  * @param {boolean} isVrijeDag - Whether the day is explicitly marked as free
- * @returns {string} Day type (VVD, VVO, VVM, Normaal, or Flexibele start tijd)
+ * @returns {string} Day type (VVD, VVO, VVM, Normaal, or Flexibele uren)
  */
 export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
     console.log(`Determining work day type for: ${startTime} - ${endTime}, isVrijeDag: ${isVrijeDag}`);
     
-    // Step 1: Check for explicitly marked free day
+    // Step 1: Check for explicitly marked free day (VVD checkbox)
     if (isVrijeDag) {
         console.log('Explicitly marked as free day, returning VVD');
         return DAY_TYPES.VVD;
     }
     
-    // Step 2: Check for flexible working hours (--:-- format or empty)
+    // Step 2: Check for flexible working hours (--:-- format or empty) - no fixed times
     if (!startTime || !endTime || startTime === '--:--' || endTime === '--:--') {
-        console.log('Flexible hours detected (--:-- format or empty), returning Flexibele start tijd');
+        console.log('Flexible hours detected (--:-- format or empty), returning Flexibele uren');
         return DAY_TYPES.FLEXIBEL;
     }
     
@@ -61,13 +66,13 @@ export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
     const end = new Date(`2000-01-01T${endTime}:00`);
     
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        console.log('Invalid time format, returning Flexibele start tijd');
+        console.log('Invalid time format, returning Flexibele uren');
         return DAY_TYPES.FLEXIBEL;
     }
     
     console.log(`Parsed times: start=${start.getHours()}:${String(start.getMinutes()).padStart(2, '0')}, end=${end.getHours()}:${String(end.getMinutes()).padStart(2, '0')}`);
     
-    // Step 4: Check for no work (VVD) - start and end times are the same
+    // Step 4: Check for no work (start and end times are the same)
     if (startTime === endTime) {
         console.log('Start and end times are the same, returning VVD');
         return DAY_TYPES.VVD;
@@ -77,42 +82,40 @@ export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
     const startMinutes = start.getHours() * 60 + start.getMinutes();
     const endMinutes = end.getHours() * 60 + end.getMinutes();
     
-    // Step 5: Define time periods
-    const morningStart = 6 * 60;   // 06:00 - Morning period start
-    const morningEnd = 13 * 60;    // 13:00 - Morning period end
-    const afternoonStart = 12 * 60; // 12:00 - Afternoon period start
+    // Step 5: Define new time boundaries based on rooster logic
+    const morningBoundary = 12 * 60;   // 12:00 - Morning/afternoon boundary
+    const lunchEnd = 13 * 60;          // 13:00 - End of lunch period
+    const normaalStartEarly = 7 * 60;  // 07:00 - Earliest normal start
+    const normaalStartLate = 11 * 60;  // 11:00 - Latest normal start  
+    const normaalEndEarly = 15 * 60;   // 15:00 - Earliest normal end
+    const normaalEndLate = 18 * 60;    // 18:00 - Standard normal end (18:00+)
     
-    // Step 6: Check if working during morning period (06:00-13:00)
-    // Work overlaps with morning if it starts before 13:00 AND ends after 06:00
-    const worksInMorning = startMinutes < morningEnd && endMinutes > morningStart;
+    console.log(`Start: ${Math.floor(startMinutes/60)}:${String(startMinutes%60).padStart(2,'0')}, End: ${Math.floor(endMinutes/60)}:${String(endMinutes%60).padStart(2,'0')}`);
     
-    // Step 7: Check if working during afternoon period (12:00+)
-    // Work extends into afternoon if it ends after 12:00
-    const worksInAfternoon = endMinutes > afternoonStart;
+    // Step 6: Apply new rooster logic
     
-    console.log(`Works in morning (06:00-13:00): ${worksInMorning}`);
-    console.log(`Works in afternoon (12:00+): ${worksInAfternoon}`);
-    
-    // Step 8: Apply the logic
-    if (!worksInMorning && !worksInAfternoon) {
-        // This case should be rare since step 4 catches same start/end times
-        console.log('Not working in either period, returning VVD');
-        return DAY_TYPES.VVD;
-    } else if (!worksInMorning && worksInAfternoon) {
-        // Special edge case: if start time is exactly 12:00, it's borderline
-        if (startMinutes === afternoonStart) {
-            console.log('Start time is exactly 12:00 (edge case), returning VVO');
-            return DAY_TYPES.VVO;
-        }
-        console.log('Not working morning period but working afternoon, returning VVO');
-        return DAY_TYPES.VVO;
-    } else if (worksInMorning && !worksInAfternoon) {
-        console.log('Working morning period but not afternoon, returning VVM');
+    // VVM: Start before 12:00 and stop before or at exactly 13:00 (morning work)
+    if (startMinutes < morningBoundary && endMinutes <= lunchEnd) {
+        console.log('VVM: Worked morning, stopped by lunch (start < 12:00, end <= 13:00)');
         return DAY_TYPES.VVM;
-    } else {
-        console.log('Working both morning and afternoon periods, returning Normaal');
+    }
+    
+    // VVO: Start >= 12:00 and stop >= 13:00 (afternoon work only)
+    if (startMinutes >= morningBoundary && endMinutes >= lunchEnd) {
+        console.log('VVO: Worked afternoon only (start >= 12:00, end >= 13:00)');
+        return DAY_TYPES.VVO;
+    }
+    
+    // Normaal: Start 07:00-11:00, stop 15:00-18:00+ (full day work)
+    if (startMinutes >= normaalStartEarly && startMinutes <= normaalStartLate && 
+        endMinutes >= normaalEndEarly && endMinutes >= normaalEndLate) {
+        console.log('Normaal: Full day work (start 07:00-11:00, end 15:00-18:00+)');
         return DAY_TYPES.NORMAAL;
     }
+    
+    // All other cases: Flexibele uren (doesn't fit standard patterns)
+    console.log('Flexibele uren: Does not fit standard VVM/VVO/Normaal patterns');
+    return DAY_TYPES.FLEXIBEL;
 }
 
 /**

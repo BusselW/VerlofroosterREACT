@@ -57,7 +57,7 @@ export const SettingsTab = ({ user, data }) => {
                 ),
                 'Instellingen'
             ),
-            h('p', { className: 'text-muted mb-4' }, 'Configureer uw persoonlijke voorkeuren en applicatie-instellingen.')
+            h('p', { className: 'text-muted mb-4' }, 'Configureer je persoonlijke voorkeuren en applicatie-instellingen.')
         ),
 
         // Display Settings Card
