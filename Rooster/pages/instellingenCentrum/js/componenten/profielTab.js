@@ -3,7 +3,7 @@
  * @description Profile Tab Component for Settings Page
  */
 
-import { getUserInfo, fetchSharePointList } from '../../../js/services/sharepointService.js';
+import { getUserInfo, fetchSharePointList, updateSharePointListItem } from '../../../js/services/sharepointService.js';
 
 const { useState, useEffect, createElement: h } = React;
 
@@ -15,6 +15,9 @@ export const ProfileTab = ({ user, data }) => {
     const [teams, setTeams] = useState([]);
     const [functies, setFuncties] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [currentUserRecord, setCurrentUserRecord] = useState(null);
+    const [saveMessage, setSaveMessage] = useState(null);
     const [formData, setFormData] = useState({
         naam: user?.Title || '',
         username: '',
@@ -45,7 +48,7 @@ export const ProfileTab = ({ user, data }) => {
         }
     }, [user, formData.username]);
 
-    // Load Teams and Functies from SharePoint
+    // Load Teams and Functies from SharePoint, and current user data from Medewerkers
     useEffect(() => {
         const loadDropdownData = async () => {
             try {
@@ -63,16 +66,55 @@ export const ProfileTab = ({ user, data }) => {
                     setFuncties(functiesData);
                 }
 
+                // Load current user data from Medewerkers list
+                if (user && formData.username) {
+                    const medewerkersData = await fetchSharePointList('Medewerkers');
+                    if (medewerkersData && Array.isArray(medewerkersData)) {
+                        // Find the current user in the Medewerkers list by matching Username
+                        const currentMedewerker = medewerkersData.find(medewerker => 
+                            medewerker.Username === formData.username
+                        );
+                        
+                        if (currentMedewerker) {
+                            console.log('Found current user in Medewerkers:', currentMedewerker);
+                            // Store the current user record for updates
+                            setCurrentUserRecord(currentMedewerker);
+                            // Pre-fill form data with existing employee data
+                            setFormData(prev => ({
+                                ...prev,
+                                naam: currentMedewerker.Naam || prev.naam || 'Bijv. Jan de Vries',
+                                geboortedatum: currentMedewerker.Geboortedatum ? 
+                                    new Date(currentMedewerker.Geboortedatum).toISOString().split('T')[0] : '',
+                                team: currentMedewerker.Team || '',
+                                functie: currentMedewerker.Functie || ''
+                            }));
+                        } else {
+                            // If user not found in Medewerkers, use placeholder
+                            console.log('User not found in Medewerkers list, using placeholder');
+                            setCurrentUserRecord(null);
+                            setFormData(prev => ({
+                                ...prev,
+                                naam: prev.naam || 'Bijv. Jan de Vries'
+                            }));
+                        }
+                    }
+                }
+
                 console.log('Dropdown data loaded:', { teams: teamsData?.length, functies: functiesData?.length });
             } catch (error) {
                 console.error('Error loading dropdown data:', error);
+                // Set placeholder on error
+                setFormData(prev => ({
+                    ...prev,
+                    naam: prev.naam || 'Bijv. Jan de Vries'
+                }));
             } finally {
                 setLoading(false);
             }
         };
 
         loadDropdownData();
-    }, []);
+    }, [formData.username]);
 
     const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
 
@@ -118,22 +160,59 @@ export const ProfileTab = ({ user, data }) => {
         }));
     };
 
-    const handleSave = () => {
-        // Save logic here
-        console.log('Profiel opgeslagen:', formData);
-        // Here you could show a success message or handle the save response
+    const handleSave = async () => {
+        if (!currentUserRecord) {
+            console.error('No current user record found to update');
+            setSaveMessage({ type: 'error', text: 'Geen gebruikersrecord gevonden om bij te werken.' });
+            return;
+        }
+
+        setSaving(true);
+        setSaveMessage(null);
+
+        try {
+            // Map form data to SharePoint column names based on configLijst.js
+            const updateData = {
+                Naam: formData.naam,
+                Geboortedatum: formData.geboortedatum ? new Date(formData.geboortedatum).toISOString() : null,
+                E_x002d_mail: formData.email, // SharePoint encodes hyphens as _x002d_
+                Functie: formData.functie,
+                Team: formData.team,
+                Username: formData.username
+            };
+
+            console.log('Updating user record with ID:', currentUserRecord.ID || currentUserRecord.Id);
+            console.log('Update data:', updateData);
+
+            // Use the updateSharePointListItem function
+            await updateSharePointListItem(
+                'Medewerkers', 
+                currentUserRecord.ID || currentUserRecord.Id, 
+                updateData
+            );
+
+            console.log('Profile updated successfully');
+            setSaveMessage({ type: 'success', text: 'Profiel succesvol opgeslagen!' });
+
+            // Clear the success message after 3 seconds
+            setTimeout(() => {
+                setSaveMessage(null);
+            }, 3000);
+
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            setSaveMessage({ 
+                type: 'error', 
+                text: 'Fout bij opslaan van profiel. Probeer het opnieuw.' 
+            });
+        } finally {
+            setSaving(false);
+        }
     };
 
     return h('div', null,
         // Combined Profile and Data Card
         h('div', { className: 'card' },
-            h('div', { className: 'card-header-with-actions' },
-                h('button', { 
-                    className: 'btn btn-primary',
-                    onClick: handleSave
-                }, 'Opslaan')
-            ),
-            
             // Profile section with avatar
             h('div', { className: 'profile-avatar-section' },
                 h('h3', { className: 'card-title', style: { marginBottom: '16px' } }, 'Jouw gegevens'),
@@ -246,6 +325,29 @@ export const ProfileTab = ({ user, data }) => {
                         )
                     )
                 )
+            ),
+            
+            // Save button at the bottom
+            h('div', { className: 'form-row', style: { marginTop: '24px', justifyContent: 'flex-end', alignItems: 'center', gap: '12px' } },
+                // Success/Error message
+                saveMessage && h('div', { 
+                    className: `status-message status-${saveMessage.type}`,
+                    style: { 
+                        marginRight: 'auto',
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        backgroundColor: saveMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+                        color: saveMessage.type === 'success' ? '#155724' : '#721c24',
+                        border: saveMessage.type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
+                    }
+                }, saveMessage.text),
+                // Save button
+                h('button', { 
+                    className: 'btn btn-primary',
+                    onClick: handleSave,
+                    disabled: saving || !currentUserRecord
+                }, saving ? 'Opslaan...' : 'Opslaan')
             )
         )
     );

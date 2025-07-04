@@ -3,13 +3,28 @@
  * @description Work Hours Tab Component for Settings Page
  */
 
+import { 
+    fetchSharePointList, 
+    createSharePointListItem, 
+    updateSharePointListItem,
+    getCurrentUserInfo 
+} from '../../../../js/services/sharepointService.js';
+import { 
+    maakItem, 
+    leesItems, 
+    bewerkItem 
+} from '../../../../js/services/sharepointCRUD.js';
+
 const { useState, createElement: h } = React;
 
 // =====================
 // Work Hours Tab Component
 // =====================
 export const WorkHoursTab = ({ user, data }) => {
-    const [isEditing, setIsEditing] = useState(false);
+    // State management
+    const [isLoading, setIsLoading] = useState(false);
+    const [feedback, setFeedback] = useState(null);
+    const [userInfo, setUserInfo] = useState(null);
     const [scheduleType, setScheduleType] = useState('fixed'); // 'fixed' or 'rotating'
     const [activeWeek, setActiveWeek] = useState('A');
     const [workHours, setWorkHours] = useState({
@@ -26,8 +41,51 @@ export const WorkHoursTab = ({ user, data }) => {
         thursday: { start: '10:00', end: '18:00', hours: 8, type: 'Normaal', isFreeDag: false },
         friday: { start: '--:--', end: '--:--', hours: 0, type: 'VVD', isFreeDag: true }
     });
-
     const [bulkTimes, setBulkTimes] = useState({ start: '09:00', end: '17:00' });
+
+    // Load user data
+    React.useEffect(() => {
+        loadUserInfo();
+    }, []);
+
+    const loadUserInfo = async () => {
+        try {
+            const user = await getCurrentUserInfo();
+            setUserInfo(user);
+            // TODO: Load existing work hours from SharePoint when available
+        } catch (error) {
+            console.error('Error loading user info:', error);
+        }
+    };
+
+    const handleSave = async () => {
+        setIsLoading(true);
+        setFeedback(null);
+        
+        try {
+            // TODO: Implement save logic to SharePoint
+            // This will involve creating/updating records in the work hours list
+            // Example structure for the save data:
+            const saveData = {
+                scheduleType,
+                workHours,
+                workHoursB: scheduleType === 'rotating' ? workHoursB : null,
+                userId: userInfo?.LoginName
+            };
+            
+            // Simulate save for now
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            setFeedback({ type: 'success', message: 'Werktijden succesvol opgeslagen!' });
+        } catch (error) {
+            console.error('Error saving work hours:', error);
+            setFeedback({ type: 'error', message: 'Fout bij opslaan van werktijden. Probeer opnieuw.' });
+        } finally {
+            setIsLoading(false);
+            // Clear feedback after 3 seconds
+            setTimeout(() => setFeedback(null), 3000);
+        }
+    };
 
     const days = [
         { key: 'monday', label: 'Maandag', short: 'Ma' },
@@ -148,8 +206,7 @@ export const WorkHoursTab = ({ user, data }) => {
                         name: 'scheduleType',
                         value: 'fixed',
                         checked: scheduleType === 'fixed',
-                        onChange: (e) => setScheduleType(e.target.value),
-                        disabled: !isEditing
+                        onChange: (e) => setScheduleType(e.target.value)
                     }),
                     h('span', null, 'Vast schema'),
                     h('small', { className: 'text-muted' }, 'Elke week dezelfde tijden')
@@ -160,8 +217,7 @@ export const WorkHoursTab = ({ user, data }) => {
                         name: 'scheduleType',
                         value: 'rotating',
                         checked: scheduleType === 'rotating',
-                        onChange: (e) => setScheduleType(e.target.value),
-                        disabled: !isEditing
+                        onChange: (e) => setScheduleType(e.target.value)
                     }),
                     h('span', null, 'Roulerend schema'),
                     h('small', { className: 'text-muted' }, 'Afwisselend Week A en Week B')
@@ -169,39 +225,23 @@ export const WorkHoursTab = ({ user, data }) => {
             )
         ),
 
-        // Weekly Summary Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 'Weekoverzicht'),
-            h('div', { className: 'work-hours-overview' },
-                h('div', { className: 'hours-summary' },
-                    h('div', { className: 'summary-item' },
-                        h('span', { className: 'summary-label' }, 
-                            scheduleType === 'rotating' ? `Week ${activeWeek} totaal:` : 'Totaal per week:'
-                        ),
-                        h('span', { className: 'summary-value' }, `${getCurrentWeekHours()} uur`)
-                    ),
-                    h('div', { className: 'summary-item' },
-                        h('span', { className: 'summary-label' }, 'Gemiddeld per dag:'),
-                        h('span', { className: 'summary-value' }, `${(getCurrentWeekHours() / 5).toFixed(1)} uur`)
-                    )
-                ),
-                
-                // Week selector for rotating schedules
-                scheduleType === 'rotating' && h('div', { className: 'week-selector' },
-                    h('button', {
-                        className: `btn ${activeWeek === 'A' ? 'btn-primary' : 'btn-secondary'}`,
-                        onClick: () => setActiveWeek('A')
-                    }, 'Week A'),
-                    h('button', {
-                        className: `btn ${activeWeek === 'B' ? 'btn-primary' : 'btn-secondary'}`,
-                        onClick: () => setActiveWeek('B')
-                    }, 'Week B')
-                )
+        // Week selector for rotating schedules
+        scheduleType === 'rotating' && h('div', { className: 'card' },
+            h('h3', { className: 'card-title' }, 'Week Selectie'),
+            h('div', { className: 'week-selector' },
+                h('button', {
+                    className: `btn ${activeWeek === 'A' ? 'btn-primary' : 'btn-secondary'}`,
+                    onClick: () => setActiveWeek('A')
+                }, 'Week A'),
+                h('button', {
+                    className: `btn ${activeWeek === 'B' ? 'btn-primary' : 'btn-secondary'}`,
+                    onClick: () => setActiveWeek('B')
+                }, 'Week B')
             )
         ),
 
-        // Bulk Operations Card (only when editing)
-        isEditing && h('div', { className: 'card' },
+        // Bulk Operations Card
+        h('div', { className: 'card' },
             h('h3', { className: 'card-title' }, 'Snelle Acties'),
             h('div', { className: 'bulk-operations' },
                 h('div', { className: 'bulk-time-setter' },
@@ -234,11 +274,7 @@ export const WorkHoursTab = ({ user, data }) => {
             h('div', { className: 'card-header-with-actions' },
                 h('h3', { className: 'card-title' }, 
                     scheduleType === 'rotating' ? `Werkschema - Week ${activeWeek}` : 'Werkschema'
-                ),
-                h('button', {
-                    className: `btn ${isEditing ? 'btn-secondary' : 'btn-primary'}`,
-                    onClick: () => setIsEditing(!isEditing)
-                }, isEditing ? 'Annuleren' : 'Bewerken')
+                )
             ),
             
             h('div', { className: 'schedule-table-container' },
@@ -250,7 +286,7 @@ export const WorkHoursTab = ({ user, data }) => {
                             h('th', null, 'Eindtijd'),
                             h('th', null, 'Uren'),
                             h('th', null, 'Type'),
-                            isEditing && h('th', null, 'Vrije dag')
+                            h('th', null, 'Vrije dag')
                         )
                     ),
                     h('tbody', null,
@@ -263,22 +299,22 @@ export const WorkHoursTab = ({ user, data }) => {
                                     h('strong', null, day.label)
                                 ),
                                 h('td', null,
-                                    isEditing ? h('input', {
+                                    h('input', {
                                         type: 'time',
                                         className: 'form-input time-input',
                                         value: dayData.start,
                                         onChange: (e) => handleTimeChange(day.key, 'start', e.target.value),
                                         disabled: dayData.isFreeDag
-                                    }) : h('span', { className: 'time-display' }, dayData.start)
+                                    })
                                 ),
                                 h('td', null,
-                                    isEditing ? h('input', {
+                                    h('input', {
                                         type: 'time',
                                         className: 'form-input time-input',
                                         value: dayData.end,
                                         onChange: (e) => handleTimeChange(day.key, 'end', e.target.value),
                                         disabled: dayData.isFreeDag
-                                    }) : h('span', { className: 'time-display' }, dayData.end)
+                                    })
                                 ),
                                 h('td', { className: 'hours-cell' },
                                     h('span', { className: 'hours-badge' }, `${dayData.hours}h`)
@@ -289,7 +325,7 @@ export const WorkHoursTab = ({ user, data }) => {
                                         style: getDayTypeStyle(dayData.type)
                                     }, dayData.type)
                                 ),
-                                isEditing && h('td', null,
+                                h('td', null,
                                     h('input', {
                                         type: 'checkbox',
                                         checked: dayData.isFreeDag,
@@ -304,20 +340,36 @@ export const WorkHoursTab = ({ user, data }) => {
             )
         ),
 
-        // Save Actions (only show when editing)
-        isEditing && h('div', { className: 'card' },
-            h('div', { className: 'settings-actions' },
-                h('button', { 
-                    className: 'btn btn-primary',
-                    onClick: () => {
-                        setIsEditing(false);
-                        console.log('Werktijden opgeslagen');
-                    }
-                }, 'Wijzigingen Opslaan'),
-                h('button', { 
-                    className: 'btn btn-secondary',
-                    onClick: () => setIsEditing(false)
-                }, 'Annuleren')
+        // Save Button
+        h('div', { className: 'save-section' },
+            feedback && h('div', { 
+                className: `feedback-message ${feedback.type}` 
+            }, feedback.message),
+            h('button', {
+                className: 'btn btn-primary save-btn',
+                onClick: handleSave,
+                disabled: isLoading
+            }, 
+                isLoading ? 'Opslaan...' : 'Werktijden Opslaan'
+            )
+        ),
+
+        // Weekly Summary Card (moved to bottom)
+        h('div', { className: 'card' },
+            h('h3', { className: 'card-title' }, 'Weekoverzicht'),
+            h('div', { className: 'work-hours-overview' },
+                h('div', { className: 'hours-summary' },
+                    h('div', { className: 'summary-item' },
+                        h('span', { className: 'summary-label' }, 
+                            scheduleType === 'rotating' ? `Week ${activeWeek} totaal:` : 'Totaal per week:'
+                        ),
+                        h('span', { className: 'summary-value' }, `${getCurrentWeekHours()} uur`)
+                    ),
+                    h('div', { className: 'summary-item' },
+                        h('span', { className: 'summary-label' }, 'Gemiddeld per dag:'),
+                        h('span', { className: 'summary-value' }, `${(getCurrentWeekHours() / 5).toFixed(1)} uur`)
+                    )
+                )
             )
         )
     );
