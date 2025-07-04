@@ -241,19 +241,17 @@ Otherwise, extract values from DagenIndicators.Title
         { titel: "VrijdagEind", interneNaam: "VrijdagEind", type: "Text" },
         { titel: "VrijdagSoort", interneNaam: "VrijdagSoort", type: "Text" },
         { titel: "VrijdagStart", interneNaam: "VrijdagStart", type: "Text" },
-        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" },
+        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" }
         
-        // Rotation fields for UrenPerWeek (same as CompensatieUrenPerWeek)
-        { titel: "WeekType", interneNaam: "WeekType", type: "Text" },
-        { titel: "IsRotatingSchedule", interneNaam: "IsRotatingSchedule", type: "Boolean" },
-        { titel: "CycleStartDate", interneNaam: "CycleStartDate", type: "DateTime" },
-        
-        // Additional fields for free day tracking
-        { titel: "MaandagVrijeDag", interneNaam: "MaandagVrijeDag", type: "Boolean" },
-        { titel: "DinsdagVrijeDag", interneNaam: "DinsdagVrijeDag", type: "Boolean" },
-        { titel: "WoensdagVrijeDag", interneNaam: "WoensdagVrijeDag", type: "Boolean" },
-        { titel: "DonderdagVrijeDag", interneNaam: "DonderdagVrijeDag", type: "Boolean" },
-        { titel: "VrijdagVrijeDag", interneNaam: "VrijdagVrijeDag", type: "Boolean" }
+        // Note: Rotation fields will be added when SharePoint list is updated
+        // { titel: "WeekType", interneNaam: "WeekType", type: "Text" },
+        // { titel: "IsRotatingSchedule", interneNaam: "IsRotatingSchedule", type: "Boolean" },
+        // { titel: "CycleStartDate", interneNaam: "CycleStartDate", type: "DateTime" },
+        // { titel: "MaandagVrijeDag", interneNaam: "MaandagVrijeDag", type: "Boolean" },
+        // { titel: "DinsdagVrijeDag", interneNaam: "DinsdagVrijeDag", type: "Boolean" },
+        // { titel: "WoensdagVrijeDag", interneNaam: "WoensdagVrijeDag", type: "Boolean" },
+        // { titel: "DonderdagVrijeDag", interneNaam: "DonderdagVrijeDag", type: "Boolean" },
+        // { titel: "VrijdagVrijeDag", interneNaam: "VrijdagVrijeDag", type: "Boolean" }
       ]
     },
 

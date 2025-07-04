@@ -239,11 +239,12 @@ export function generateWorkScheduleData(workHours, options = {}) {
     
     const scheduleData = {
         MedewerkerID: userId,
-        WeekType: isRotating ? weekType : null, // Only set WeekType if rotating
-        IsRotatingSchedule: isRotating,
         Ingangsdatum: ingangsdatum,
-        CycleStartDate: isRotating ? cycleStartDate : null, // Only set CycleStartDate if rotating
-        VeranderingsDatum: new Date().toISOString() // Track when this was created/updated
+        VeranderingsDatum: new Date().toISOString(), // Track when this was created/updated
+        // Note: Rotation fields temporarily disabled until SharePoint list is updated
+        // WeekType: isRotating ? weekType : null,
+        // IsRotatingSchedule: isRotating,
+        // CycleStartDate: isRotating ? cycleStartDate : null,
     };
     
     // Add day-specific data
@@ -257,7 +258,8 @@ export function generateWorkScheduleData(workHours, options = {}) {
             scheduleData[`${dutchDay}Eind`] = dayData.end || '';
             scheduleData[`${dutchDay}Soort`] = dayType;
             scheduleData[`${dutchDay}Totaal`] = hoursWorked.toString();
-            scheduleData[`${dutchDay}VrijeDag`] = dayData.isFreeDag || false;
+            // Note: VrijeDag fields removed as they don't exist in SharePoint yet
+            // Free day status is tracked via dayType (VVD = Vrije Volledige Dag)
         }
     });
     

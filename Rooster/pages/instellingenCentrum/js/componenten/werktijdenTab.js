@@ -73,10 +73,12 @@ export const WorkHoursTab = ({ user, data }) => {
         
         try {
             if (scheduleType === 'rotating') {
-                // ROTATING SCHEDULE: Save 2 records (Week A and Week B)
-                console.log('Saving rotating schedule - creating 2 records');
+                // ROTATING SCHEDULE: Currently saving as separate records
+                // Note: Full rotation support requires SharePoint list schema updates
+                console.log('Saving rotating schedule - creating 2 records (basic version)');
                 
-                // Prepare Week A data
+                // For now, save both weeks as separate basic records
+                // Week A data
                 const weekAData = generateWorkScheduleData(workHours, {
                     weekType: 'A',
                     isRotating: true,
@@ -85,7 +87,7 @@ export const WorkHoursTab = ({ user, data }) => {
                     cycleStartDate
                 });
                 
-                // Prepare Week B data  
+                // Week B data  
                 const weekBData = generateWorkScheduleData(workHoursB, {
                     weekType: 'B',
                     isRotating: true,
@@ -94,10 +96,14 @@ export const WorkHoursTab = ({ user, data }) => {
                     cycleStartDate
                 });
                 
+                // Add Title to distinguish between weeks
+                weekAData.Title = `${userInfo?.Title || userInfo?.LoginName} - Week A (${new Date(ingangsdatum).toLocaleDateString('nl-NL')})`;
+                weekBData.Title = `${userInfo?.Title || userInfo?.LoginName} - Week B (${new Date(ingangsdatum).toLocaleDateString('nl-NL')})`;
+                
                 console.log('Week A data:', weekAData);
                 console.log('Week B data:', weekBData);
                 
-                // Save both weeks simultaneously
+                // Save both weeks
                 const [weekAResult, weekBResult] = await Promise.all([
                     createSharePointListItem('UrenPerWeek', weekAData),
                     createSharePointListItem('UrenPerWeek', weekBData)
@@ -106,18 +112,21 @@ export const WorkHoursTab = ({ user, data }) => {
                 console.log('Week A saved with ID:', weekAResult?.ID || weekAResult?.Id);
                 console.log('Week B saved with ID:', weekBResult?.ID || weekBResult?.Id);
                 
-                setFeedback({ type: 'success', message: 'Roterend werkrooster (Week A & B) succesvol opgeslagen!' });
+                setFeedback({ type: 'success', message: 'Roterend werkrooster (Week A & B) succesvol opgeslagen! (Basis versie - volledige rotatie-ondersteuning wordt later toegevoegd)' });
             } else {
-                // FIXED SCHEDULE: Save 1 record with WeekType=null and CycleStartDate=null
+                // FIXED SCHEDULE: Save 1 record
                 console.log('Saving fixed schedule - creating 1 record');
                 
                 const scheduleData = generateWorkScheduleData(workHours, {
-                    weekType: null,           // WeekType = null for fixed schedules
-                    isRotating: false,        // IsRotatingSchedule = false
+                    weekType: null,
+                    isRotating: false,
                     userId: userInfo?.LoginName,
                     ingangsdatum,
-                    cycleStartDate: null      // CycleStartDate = null for fixed schedules
+                    cycleStartDate: null
                 });
+                
+                // Add a descriptive title
+                scheduleData.Title = `${userInfo?.Title || userInfo?.LoginName} - Vast Schema (${new Date(ingangsdatum).toLocaleDateString('nl-NL')})`;
                 
                 console.log('Fixed schedule data:', scheduleData);
                 
@@ -129,11 +138,14 @@ export const WorkHoursTab = ({ user, data }) => {
             }
         } catch (error) {
             console.error('Error saving work hours:', error);
-            setFeedback({ type: 'error', message: `Fout bij opslaan van werktijden: ${error.message}` });
+            setFeedback({ 
+                type: 'error', 
+                message: `Fout bij opslaan van werktijden: ${error.message || 'Onbekende fout'}` 
+            });
         } finally {
             setIsLoading(false);
-            // Clear feedback after 5 seconds
-            setTimeout(() => setFeedback(null), 5000);
+            // Clear feedback after 8 seconds (longer for rotation message)
+            setTimeout(() => setFeedback(null), 8000);
         }
     };
 
