@@ -14,13 +14,33 @@ export const ProfileTab = ({ user, data }) => {
     const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
     const [formData, setFormData] = useState({
         naam: user?.Title || '',
+        username: '',
         email: user?.Email || '',
         geboortedatum: '',
-        telefoon: '',
-        functie: '',
-        afdeling: '',
-        startdatum: ''
+        team: '',
+        functie: ''
     });
+
+    // Helper function to clean up LoginName (similar to registratie.aspx)
+    const getCleanLoginName = (loginName) => {
+        if (!loginName) return '';
+        // Remove SharePoint claim prefix if present (i:0#.w|)
+        if (loginName.startsWith('i:0#.w|')) {
+            return loginName.replace('i:0#.w|', '');
+        }
+        return loginName;
+    };
+
+    // Initialize username from user data
+    useEffect(() => {
+        if (user && user.LoginName && !formData.username) {
+            const cleanUsername = getCleanLoginName(user.LoginName);
+            setFormData(prev => ({
+                ...prev,
+                username: cleanUsername
+            }));
+        }
+    }, [user, formData.username]);
 
     const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
 
@@ -76,7 +96,6 @@ export const ProfileTab = ({ user, data }) => {
         // Combined Profile and Data Card
         h('div', { className: 'card' },
             h('div', { className: 'card-header-with-actions' },
-                h('h3', { className: 'card-title' }, 'Jouw gegevens'),
                 h('button', { 
                     className: 'btn btn-primary',
                     onClick: handleSave
@@ -85,6 +104,7 @@ export const ProfileTab = ({ user, data }) => {
             
             // Profile section with avatar
             h('div', { className: 'profile-avatar-section' },
+                h('h3', { className: 'card-title', style: { marginBottom: '16px' } }, 'Jouw gegevens'),
                 h('div', { className: 'profile-avatar' },
                     sharePointUser.IsLoading ? 
                         h('div', { className: 'avatar-placeholder' }, '...') :
@@ -115,13 +135,26 @@ export const ProfileTab = ({ user, data }) => {
             
             // Form fields
             h('div', { className: 'form-row' },
-                h('div', { className: 'form-group' },
+                h('div', { className: 'form-group', style: { gridColumn: '1 / -1' } },
                     h('label', { className: 'form-label' }, 'Volledige naam'),
                     h('input', {
                         type: 'text',
                         className: 'form-input',
                         value: formData.naam,
                         onChange: (e) => handleInputChange('naam', e.target.value)
+                    })
+                )
+            ),
+            h('div', { className: 'form-row' },
+                h('div', { className: 'form-group' },
+                    h('label', { className: 'form-label' }, 'Gebruikersnaam'),
+                    h('input', {
+                        type: 'text',
+                        className: 'form-input',
+                        value: formData.username,
+                        readOnly: true,
+                        style: { backgroundColor: '#f8fafc', color: '#64748b' },
+                        title: 'Automatisch ingevuld vanuit SharePoint'
                     })
                 ),
                 h('div', { className: 'form-group' },
@@ -136,7 +169,7 @@ export const ProfileTab = ({ user, data }) => {
                 )
             ),
             h('div', { className: 'form-row' },
-                h('div', { className: 'form-group' },
+                h('div', { className: 'form-group', style: { gridColumn: '1 / -1' } },
                     h('label', { className: 'form-label' }, 'Geboortedatum'),
                     h('input', {
                         type: 'date',
@@ -144,54 +177,38 @@ export const ProfileTab = ({ user, data }) => {
                         value: formData.geboortedatum,
                         onChange: (e) => handleInputChange('geboortedatum', e.target.value)
                     })
-                ),
-                h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Telefoonnummer'),
-                    h('input', {
-                        type: 'tel',
-                        className: 'form-input',
-                        value: formData.telefoon,
-                        placeholder: '+31 6 12345678',
-                        onChange: (e) => handleInputChange('telefoon', e.target.value)
-                    })
                 )
             ),
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Functie'),
-                    h('input', {
-                        type: 'text',
-                        className: 'form-input',
-                        value: formData.functie,
-                        placeholder: 'Uw functietitel...',
-                        onChange: (e) => handleInputChange('functie', e.target.value)
-                    })
-                ),
-                h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Afdeling'),
+                    h('label', { className: 'form-label' }, 'Team'),
                     h('select', {
                         className: 'form-input',
-                        value: formData.afdeling,
-                        onChange: (e) => handleInputChange('afdeling', e.target.value)
+                        value: formData.team,
+                        onChange: (e) => handleInputChange('team', e.target.value)
                     },
-                        h('option', { value: '' }, 'Selecteer afdeling...'),
+                        h('option', { value: '' }, 'Selecteer team...'),
                         h('option', { value: 'ICT' }, 'ICT'),
                         h('option', { value: 'HR' }, 'Human Resources'),
                         h('option', { value: 'Finance' }, 'Finance'),
                         h('option', { value: 'Operations' }, 'Operations'),
                         h('option', { value: 'Marketing' }, 'Marketing')
                     )
-                )
-            ),
-            h('div', { className: 'form-row' },
+                ),
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Startdatum'),
-                    h('input', {
-                        type: 'date',
+                    h('label', { className: 'form-label' }, 'Functie'),
+                    h('select', {
                         className: 'form-input',
-                        value: formData.startdatum,
-                        onChange: (e) => handleInputChange('startdatum', e.target.value)
-                    })
+                        value: formData.functie,
+                        onChange: (e) => handleInputChange('functie', e.target.value)
+                    },
+                        h('option', { value: '' }, 'Selecteer functie...'),
+                        h('option', { value: 'Developer' }, 'Developer'),
+                        h('option', { value: 'Manager' }, 'Manager'),
+                        h('option', { value: 'Analyst' }, 'Analyst'),
+                        h('option', { value: 'Coordinator' }, 'Coordinator'),
+                        h('option', { value: 'Specialist' }, 'Specialist')
+                    )
                 )
             )
         )
