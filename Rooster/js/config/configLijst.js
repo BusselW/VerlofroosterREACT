@@ -241,7 +241,19 @@ Otherwise, extract values from DagenIndicators.Title
         { titel: "VrijdagEind", interneNaam: "VrijdagEind", type: "Text" },
         { titel: "VrijdagSoort", interneNaam: "VrijdagSoort", type: "Text" },
         { titel: "VrijdagStart", interneNaam: "VrijdagStart", type: "Text" },
-        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" }
+        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" },
+        
+        // Rotation fields for UrenPerWeek (same as CompensatieUrenPerWeek)
+        { titel: "WeekType", interneNaam: "WeekType", type: "Text" },
+        { titel: "IsRotatingSchedule", interneNaam: "IsRotatingSchedule", type: "Boolean" },
+        { titel: "CycleStartDate", interneNaam: "CycleStartDate", type: "DateTime" },
+        
+        // Additional fields for free day tracking
+        { titel: "MaandagVrijeDag", interneNaam: "MaandagVrijeDag", type: "Boolean" },
+        { titel: "DinsdagVrijeDag", interneNaam: "DinsdagVrijeDag", type: "Boolean" },
+        { titel: "WoensdagVrijeDag", interneNaam: "WoensdagVrijeDag", type: "Boolean" },
+        { titel: "DonderdagVrijeDag", interneNaam: "DonderdagVrijeDag", type: "Boolean" },
+        { titel: "VrijdagVrijeDag", interneNaam: "VrijdagVrijeDag", type: "Boolean" }
       ]
     },
 
@@ -519,11 +531,11 @@ Otherwise, extract values from DagenIndicators.Title
       velden: [
         { titel: "Id", interneNaam: "ID", type: "Counter" },
         { titel: "Titel", interneNaam: "Title", type: "Text" },
-        { titel: "Naam", interneNaam: "Naam", type: "Text" },
+        { titel: "Naam", interneNaam: "Naam", type: "Text" }, // Naam van het team, gebruikt voor weergave
         { titel: "Actief", interneNaam: "Actief", type: "Boolean" },
         { titel: "Kleur", interneNaam: "Kleur", type: "Text" },
         { titel: "Teamleider", interneNaam: "Teamleider", type: "Text" },
-        { titel: "TeamleiderId", interneNaam: "TeamleiderId", type: "Text" }
+        { titel: "TeamleiderId", interneNaam: "TeamleiderId", type: "Text" } // ID van de teamleider als domain\gebruikersnaam (bijv. org\busselw)
       ]
     },
 

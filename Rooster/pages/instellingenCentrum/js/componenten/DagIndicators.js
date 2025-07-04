@@ -239,10 +239,11 @@ export function generateWorkScheduleData(workHours, options = {}) {
     
     const scheduleData = {
         MedewerkerID: userId,
-        WeekType: weekType, // 'A', 'B', or null for fixed schedules
+        WeekType: isRotating ? weekType : null, // Only set WeekType if rotating
         IsRotatingSchedule: isRotating,
         Ingangsdatum: ingangsdatum,
-        CycleStartDate: isRotating ? cycleStartDate : null
+        CycleStartDate: isRotating ? cycleStartDate : null, // Only set CycleStartDate if rotating
+        VeranderingsDatum: new Date().toISOString() // Track when this was created/updated
     };
     
     // Add day-specific data
@@ -250,10 +251,12 @@ export function generateWorkScheduleData(workHours, options = {}) {
         const dayData = workHours[englishDay];
         if (dayData) {
             const dayType = determineWorkDayType(dayData.start, dayData.end, dayData.isFreeDag);
+            const hoursWorked = calculateHoursWorked(dayData.start, dayData.end);
             
             scheduleData[`${dutchDay}Start`] = dayData.start || '';
             scheduleData[`${dutchDay}Eind`] = dayData.end || '';
             scheduleData[`${dutchDay}Soort`] = dayType;
+            scheduleData[`${dutchDay}Totaal`] = hoursWorked.toString();
             scheduleData[`${dutchDay}VrijeDag`] = dayData.isFreeDag || false;
         }
     });

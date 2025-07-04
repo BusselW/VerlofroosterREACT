@@ -73,8 +73,8 @@ export const WorkHoursTab = ({ user, data }) => {
         
         try {
             if (scheduleType === 'rotating') {
-                // Save both Week A and Week B for rotating schedules
-                const savePromises = [];
+                // ROTATING SCHEDULE: Save 2 records (Week A and Week B)
+                console.log('Saving rotating schedule - creating 2 records');
                 
                 // Prepare Week A data
                 const weekAData = generateWorkScheduleData(workHours, {
@@ -94,38 +94,46 @@ export const WorkHoursTab = ({ user, data }) => {
                     cycleStartDate
                 });
                 
-                console.log('Saving rotating schedule - Week A:', weekAData);
-                console.log('Saving rotating schedule - Week B:', weekBData);
+                console.log('Week A data:', weekAData);
+                console.log('Week B data:', weekBData);
                 
-                // Save both weeks
-                savePromises.push(createSharePointListItem('UrenPerWeek', weekAData));
-                savePromises.push(createSharePointListItem('UrenPerWeek', weekBData));
+                // Save both weeks simultaneously
+                const [weekAResult, weekBResult] = await Promise.all([
+                    createSharePointListItem('UrenPerWeek', weekAData),
+                    createSharePointListItem('UrenPerWeek', weekBData)
+                ]);
                 
-                await Promise.all(savePromises);
+                console.log('Week A saved with ID:', weekAResult?.ID || weekAResult?.Id);
+                console.log('Week B saved with ID:', weekBResult?.ID || weekBResult?.Id);
                 
                 setFeedback({ type: 'success', message: 'Roterend werkrooster (Week A & B) succesvol opgeslagen!' });
             } else {
-                // Save single fixed schedule
+                // FIXED SCHEDULE: Save 1 record with WeekType=null and CycleStartDate=null
+                console.log('Saving fixed schedule - creating 1 record');
+                
                 const scheduleData = generateWorkScheduleData(workHours, {
-                    weekType: null,
-                    isRotating: false,
+                    weekType: null,           // WeekType = null for fixed schedules
+                    isRotating: false,        // IsRotatingSchedule = false
                     userId: userInfo?.LoginName,
-                    ingangsdatum
+                    ingangsdatum,
+                    cycleStartDate: null      // CycleStartDate = null for fixed schedules
                 });
                 
-                console.log('Saving fixed schedule:', scheduleData);
+                console.log('Fixed schedule data:', scheduleData);
                 
-                await createSharePointListItem('UrenPerWeek', scheduleData);
+                const result = await createSharePointListItem('UrenPerWeek', scheduleData);
+                
+                console.log('Fixed schedule saved with ID:', result?.ID || result?.Id);
                 
                 setFeedback({ type: 'success', message: 'Werkrooster succesvol opgeslagen!' });
             }
         } catch (error) {
             console.error('Error saving work hours:', error);
-            setFeedback({ type: 'error', message: 'Fout bij opslaan van werktijden. Probeer opnieuw.' });
+            setFeedback({ type: 'error', message: `Fout bij opslaan van werktijden: ${error.message}` });
         } finally {
             setIsLoading(false);
-            // Clear feedback after 3 seconds
-            setTimeout(() => setFeedback(null), 3000);
+            // Clear feedback after 5 seconds
+            setTimeout(() => setFeedback(null), 5000);
         }
     };
 
