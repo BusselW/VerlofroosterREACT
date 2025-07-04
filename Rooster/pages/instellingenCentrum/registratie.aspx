@@ -20,86 +20,203 @@
 
     <!-- Additional styles for registration flow -->
     <style>
+        /* Registration specific styles that extend instellingencentrum_s.css */
         .registration-container {
+            width: 100%;
             max-width: 800px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            padding: 1rem;
         }
 
+        /* Welcome header matching main header style */
+        .welcome-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 85%, #c2410c 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            pointer-events: none;
+        }
+
+        .welcome-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-header p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        /* Step indicator matching tab design */
         .step-indicator {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 2rem;
             gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
 
         .step-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
+            text-align: center;
+            min-width: 120px;
         }
 
         .step-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 16px;
             font-weight: 600;
-            font-size: 14px;
+            margin-bottom: 0.5rem;
             transition: all 0.3s ease;
+            background: #f1f5f9;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
         }
 
         .step-number.active {
-            background-color: #4a90e2;
+            background: #3b82f6;
             color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
         .step-number.completed {
-            background-color: #27ae60;
+            background: #10b981;
             color: white;
+            border-color: #10b981;
         }
 
-        .step-number.inactive {
-            background-color: #e2e8f0;
+        .step-title {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 0.25rem;
             color: #64748b;
+        }
+
+        .step-title.active {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .step-title.completed {
+            color: #10b981;
         }
 
         .step-connector {
             width: 60px;
             height: 2px;
-            background-color: #e2e8f0;
+            background: #e2e8f0;
+            margin-top: 20px;
         }
 
         .step-connector.completed {
-            background-color: #27ae60;
+            background: #10b981;
         }
 
-        .step-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: #6b7280;
-            margin-left: 0.5rem;
-        }
-
-        .step-title.active {
-            color: #4a90e2;
-        }
-
-        .step-title.completed {
-            color: #27ae60;
-        }
-
+        /* Registration card matching main card style */
         .registration-card {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
             padding: 2rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.04);
         }
 
+        /* Form styling matching existing form components */
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+
+        /* Checkbox styling */
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #3b82f6;
+        }
+
+        /* Navigation buttons */
         .navigation-buttons {
             display: flex;
             justify-content: space-between;
@@ -109,77 +226,176 @@
             border-top: 1px solid #e5e7eb;
         }
 
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background-color: #e5e7eb;
-            border-radius: 4px;
-            margin-bottom: 2rem;
-            overflow: hidden;
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
-            transition: width 0.3s ease;
-            border-radius: 4px;
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
         }
 
-        .welcome-header {
-            text-align: center;
-            margin-bottom: 2rem;
+        .btn-primary:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
-        .welcome-header h1 {
-            color: #1f2937;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+        .btn-secondary {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
         }
 
-        .welcome-header p {
-            color: #6b7280;
-            font-size: 1.1rem;
+        .btn-secondary:hover:not(:disabled) {
+            background: #f1f5f9;
+            color: #475569;
         }
 
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Success screen */
         .success-message {
             text-align: center;
-            padding: 2rem;
+            padding: 2rem 1rem;
         }
 
         .success-icon {
             width: 80px;
             height: 80px;
-            margin: 0 auto 1rem;
-            background-color: #d1fae5;
+            margin: 0 auto 1.5rem;
+            background: #d1fae5;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
+        .success-message h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .success-message p {
+            font-size: 1.125rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
         .btn-group {
             display: flex;
             gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
-        .btn-group .btn {
-            flex: 1;
+        /* Loading and error states */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            flex-direction: column;
         }
 
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 2rem;
+            color: #dc2626;
+        }
+
+        .error h3 {
+            margin-bottom: 1rem;
+        }
+
+        .text-muted {
+            color: #6b7280;
+        }
+
+        /* Responsive design */
         @media (max-width: 768px) {
+            .registration-container {
+                padding: 0.5rem;
+            }
+
+            .welcome-header {
+                padding: 1.5rem 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .welcome-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .welcome-header p {
+                font-size: 1rem;
+            }
+
+            .registration-card {
+                padding: 1.5rem;
+            }
+
             .step-indicator {
-                flex-direction: column;
                 gap: 0.5rem;
             }
 
-            .step-connector {
-                width: 2px;
-                height: 30px;
+            .step-item {
+                min-width: 80px;
             }
 
-            .registration-container {
-                padding: 1rem;
+            .step-number {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .step-connector {
+                width: 40px;
+                margin-top: 16px;
             }
 
             .navigation-buttons {
@@ -189,6 +405,18 @@
 
             .btn-group {
                 flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .step-indicator {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .step-connector {
+                display: none;
             }
         }
     </style>
@@ -309,10 +537,10 @@
 
             // Handle loading state
             if (loading) {
-                return h('div', { className: 'loading' },
-                    h('div', null,
+                return h('div', { className: 'registration-container' },
+                    h('div', { className: 'loading' },
                         h('div', { className: 'spinner' }),
-                        h('p', { className: 'mt-4 text-muted' }, 'Registratie laden...')
+                        h('p', { className: 'text-muted', style: { marginTop: '1rem' } }, 'Registratie laden...')
                     )
                 );
             }
@@ -354,7 +582,7 @@
                             ),
                             h('h2', null, 'Registratie voltooid!'),
                             h('p', null, `Welkom ${user?.Title || 'bij het verlofrooster systeem'}! Je account is succesvol aangemaakt.`),
-                            h('div', { className: 'btn-group', style: { marginTop: '2rem' } },
+                            h('div', { className: 'btn-group' },
                                 h('button', {
                                     className: 'btn btn-primary',
                                     onClick: () => window.location.href = '../../verlofRooster.aspx'
@@ -519,24 +747,26 @@
             // focusing only on essential fields for registration
             return h('div', { className: 'form-grid' },
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Volledige naam'),
+                    h('label', { className: 'form-label' }, 'Volledige naam *'),
                     h('input', {
                         type: 'text',
                         className: 'form-input',
-                        value: data.naam || user?.Title || '',
+                        value: data.naam || '',
                         onChange: (e) => onChange({ naam: e.target.value }),
-                        placeholder: 'Voer je volledige naam in'
-                    })
+                        placeholder: 'Bijv. Jan de Vries'
+                    }),
+                    h('div', { className: 'form-help' }, 'Voer je volledige voor- en achternaam in zoals deze officieel gebruikt wordt.')
                 ),
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'E-mailadres'),
+                    h('label', { className: 'form-label' }, 'E-mailadres *'),
                     h('input', {
                         type: 'email',
                         className: 'form-input',
                         value: data.email || user?.Email || '',
                         onChange: (e) => onChange({ email: e.target.value }),
                         placeholder: 'je.naam@organisatie.nl'
-                    })
+                    }),
+                    h('div', { className: 'form-help' }, 'Je werk e-mailadres voor systeemnotificaties.')
                 ),
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Geboortedatum'),
@@ -545,7 +775,8 @@
                         className: 'form-input',
                         value: data.geboortedatum || '',
                         onChange: (e) => onChange({ geboortedatum: e.target.value })
-                    })
+                    }),
+                    h('div', { className: 'form-help' }, 'Optioneel: gebruikt voor verjaardagsherinneringen in het systeem.')
                 )
             );
         };
@@ -565,9 +796,9 @@
                 });
             }, [scheduleType]);
 
-            return h('div', null,
+            return h('div', { className: 'form-grid' },
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Type werkschema'),
+                    h('label', { className: 'form-label' }, 'Type werkschema *'),
                     h('select', {
                         className: 'form-input',
                         value: scheduleType,
@@ -578,10 +809,26 @@
                     },
                         h('option', { value: 'fixed' }, 'Vast schema (elke week hetzelfde)'),
                         h('option', { value: 'rotating' }, 'Roulerend schema (week A/B)')
+                    ),
+                    h('div', { className: 'form-help' }, 
+                        scheduleType === 'fixed' 
+                            ? 'Je werkt elke week volgens hetzelfde schema. Geschikt voor reguliere kantooruren.'
+                            : 'Je werkt volgens een roulerend schema dat elke twee weken wisselt. Geschikt voor ploegenwerk of flexibele diensten.'
                     )
                 ),
-                h('p', { className: 'form-help' }, 
-                    'Je kunt je werktijden later gedetailleerd instellen in de instellingen.'
+                h('div', { className: 'form-group' },
+                    h('div', { 
+                        style: { 
+                            padding: '1rem', 
+                            backgroundColor: '#f8fafc', 
+                            borderRadius: '6px', 
+                            border: '1px solid #e2e8f0' 
+                        }
+                    },
+                        h('p', { style: { margin: 0, fontSize: '14px', color: '#64748b' } }, 
+                            '💡 Na de registratie kun je je gedetailleerde werktijden instellen in het instellingenpaneel.'
+                        )
+                    )
                 )
             );
         };
@@ -589,7 +836,7 @@
         // Settings Step Component
         const RegistrationSettingsStep = ({ user, data, onChange }) => {
             // Simplified version of settings with defaults
-            return h('div', null,
+            return h('div', { className: 'form-grid' },
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Kleurenschema'),
                     h('select', {
@@ -599,20 +846,58 @@
                     },
                         h('option', { value: 'licht' }, 'Lichte modus'),
                         h('option', { value: 'donker' }, 'Donkere modus')
-                    )
+                    ),
+                    h('div', { className: 'form-help' }, 'Kies het kleurenschema dat je prettig vindt om mee te werken.')
                 ),
                 h('div', { className: 'form-group' },
-                    h('label', null,
+                    h('label', { 
+                        style: { 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '0.5rem',
+                            cursor: 'pointer'
+                        }
+                    },
                         h('input', {
                             type: 'checkbox',
                             checked: data.weekendenWeergeven !== false,
-                            onChange: (e) => onChange({ weekendenWeergeven: e.target.checked })
+                            onChange: (e) => onChange({ weekendenWeergeven: e.target.checked }),
+                            style: { margin: 0 }
                         }),
-                        ' Weekenden weergeven in kalender'
-                    )
+                        'Weekenden weergeven in kalender'
+                    ),
+                    h('div', { className: 'form-help' }, 'Toon zaterdag en zondag in de kalenderweergave.')
                 ),
-                h('p', { className: 'form-help' }, 
-                    'Deze instellingen kun je later aanpassen in je persoonlijke voorkeuren.'
+                h('div', { className: 'form-group' },
+                    h('label', { 
+                        style: { 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '0.5rem',
+                            cursor: 'pointer'
+                        }
+                    },
+                        h('input', {
+                            type: 'checkbox',
+                            checked: data.eigenTeamWeergeven !== false,
+                            onChange: (e) => onChange({ eigenTeamWeergeven: e.target.checked }),
+                            style: { margin: 0 }
+                        }),
+                        'Alleen eigen team weergeven'
+                    ),
+                    h('div', { className: 'form-help' }, 'Filter de kalenderweergave op alleen jouw teamleden.')
+                ),
+                h('div', { 
+                    style: { 
+                        padding: '1rem', 
+                        backgroundColor: '#f8fafc', 
+                        borderRadius: '6px', 
+                        border: '1px solid #e2e8f0' 
+                    }
+                },
+                    h('p', { style: { margin: 0, fontSize: '14px', color: '#64748b' } }, 
+                        '⚙️ Je kunt al deze instellingen later aanpassen in je persoonlijke voorkeuren.'
+                    )
                 )
             );
         };
