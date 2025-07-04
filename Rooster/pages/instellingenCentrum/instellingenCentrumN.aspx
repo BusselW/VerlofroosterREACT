@@ -24,7 +24,7 @@
 
     <script type="module">
         // Import services (adjust paths as needed)
-        import { fetchSharePointList, getCurrentUser } from '../../js/services/sharepointService.js';
+        import { fetchSharePointList, getCurrentUser, getUserInfo } from '../../js/services/sharepointService.js';
 
         // React setup
         const { useState, useEffect, useMemo, useCallback, createElement: h, Fragment } = React;
@@ -113,22 +113,6 @@
             const [activeTab, setActiveTab] = useState('profile');
 
             return h('div', null,
-                h(TabNavigation, { activeTab, setActiveTab }),
-                h(TabContent, { activeTab, user, data })
-            );
-        };
-
-        // =====================
-        // Tab Navigation Component
-        // =====================
-        const TabNavigation = ({ activeTab, setActiveTab }) => {
-            const tabs = [
-                { id: 'profile', label: 'Mijn profiel', icon: '👤' },
-                { id: 'workhours', label: 'Mijn werktijden', icon: '🕒' },
-                { id: 'settings', label: 'Instellingen', icon: '⚙️' }
-            ];
-
-            return h('div', { className: 'card' },
                 h('div', { className: 'tab-navigation' },
                     ...tabs.map(tab =>
                         h('button', {
@@ -140,9 +124,62 @@
                             h('span', { className: 'tab-label' }, tab.label)
                         )
                     )
-                )
+                ),
+                h(TabContent, { activeTab, user, data })
             );
         };
+
+        // Tab definitions moved here for reuse
+        const tabs = [
+            { 
+                id: 'profile', 
+                label: 'Mijn profiel', 
+                icon: h('svg', { 
+                    width: '20', 
+                    height: '20', 
+                    fill: 'currentColor', 
+                    viewBox: '0 0 20 20' 
+                }, 
+                    h('path', { 
+                        fillRule: 'evenodd', 
+                        d: 'M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z', 
+                        clipRule: 'evenodd' 
+                    })
+                )
+            },
+            { 
+                id: 'workhours', 
+                label: 'Mijn werktijden', 
+                icon: h('svg', { 
+                    width: '20', 
+                    height: '20', 
+                    fill: 'currentColor', 
+                    viewBox: '0 0 20 20' 
+                }, 
+                    h('path', { 
+                        fillRule: 'evenodd', 
+                        d: 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z', 
+                        clipRule: 'evenodd' 
+                    })
+                )
+            },
+            { 
+                id: 'settings', 
+                label: 'Instellingen', 
+                icon: h('svg', { 
+                    width: '20', 
+                    height: '20', 
+                    fill: 'currentColor', 
+                    viewBox: '0 0 20 20' 
+                }, 
+                    h('path', { 
+                        fillRule: 'evenodd', 
+                        d: 'M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z', 
+                        clipRule: 'evenodd' 
+                    })
+                )
+            }
+        ];
 
         // =====================
         // Tab Content Component
@@ -167,6 +204,7 @@
         // =====================
         const ProfileTab = ({ user, data }) => {
             const [isEditing, setIsEditing] = useState(false);
+            const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
             const [formData, setFormData] = useState({
                 naam: user?.Title || '',
                 email: user?.Email || '',
@@ -177,6 +215,43 @@
                 manager: '',
                 startdatum: ''
             });
+
+            const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
+
+            // Fetch user avatar info
+            useEffect(() => {
+                let isMounted = true;
+                const fetchUserData = async () => {
+                    if (user && user.Username) {
+                        if (isMounted) setSharePointUser({ PictureURL: null, IsLoading: true });
+                        const userData = await getUserInfo(user.Username);
+                        if (isMounted) {
+                            setSharePointUser({ ...(userData || {}), IsLoading: false });
+                        }
+                    } else if (isMounted) {
+                        setSharePointUser({ PictureURL: null, IsLoading: false });
+                    }
+                };
+                fetchUserData();
+                return () => { isMounted = false; };
+            }, [user?.Username]);
+
+            const getAvatarUrl = () => {
+                if (sharePointUser.IsLoading) return '';
+                if (sharePointUser.PictureURL) return sharePointUser.PictureURL;
+                // Robuuste initialen extractie
+                const match = user?.Title ? String(user.Title).match(/\b\w/g) : null;
+                const initials = match ? match.join('') : '?';
+                return `${fallbackAvatar}${initials}`;
+            };
+
+            const handleImageError = (e) => {
+                e.target.onerror = null;
+                // Robuuste initialen extractie
+                const match = user?.Title ? String(user.Title).match(/\b\w/g) : null;
+                const initials = match ? match.join('') : '?';
+                e.target.src = `${fallbackAvatar}${initials}`;
+            };
 
             const handleInputChange = (field, value) => {
                 setFormData(prev => ({
@@ -193,7 +268,22 @@
 
             return h('div', null,
                 h('div', { className: 'tab-header' },
-                    h('h2', null, '👤 Mijn Profiel'),
+                    h('h2', null, 
+                        h('svg', { 
+                            width: '24', 
+                            height: '24', 
+                            fill: 'currentColor', 
+                            viewBox: '0 0 20 20',
+                            style: { marginRight: '0.5rem' }
+                        }, 
+                            h('path', { 
+                                fillRule: 'evenodd', 
+                                d: 'M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z', 
+                                clipRule: 'evenodd' 
+                            })
+                        ),
+                        'Mijn Profiel'
+                    ),
                     h('p', { className: 'text-muted mb-4' }, 'Bekijk en beheer uw persoonlijke informatie.')
                 ),
 
@@ -201,9 +291,22 @@
                 h('div', { className: 'card profile-header-card' },
                     h('div', { className: 'profile-avatar-section' },
                         h('div', { className: 'profile-avatar' },
-                            h('div', { className: 'avatar-placeholder' }, 
-                                (user?.Title || 'U').charAt(0).toUpperCase()
-                            )
+                            sharePointUser.IsLoading ? 
+                                h('div', { className: 'avatar-placeholder' }, '...') :
+                                h('img', {
+                                    src: getAvatarUrl(),
+                                    className: 'avatar-image',
+                                    alt: `Profielfoto van ${user?.Title || 'gebruiker'}`,
+                                    onError: handleImageError,
+                                    style: {
+                                        width: '80px',
+                                        height: '80px',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        border: '3px solid #1e3a8a',
+                                        boxShadow: '0 4px 12px rgba(30, 58, 138, 0.2)'
+                                    }
+                                })
                         ),
                         h('div', { className: 'profile-info' },
                             h('h3', null, user?.Title || 'Gebruiker'),
@@ -458,7 +561,22 @@
 
             return h('div', null,
                 h('div', { className: 'tab-header' },
-                    h('h2', null, '🕒 Mijn Werktijden'),
+                    h('h2', null, 
+                        h('svg', { 
+                            width: '24', 
+                            height: '24', 
+                            fill: 'currentColor', 
+                            viewBox: '0 0 20 20',
+                            style: { marginRight: '0.5rem' }
+                        }, 
+                            h('path', { 
+                                fillRule: 'evenodd', 
+                                d: 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z', 
+                                clipRule: 'evenodd' 
+                            })
+                        ),
+                        'Mijn Werktijden'
+                    ),
                     h('p', { className: 'text-muted mb-4' }, 'Beheer uw standaard werktijden en werkschema.')
                 ),
 
@@ -690,13 +808,41 @@
 
             return h('div', null,
                 h('div', { className: 'tab-header' },
-                    h('h2', null, '⚙️ Instellingen'),
+                    h('h2', null, 
+                        h('svg', { 
+                            width: '24', 
+                            height: '24', 
+                            fill: 'currentColor', 
+                            viewBox: '0 0 20 20',
+                            style: { marginRight: '0.5rem' }
+                        }, 
+                            h('path', { 
+                                fillRule: 'evenodd', 
+                                d: 'M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z', 
+                                clipRule: 'evenodd' 
+                            })
+                        ),
+                        'Instellingen'
+                    ),
                     h('p', { className: 'text-muted mb-4' }, 'Configureer uw persoonlijke voorkeuren en applicatie-instellingen.')
                 ),
 
                 // Notification Settings Card
                 h('div', { className: 'card' },
-                    h('h3', { className: 'card-title' }, '🔔 Meldingen'),
+                    h('h3', { className: 'card-title' }, 
+                        h('svg', { 
+                            width: '20', 
+                            height: '20', 
+                            fill: 'currentColor', 
+                            viewBox: '0 0 20 20',
+                            style: { marginRight: '0.5rem' }
+                        }, 
+                            h('path', { 
+                                d: 'M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z' 
+                            })
+                        ),
+                        'Meldingen'
+                    ),
                     h('div', { className: 'settings-section' },
                         h('div', { className: 'setting-item' },
                             h('label', { className: 'setting-label' },
@@ -745,7 +891,22 @@
 
                 // Display Settings Card
                 h('div', { className: 'card' },
-                    h('h3', { className: 'card-title' }, '🎨 Weergave'),
+                    h('h3', { className: 'card-title' }, 
+                        h('svg', { 
+                            width: '20', 
+                            height: '20', 
+                            fill: 'currentColor', 
+                            viewBox: '0 0 20 20',
+                            style: { marginRight: '0.5rem' }
+                        }, 
+                            h('path', { 
+                                fillRule: 'evenodd', 
+                                d: 'M4 2a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z', 
+                                clipRule: 'evenodd' 
+                            })
+                        ),
+                        'Weergave'
+                    ),
                     h('div', { className: 'settings-section' },
                         h('div', { className: 'form-row' },
                             h('div', { className: 'form-group' },
@@ -793,7 +954,22 @@
 
                 // Regional Settings Card
                 h('div', { className: 'card' },
-                    h('h3', { className: 'card-title' }, '🌍 Regionale instellingen'),
+                    h('h3', { className: 'card-title' }, 
+                        h('svg', { 
+                            width: '20', 
+                            height: '20', 
+                            fill: 'currentColor', 
+                            viewBox: '0 0 20 20',
+                            style: { marginRight: '0.5rem' }
+                        }, 
+                            h('path', { 
+                                fillRule: 'evenodd', 
+                                d: 'M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z', 
+                                clipRule: 'evenodd' 
+                            })
+                        ),
+                        'Regionale instellingen'
+                    ),
                     h('div', { className: 'settings-section' },
                         h('div', { className: 'form-row' },
                             h('div', { className: 'form-group' },
@@ -869,11 +1045,39 @@
                         h('button', { 
                             className: 'btn btn-primary',
                             onClick: handleSaveSettings
-                        }, '💾 Alle Instellingen Opslaan'),
+                        }, 
+                            h('svg', { 
+                                width: '16', 
+                                height: '16', 
+                                fill: 'currentColor', 
+                                viewBox: '0 0 20 20',
+                                style: { marginRight: '0.5rem' }
+                            }, 
+                                h('path', { 
+                                    d: 'M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z' 
+                                })
+                            ),
+                            'Alle Instellingen Opslaan'
+                        ),
                         h('button', { 
                             className: 'btn btn-secondary',
                             onClick: handleResetSettings
-                        }, '🔄 Standaardwaarden'),
+                        }, 
+                            h('svg', { 
+                                width: '16', 
+                                height: '16', 
+                                fill: 'currentColor', 
+                                viewBox: '0 0 20 20',
+                                style: { marginRight: '0.5rem' }
+                            }, 
+                                h('path', { 
+                                    fillRule: 'evenodd', 
+                                    d: 'M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z', 
+                                    clipRule: 'evenodd' 
+                                })
+                            ),
+                            'Standaardwaarden'
+                        ),
                         h('button', { 
                             className: 'btn btn-secondary',
                             onClick: () => window.location.reload()
