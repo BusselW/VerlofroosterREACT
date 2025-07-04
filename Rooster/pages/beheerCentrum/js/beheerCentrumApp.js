@@ -33,7 +33,7 @@ const PageBanner = () => {
 
 // Utility function to format dates
 const formatValue = (value, column) => {
-    if (value === null || value === undefined || value === '') return '';
+    if (!value) return '';
     
     // Handle date formatting
     if (column.type === 'date' || column.accessor.toLowerCase().includes('datum') || column.accessor.toLowerCase().includes('date')) {
@@ -48,7 +48,7 @@ const formatValue = (value, column) => {
     }
     
     // Handle datetime formatting
-    if (column.type === 'datetime' || column.accessor.toLowerCase().includes('tijdstip') || column.accessor.toLowerCase().includes('tijd')) {
+    if (column.type === 'datetime' || column.accessor.toLowerCase().includes('tijdstip')) {
         const date = new Date(value);
         if (!isNaN(date.getTime())) {
             return date.toLocaleDateString('nl-NL', { 
@@ -61,22 +61,6 @@ const formatValue = (value, column) => {
         }
     }
     
-    // Handle time formatting (for time-only fields)
-    if (column.type === 'time') {
-        // Check if it's a time string (e.g., "09:00" or "09:00:00")
-        if (typeof value === 'string' && value.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
-            return value.substring(0, 5); // Return HH:MM format
-        }
-        // If it's a date object or ISO string, extract just the time
-        const date = new Date(value);
-        if (!isNaN(date.getTime())) {
-            return date.toLocaleTimeString('nl-NL', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-        }
-    }
-    
     // Handle boolean values
     if (typeof value === 'boolean') {
         return h('span', { className: `boolean-indicator ${value ? 'true' : 'false'}` }, 
@@ -84,37 +68,12 @@ const formatValue = (value, column) => {
         );
     }
     
-    // Handle SharePoint boolean strings
-    if (value === 'Yes' || value === 'true' || value === '1') {
-        return h('span', { className: 'boolean-indicator true' }, 'Ja');
-    }
-    if (value === 'No' || value === 'false' || value === '0') {
-        return h('span', { className: 'boolean-indicator false' }, 'Nee');
-    }
-    
     // Handle color values
     if (column.type === 'color' || column.accessor.toLowerCase().includes('kleur')) {
         return h('div', { className: 'color-display' },
-            h('span', { 
-                className: 'color-swatch', 
-                style: { backgroundColor: value || '#cccccc' } 
-            }),
-            h('span', { className: 'color-value' }, value || 'Geen kleur')
+            h('span', { className: 'color-swatch', style: { backgroundColor: value } }),
+            h('span', { className: 'color-value' }, value)
         );
-    }
-    
-    // Handle email addresses
-    if (column.type === 'email' || column.accessor.toLowerCase().includes('mail')) {
-        return h('a', { 
-            href: `mailto:${value}`,
-            className: 'email-link',
-            style: { color: 'var(--info-500)', textDecoration: 'none' }
-        }, value);
-    }
-    
-    // Handle numeric values
-    if (column.type === 'number' && !isNaN(parseFloat(value))) {
-        return parseFloat(value).toLocaleString('nl-NL');
     }
     
     return value;
@@ -225,14 +184,6 @@ const ContentContainer = () => {
             // Fetch all fields defined in the config
             const selectFields = activeTab.listConfig.velden.map(f => f.interneNaam).join(',');
             const items = await getListItems(listName, selectFields);
-            
-            // Debug: Log the first item to see what fields we actually get
-            if (items.length > 0) {
-                console.log(`Data for ${activeTab.label}:`, items[0]);
-                console.log('Available fields:', Object.keys(items[0]));
-                console.log('Expected columns:', activeTab.columns.map(c => c.accessor));
-            }
-            
             setData(items);
         } catch (err) {
             setError(err);

@@ -98,10 +98,10 @@
         const getProfilePhotoUrl = (gebruiker, grootte = 'M') => {
             const loginName = gebruiker?.Username || gebruiker?.LoginName;
             if (!loginName) return null;
-            
+           
             // Extract username from domain\username format
             const usernameOnly = loginName.includes('\\') ? loginName.split('\\')[1] : loginName;
-            
+           
             // Construct URL to SharePoint profile photo
             const siteUrl = appConfiguratie?.instellingen?.siteUrl || '';
             return `${siteUrl}/_layouts/15/userphoto.aspx?size=${grootte}&accountname=${usernameOnly}@org.om.local`;
@@ -200,7 +200,7 @@
                                 teamLeaderLoading: true,
                                 teamLeader: null
                             });
-                            
+                           
                             // Get team leader info
                             try {
                                 if (medewerker && medewerker.Username) {
@@ -275,10 +275,10 @@
                     setTimeout(() => {
                         const dropdownButton = document.querySelector('.user-settings-btn');
                         const dropdownMenu = document.querySelector('.user-dropdown-menu');
-                        
+                       
                         if (dropdownButton && dropdownMenu) {
                             const buttonRect = dropdownButton.getBoundingClientRect();
-                            
+                           
                             // Position the dropdown below the button
                             dropdownMenu.style.top = `${buttonRect.bottom + 8}px`;
                             dropdownMenu.style.right = `${window.innerWidth - buttonRect.right}px`;
@@ -354,7 +354,7 @@
                                 }
                             }),
                             h('span', { className: 'user-name' }, userInfo.naam),
-                            userInfo.teamLeader && h('span', { 
+                            userInfo.teamLeader && h('span', {
                                 className: 'user-teamleader',
                                 style: {
                                     fontSize: '0.7rem',
@@ -635,14 +635,14 @@
             const [showTooltip, setShowTooltip] = useState(false);
             const [tooltipTimeout, setTooltipTimeout] = useState(null);
             const [firstClickData, setFirstClickData] = useState(null);
-            
+           
             // Initialize the tooltip manager when the component mounts
             useEffect(() => {
                 // Make sure TooltipManager is initialized
                 console.log('🔍 Initializing TooltipManager from RoosterApp');
                 TooltipManager.init();
             }, []);
-            
+           
             // Initialize profile cards after data is loaded
             useEffect(() => {
                 if (!loading && medewerkers.length > 0) {
@@ -1297,8 +1297,8 @@
                         })));
                         setUrenPerWeekItems((urenPerWeekData || []).map(u => {
                             // Normalize Ingangsdatum by properly parsing and resetting time components
-                            let date;
-                            
+                            let ingangsDate;
+                           
                             try {
                                 // Handle Dutch date format (DD-MM-YYYY)
                                 if (typeof u.Ingangsdatum === 'string' && u.Ingangsdatum.match(/^\d{1,2}-\d{1,2}-\d{4}/)) {
@@ -1306,27 +1306,73 @@
                                     const day = parseInt(parts[0], 10);
                                     const month = parseInt(parts[1], 10) - 1; // Months are 0-based in JS
                                     const year = parseInt(parts[2], 10);
-                                    
-                                    date = new Date(year, month, day);
+                                   
+                                    ingangsDate = new Date(year, month, day);
                                 } else {
-                                    date = new Date(u.Ingangsdatum);
+                                    ingangsDate = new Date(u.Ingangsdatum);
                                 }
-                                
+                               
                                 // Check if date is valid
-                                if (isNaN(date.getTime())) {
+                                if (isNaN(ingangsDate.getTime())) {
                                     console.error('Invalid date after parsing:', u.Ingangsdatum);
-                                    date = null;
+                                    ingangsDate = null;
                                 } else {
                                     // Reset time components for consistent comparison
-                                    date.setHours(0, 0, 0, 0);
+                                    ingangsDate.setHours(0, 0, 0, 0);
                                 }
                             } catch (error) {
                                 console.error('Error parsing date:', error, u.Ingangsdatum);
-                                date = null;
+                                ingangsDate = null;
                             }
-                            
-                            return { ...u, Ingangsdatum: date };
+                           
+                            // Parse CycleStartDate if present (for 2-week rotations)
+                            let cycleStartDate = null;
+                            if (u.CycleStartDate) {
+                                try {
+                                    cycleStartDate = new Date(u.CycleStartDate);
+                                    if (isNaN(cycleStartDate.getTime())) {
+                                        cycleStartDate = null;
+                                    } else {
+                                        cycleStartDate.setHours(0, 0, 0, 0);
+                                    }
+                                } catch (error) {
+                                    console.error('Error parsing CycleStartDate:', error, u.CycleStartDate);
+                                    cycleStartDate = null;
+                                }
+                            }
+                           
+                            // Handle WeekType field (defaults to 'A' for backwards compatibility)
+                            const weekType = u.WeekType ? String(u.WeekType).trim() : 'A';
+                           
+                            // Handle IsRotatingSchedule field (defaults to false for backwards compatibility)  
+                            const isRotatingSchedule = u.IsRotatingSchedule === true || u.IsRotatingSchedule === 'true';
+                           
+                            // DEBUG: Log WeekType processing for rotating schedules
+                            if (isRotatingSchedule) {
+                                console.log(`🔍 DEBUG: Processing rotating record ID ${u.Id} - Raw WeekType: '${u.WeekType}' (type: ${typeof u.WeekType}), Processed: '${weekType}'`);
+                            }
+                           
+                            return {
+                                ...u,
+                                Ingangsdatum: ingangsDate,
+                                CycleStartDate: cycleStartDate,
+                                WeekType: weekType,
+                                IsRotatingSchedule: isRotatingSchedule
+                            };
                         }));
+                       
+                        // DEBUG: Log processed UrenPerWeek data to check for Week B records
+                        console.log('🔍 DEBUG: Processed UrenPerWeek data:',
+                            (urenPerWeekData || []).map(u => ({
+                                Id: u.Id,
+                                MedewerkerID: u.MedewerkerID,
+                                WeekType: u.WeekType,
+                                IsRotatingSchedule: u.IsRotatingSchedule,
+                                Ingangsdatum: u.Ingangsdatum,
+                                CycleStartDate: u.CycleStartDate
+                            })).filter(u => u.IsRotatingSchedule) // Only show rotating schedules
+                        );
+                       
                         const indicatorsMapped = (dagenIndicatorsData || []).reduce((acc, item) => {
                             if (item.Title) {
                                 acc[item.Title] = { ...item, kleur: item.Kleur || '#cccccc', Beschrijving: item.Beschrijving || '' };
@@ -1489,12 +1535,12 @@
 
                 const urenPerWeekByMedewerker = useMemo(() => {
                     const map = {};
-                    
+                   
                     // Filter out items with invalid dates first
-                    const validItems = urenPerWeekItems.filter(item => 
+                    const validItems = urenPerWeekItems.filter(item =>
                         item.Ingangsdatum instanceof Date && !isNaN(item.Ingangsdatum.getTime())
                     );
-                    
+                   
                     // Group items by medewerker
                     for (const item of validItems) {
                         if (!map[item.MedewerkerID]) {
@@ -1502,21 +1548,49 @@
                         }
                         map[item.MedewerkerID].push(item);
                     }
-                    
+                   
                     // Sort each employee's records by Ingangsdatum (newest first)
                     // This is just for organizing the initial data - the actual selection
                     // logic is in getUrenPerWeekForDate
                     for (const medewerkerId in map) {
                         map[medewerkerId].sort((a, b) => b.Ingangsdatum - a.Ingangsdatum);
+                       
+                        // DEBUG: Log grouped records for employees with rotating schedules
+                        if (map[medewerkerId].some(record => record.IsRotatingSchedule)) {
+                            console.log(`🔍 DEBUG: Grouped rotating schedule records for ${medewerkerId}:`,
+                                map[medewerkerId].map(r => ({
+                                    Id: r.Id,
+                                    WeekType: r.WeekType,
+                                    IsRotatingSchedule: r.IsRotatingSchedule,
+                                    Ingangsdatum: r.Ingangsdatum?.toLocaleDateString(),
+                                    CycleStartDate: r.CycleStartDate?.toLocaleDateString()
+                                }))
+                            );
+                        }
                     }
-                    
+                   
                     return map;
                 }, [urenPerWeekItems]);
+
+                // Helper function to calculate which week type (A/B) a date falls into for 2-week rotations
+                const calculateWeekType = useCallback((targetDate, cycleStartDate) => {
+                    if (!cycleStartDate || !(cycleStartDate instanceof Date)) {
+                        return 'A'; // Default to week A if no cycle start date
+                    }
+                   
+                    // Calculate the number of weeks since the cycle started
+                    const timeDiff = targetDate.getTime() - cycleStartDate.getTime();
+                    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    const weeksSinceCycleStart = Math.floor(daysDiff / 7);
+                   
+                    // Even weeks = A, Odd weeks = B
+                    return weeksSinceCycleStart % 2 === 0 ? 'A' : 'B';
+                }, []);
 
                 const getUrenPerWeekForDate = useCallback((medewerkerId, date) => {
                     const schedules = urenPerWeekByMedewerker[medewerkerId];
                     if (!schedules) return null;
-                    
+                   
                     // Normalize the input date for proper comparison
                     let normalizedDate;
                     try {
@@ -1526,7 +1600,7 @@
                         console.error('Error normalizing date in getUrenPerWeekForDate:', error, date);
                         return null;
                     }
-                    
+                   
                     // Sort the applicable records by Ingangsdatum (newest first)
                     // We need to find the most recent record where Ingangsdatum <= target date
                     const applicableRecords = schedules
@@ -1539,27 +1613,112 @@
                             // Only include records where Ingangsdatum is on or before our target date
                             const isApplicable = s.Ingangsdatum <= normalizedDate;
                             if (medewerkerId.toLowerCase().includes('rauf') && Math.random() < 0.01) {  // Only log occasionally for Rauf
-                                console.log(`UrenPerWeek comparison for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}:`, 
+                                console.log(`UrenPerWeek comparison for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}:`,
                                     `Record ID ${s.Id} with date ${s.Ingangsdatum.toLocaleDateString()} is ${isApplicable ? 'applicable' : 'not applicable'}`);
                             }
                             return isApplicable;
                         })
                         .sort((a, b) => b.Ingangsdatum - a.Ingangsdatum);
-                    
-                    // Return the first applicable record (most recent one that applies)
-                    const selectedRecord = applicableRecords.length > 0 ? applicableRecords[0] : null;
-                    
-                    // Debug logging for Rauf to help diagnose the issue
-                    if (medewerkerId.toLowerCase().includes('rauf') && Math.random() < 0.01) {  // Only log occasionally
-                        if (selectedRecord) {
-                            console.log(`✅ Selected UrenPerWeek record for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}: Record ID ${selectedRecord.Id} from ${selectedRecord.Ingangsdatum.toLocaleDateString()}`);
-                        } else {
+                   
+                    // If no applicable records found, return null
+                    if (applicableRecords.length === 0) {
+                        if (medewerkerId.toLowerCase().includes('rauf') && Math.random() < 0.01) {
                             console.log(`⚠️ No applicable UrenPerWeek record found for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}`);
                         }
+                        return null;
                     }
-                    
-                    return selectedRecord;
-                }, [urenPerWeekByMedewerker]);
+                   
+                    // Check if this employee has rotating schedules
+                    const hasRotatingSchedule = applicableRecords.some(record => record.IsRotatingSchedule === true);
+                   
+                    if (hasRotatingSchedule) {
+                        // For rotating schedules, we need to find the correct schedule period and week type
+                        // Group records by schedule period (same Ingangsdatum + IsRotatingSchedule)
+                        const schedulePeriodsMap = new Map();
+                       
+                        for (const record of applicableRecords) {
+                            const periodKey = `${record.Ingangsdatum.getTime()}_${record.IsRotatingSchedule}`;
+                           
+                            if (!schedulePeriodsMap.has(periodKey)) {
+                                schedulePeriodsMap.set(periodKey, {
+                                    ingangsdatum: record.Ingangsdatum,
+                                    isRotating: record.IsRotatingSchedule,
+                                    cycleStartDate: record.CycleStartDate,
+                                    records: []
+                                });
+                            }
+                           
+                            schedulePeriodsMap.get(periodKey).records.push(record);
+                        }
+                       
+                        // Convert to array and sort by date (newest first)
+                        const schedulePeriods = Array.from(schedulePeriodsMap.values())
+                            .sort((a, b) => b.ingangsdatum - a.ingangsdatum);
+                       
+                        // Find the most recent period that applies to our target date
+                        let selectedPeriod = null;
+                       
+                        for (const period of schedulePeriods) {
+                            if (period.ingangsdatum <= normalizedDate) {
+                                selectedPeriod = period;
+                                break;
+                            }
+                        }
+                       
+                        if (!selectedPeriod) {
+                            console.warn(`⚠️ No applicable schedule period found for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}`);
+                            return null;
+                        }
+                       
+                        // DEBUG: Enhanced logging for Week B lookup issues
+                        console.log(`🔍 DEBUG: Selected period for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}:`);
+                        console.log(`🔍 DEBUG: Period Ingangsdatum: ${selectedPeriod.ingangsdatum.toLocaleDateString()}`);
+                        console.log(`🔍 DEBUG: Period is rotating: ${selectedPeriod.isRotating}`);
+                        console.log(`🔍 DEBUG: Available records in period:`,
+                            selectedPeriod.records.map(r => ({
+                                Id: r.Id,
+                                WeekType: r.WeekType,
+                                IsRotatingSchedule: r.IsRotatingSchedule
+                            }))
+                        );
+                       
+                        if (selectedPeriod.isRotating) {
+                            // This is a rotating schedule period - find the correct week type
+                            const cycleStartDate = selectedPeriod.cycleStartDate || selectedPeriod.ingangsdatum;
+                            const requiredWeekType = calculateWeekType(normalizedDate, cycleStartDate);
+                           
+                            console.log(`🔍 DEBUG: Looking for Week ${requiredWeekType} in rotating period`);
+                           
+                            // Find the record for this week type in this period
+                            const weekTypeRecord = selectedPeriod.records.find(record =>
+                                record.WeekType === requiredWeekType
+                            );
+                           
+                            if (weekTypeRecord) {
+                                console.log(`✅ Found Week ${requiredWeekType} record for ${medewerkerId}: ID ${weekTypeRecord.Id}`);
+                                return weekTypeRecord;
+                            } else {
+                                // Enhanced error logging
+                                console.error(`❌ Could not find Week ${requiredWeekType} record for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}`);
+                                console.error(`❌ Available WeekTypes in period:`, selectedPeriod.records.map(r => r.WeekType));
+                               
+                                // Fall back to any available record from this period
+                                console.warn(`⚠️ Could not find Week ${requiredWeekType} record for ${medewerkerId}, falling back to available record`);
+                                return selectedPeriod.records[0];
+                            }
+                        } else {
+                            // This is a non-rotating schedule period that happens to be in a list with rotating schedules
+                            console.log(`✅ Using non-rotating record from mixed schedule for ${medewerkerId}: ID ${selectedPeriod.records[0].Id}`);
+                            return selectedPeriod.records[0];
+                        }
+                    } else {
+                        // For non-rotating schedules, use the most recent applicable record
+                        const selectedRecord = applicableRecords[0];
+                       
+                        console.log(`✅ Selected standard UrenPerWeek record for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}: Record ID ${selectedRecord.Id} from ${selectedRecord.Ingangsdatum.toLocaleDateString()}`);
+                        return selectedRecord;
+                    }
+                }, [urenPerWeekByMedewerker, calculateWeekType]);
 
                 const compensatieMomentenByDate = useMemo(() => {
                     const moments = {};
@@ -1776,7 +1935,7 @@
                                             const feestdagNaam = checkIsFeestdag(dag);
                                             const isToday = isVandaag(dag);
                                             const classes = `dag-kolom ${isWeekend ? 'weekend' : ''} ${feestdagNaam ? 'feestdag' : ''} ${isToday ? 'vandaag' : ''}`;
-                                            
+                                           
                                             // Create a ref callback to add tooltip for holiday
                                             const headerRef = (element) => {
                                                 if (element && feestdagNaam && !element.dataset.tooltipAttached) {
@@ -1785,9 +1944,9 @@
                                                     });
                                                 }
                                             };
-                                            
-                                            return h('th', { 
-                                                key: dag.toISOString(), 
+                                           
+                                            return h('th', {
+                                                key: dag.toISOString(),
                                                 className: classes,
                                                 ref: headerRef
                                             },
@@ -1827,7 +1986,7 @@
 
                                                             // Priority: verlof > zittingsvrij (compensatie uren have their own rendering)
                                                             let item = verlofItem || zittingsvrijItem;
-                                                            // Compensatie uren are excluded from primary item selection because they 
+                                                            // Compensatie uren are excluded from primary item selection because they
                                                             // have their own visual representation via renderCompensatieMomenten
 
                                                             return {
@@ -1888,7 +2047,7 @@
                                                                         style: { backgroundColor: indicator.kleur, borderRadius: '6px' }, // Ensure it's a full block
                                                                         title: `${indicator.Beschrijving || indicator.Title} (vanaf ${urenSchema.Ingangsdatum.toLocaleDateString()})`
                                                                     }, indicator.Title);
-                                                                    
+                                                                   
                                                                     console.log(`🔍 Rendered UrenPerWeek block for ${medewerker.Username} on ${dag.toDateString()}: ${dagSoort} (record from ${urenSchema.Ingangsdatum.toLocaleDateString()})`);
                                                                 }
                                                             }

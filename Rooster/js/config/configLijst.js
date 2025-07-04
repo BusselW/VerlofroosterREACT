@@ -170,7 +170,12 @@ if (typeof window.appConfiguratie === "undefined") {
         { titel: "VrijdagStart", interneNaam: "VrijdagStart", type: "Text" },
         { titel: "VrijdagEind", interneNaam: "VrijdagEind", type: "Text" },
         { titel: "VrijdagSoort", interneNaam: "VrijdagSoort", type: "Text" },
-        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" }
+        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" },
+       
+        // NEW ROTATION FIELDS - MISSING FROM CURRENT CONFIG
+        { titel: "WeekType", interneNaam: "WeekType", type: "Text" },
+        { titel: "IsRotatingSchedule", interneNaam: "IsRotatingSchedule", type: "Boolean" },
+        { titel: "CycleStartDate", interneNaam: "CycleStartDate", type: "DateTime" }
       ]
     },
 
@@ -622,10 +627,10 @@ if (typeof window.getLijstConfig === 'undefined') {
         console.warn(`[getLijstConfig] Configuratie voor sleutel '${lijstKey}' niet gevonden.`);
         return null;
     };
-    
+   
     // Create legacy sharepointLijstConfiguraties for backward compatibility
     window.sharepointLijstConfiguraties = window.appConfiguratie;
-    
+   
     console.log("Compatibility layer toegevoegd voor appConfiguratie -> getLijstConfig");
     console.log("Available configurations:", Object.keys(window.appConfiguratie));
 }
@@ -633,3 +638,5 @@ if (typeof window.getLijstConfig === 'undefined') {
 console.log("js/config/appConfig.js geladen.");
 console.log("window.appConfiguratie loaded:", typeof window.appConfiguratie);
 console.log("window.getLijstConfig available:", typeof window.getLijstConfig);
+
+

@@ -60,10 +60,10 @@ export const beheerTabs = [
         label: 'Teams',
         listConfig: Teams,
         columns: [
-            { Header: 'Naam', accessor: 'Naam', type: 'text' },
-            { Header: 'Teamleider', accessor: 'Teamleider', type: 'text' },
-            { Header: 'Kleur', accessor: 'Kleur', type: 'color' },
-            { Header: 'Actief', accessor: 'Actief', type: 'boolean' },
+            { Header: 'Naam', accessor: 'Naam' },
+            { Header: 'Teamleider', accessor: 'Teamleider' },
+            { Header: 'Kleur', accessor: 'Kleur' },
+            { Header: 'Actief', accessor: 'Actief' },
             { Header: 'Acties', accessor: 'actions', isAction: true },
         ],
         formFields: [
@@ -277,8 +277,8 @@ export const beheerTabs = [
         label: 'Seniors',
         listConfig: Seniors,
         columns: [
-            { Header: 'Medewerker', accessor: 'Medewerker', type: 'text' },
-            { Header: 'Team', accessor: 'Team', type: 'text' },
+            { Header: 'Medewerker', accessor: 'Medewerker' },
+            { Header: 'Team', accessor: 'Team' },
             { Header: 'Acties', accessor: 'actions', isAction: true },
         ],
         formFields: [
@@ -295,7 +295,7 @@ export const beheerTabs = [
         label: 'Status Opties',
         listConfig: statuslijstOpties,
         columns: [
-            { Header: 'Titel', accessor: 'Title', type: 'text' },
+            { Header: 'Titel', accessor: 'Title' },
             { Header: 'Acties', accessor: 'actions', isAction: true },
         ],
         formFields: [

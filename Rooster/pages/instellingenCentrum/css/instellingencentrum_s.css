@@ -1,0 +1,257 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8fafc;
+    color: #334155;
+    line-height: 1.6;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Container styles */
+.container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 1rem;
+}
+
+/* Responsive container adjustments */
+@media (min-width: 768px) {
+    .container {
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        padding: 2rem;
+    }
+}
+
+@media (min-width: 1440px) {
+    .container {
+        padding: 2.5rem;
+    }
+}
+
+@media (min-width: 1920px) {
+    .container {
+        padding: 3rem;
+    }
+}
+
+/* Card styles */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+/* Responsive card adjustments */
+@media (min-width: 768px) {
+    .card {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .card {
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+}
+
+/* Header styles */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 0;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.header p {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Responsive header adjustments */
+@media (min-width: 768px) {
+    .header {
+        padding: 2rem 0;
+        margin-bottom: 1.5rem;
+    }
+    
+    .header h1 {
+        font-size: 2.2rem;
+    }
+    
+    .header p {
+        font-size: 1.05rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .header {
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .header p {
+        font-size: 1.1rem;
+    }
+}
+
+/* Button styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+/* Loading styles */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e2e8f0;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error styles */
+.error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Success styles */
+.success {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive form adjustments */
+@media (min-width: 768px) {
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Utility classes */
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: #6b7280;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+

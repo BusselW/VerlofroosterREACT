@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="nl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,34 +8,26 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="../js/config/configLijst.js"></script>
-          
-    <link rel="icon" href="../icons/favicon/favicon.svg" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+      <link rel="icon" href="../icons/favicon/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7fa;
-            /* Match k.aspx background */
+            background-color: #f4f7fa;  /* Match k.aspx background */
             min-height: 100vh;
             margin: 0;
         }
 
         .header-gradient {
-            background-color: #2c3e50;
-            /* Match k.aspx header */
+            background-color: #2c3e50;  /* Match k.aspx header */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .settings-card {
-            background: white;
-            /* Pure white instead of rgba */
-            backdrop-filter: none;
-            /* Remove blur effect */
-            border-radius: 8px;
-            /* Match k.aspx border radius */
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            /* Match k.aspx shadow */
+            background: white;  /* Pure white instead of rgba */
+            backdrop-filter: none;  /* Remove blur effect */
+            border-radius: 8px;  /* Match k.aspx border radius */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);  /* Match k.aspx shadow */
         }
 
         .tab-button {
@@ -53,8 +44,7 @@
         }
 
         .tab-button.active {
-            background-color: #4a90e2;
-            /* Match primary color */
+            background-color: #4a90e2;  /* Match primary color */
             color: white;
             box-shadow: 0 4px 6px -1px rgba(74, 144, 226, 0.3);
         }
@@ -65,21 +55,17 @@
             pointer-events: none;
         }
 
-        .form-input,
-        .form-select {
-            border-radius: 6px;
-            /* Match k.aspx form styling */
+        .form-input, .form-select {
+            border-radius: 6px;  /* Match k.aspx form styling */
             border: 1px solid #ccc;
             padding: 0.75rem 1rem;
             transition: all 0.2s ease;
             background: white;
         }
 
-        .form-input:focus,
-        .form-select:focus {
+        .form-input:focus, .form-select:focus {
             outline: none;
-            border-color: #4a90e2;
-            /* Match k.aspx focus color */
+            border-color: #4a90e2;  /* Match k.aspx focus color */
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
 
@@ -115,8 +101,7 @@
         }
 
         .btn-primary {
-            background-color: #4a90e2;
-            /* Match k.aspx primary color */
+            background-color: #4a90e2;  /* Match k.aspx primary color */
             color: white;
             border-color: #4a90e2;
         }
@@ -127,15 +112,13 @@
         }
 
         .btn-secondary {
-            background-color: #f0f0f0;
-            /* Match k.aspx secondary */
+            background-color: #f0f0f0;  /* Match k.aspx secondary */
             color: #333;
             border-color: #ccc;
         }
 
         .btn-success {
-            background-color: #27ae60;
-            /* Match k.aspx success color */
+            background-color: #27ae60;  /* Match k.aspx success color */
             color: white;
             border-color: #27ae60;
         }
@@ -149,8 +132,7 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-            /* Match primary colors */
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);  /* Match primary colors */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -256,11 +238,11 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        input:checked+.toggle-slider {
+        input:checked + .toggle-slider {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         }
 
-        input:checked+.toggle-slider:before {
+        input:checked + .toggle-slider:before {
             transform: translateX(24px);
         }
 
@@ -274,18 +256,12 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .gradient-text {
-            color: #2c3e50;
-            /* Solid color instead of gradient */
+            color: #2c3e50;  /* Solid color instead of gradient */
             font-weight: 600;
         }
 
@@ -311,7 +287,6 @@
         }
     </style>
 </head>
-
 <body>
     <div id="ginstellingen-app"></div>
 
@@ -325,56 +300,11 @@
         let dagenIndicatorColors = {};
         let colorsLoaded = false;
 
-        // Function to get color for a specific day type
-        function getDayTypeColor(dayType) {
-            // Return color from fetched data or fallback colors
-            if (dagenIndicatorColors && dagenIndicatorColors[dayType]) {
-                return dagenIndicatorColors[dayType];
-            }
-            
-            // Fallback colors for common day types
-            const fallbackColors = {
-                'Normaal': '#3B82F6',      // Blue
-                'VVD': '#10B981',          // Green (Verlofdag)
-                'VVO': '#F59E0B',          // Orange (Verlof Overig)
-                'VVM': '#EF4444',          // Red (Verlof Medisch)
-                'Flexibele start tijd': '#8B5CF6', // Purple
-                'Feestdag': '#F97316',     // Orange
-                'Ziektedag': '#DC2626',    // Dark Red
-                'Compensatiedag': '#059669' // Dark Green
-            };
-            
-            return fallbackColors[dayType] || '#6B7280'; // Default gray
-        }
-
-        // Function to calculate brightness of a color (0-255)
-        function getBrightness(hexColor) {
-            if (!hexColor) return 128; // Default to medium brightness
-            
-            // Remove # if present
-            const hex = hexColor.replace('#', '');
-            
-            // Handle short hex codes (e.g., #FFF)
-            let r, g, b;
-            if (hex.length === 3) {
-                r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
-                g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
-                b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
-            } else {
-                r = parseInt(hex.substr(0, 2), 16);
-                g = parseInt(hex.substr(2, 2), 16);
-                b = parseInt(hex.substr(4, 2), 16);
-            }
-            
-            // Calculate brightness using the same formula as getContrastColor
-            return (r * 299 + g * 587 + b * 114) / 1000;
-        }
-
         // Functie om alle benodigde modules te laden
         async function laadAlleModules() {
             // Skip the waiting logic and immediately use fallback configuration
             console.log('⚠ Using fallback configuration immediately');
-
+           
             // Create fallback configuration
             if (!window.appConfiguratie) {
                 window.appConfiguratie = {
@@ -383,7 +313,7 @@
                     }
                 };
             }
-
+           
             // Create fallback functions
             getLijstConfig = (identifier) => {
                 const configs = {
@@ -395,29 +325,29 @@
                 };
                 return configs[identifier] || null;
             };
-
+           
             krijgBeschikbareLijsten = () => ['Teams', 'keuzelijstFuncties', 'Medewerkers', 'gebruikersInstellingen', 'Werkrooster'];
-
+           
             console.log('✓ Fallback configuratie geladen');
 
             try {
                 // Correct the import path
                 const sharepointService = await import('../js/services/sharepointService.js');
-
+               
                 trimLoginNaamPrefix = (loginNaam) => {
                     if (!loginNaam || typeof loginNaam !== 'string') return loginNaam;
                     const parts = loginNaam.split('\\');
                     return parts.length > 1 ? parts[parts.length - 1] : loginNaam;
                 };
-
+               
                 getProfilePhotoUrl = (gebruiker, grootte = 'M') => {
                     const loginName = gebruiker?.Username || gebruiker?.LoginName;
                     if (!loginName) return null;
                     return sharepointService.getProfilePictureUrl(loginName, grootte);
                 };
-
+               
                 isGebruikerAdmin = async () => false; // Simplified for now
-
+               
                 console.log('✓ sharepointService.js succesvol geladen');
             } catch (error) {
                 console.warn('⚠ sharepointService.js loading failed:', error);
@@ -450,7 +380,7 @@
                 try {
                     // Import your existing service
                     this.sharepointService = await import('../js/services/sharepointService.js');
-
+                   
                     this.siteUrl = window.appConfiguratie?.instellingen?.siteUrl || GINSTELLINGEN_SITE_URL;
                     console.log('GInstellingenService geïnitialiseerd met siteUrl:', this.siteUrl);
                     return true;
@@ -485,11 +415,11 @@
                     // Helper function to format date properly for SharePoint
                     const formatDateForSharePoint = (dateString) => {
                         if (!dateString) return null;
-
+                       
                         // Create date object with explicit time to avoid timezone issues
                         const [year, month, day] = dateString.split('-');
                         const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0, 0);
-
+                       
                         // Format as ISO string for SharePoint
                         return date.toISOString();
                     };
@@ -504,7 +434,7 @@
                         Team: medewerkerData.team,
                         Functie: medewerkerData.functie
                     };
-
+                   
                     // Use your existing service to update employee data
                     if (medewerkerData.Id) {
                         return await this.sharepointService.updateSharePointListItem('Medewerkers', medewerkerData.Id, sharePointData);
@@ -520,135 +450,32 @@
             async opslaanWerkrooster(werkroosterData) {
                 try {
                     console.log('opslaanWerkrooster called with data:', werkroosterData);
-
-                    if (werkroosterData.IsRotatingSchedule) {
-                        // For rotating schedules, we need to create/update two separate records
-                        console.log('Handling rotating schedule - creating separate Week A and Week B records');
-                        
-                        // Prepare Week A data (regular fields)
-                        const weekAData = {};
-                        Object.keys(werkroosterData).forEach(key => {
-                            if (!key.endsWith('B') && key !== 'IsRotatingSchedule') {
-                                weekAData[key] = werkroosterData[key];
-                            }
-                        });
-                        weekAData.WeekType = 'A';
-                        weekAData.IsRotatingSchedule = true;
-                        
-                        // Clean Week A data
-                        this.cleanWorkScheduleData(weekAData);
-
-                        // Prepare Week B data (fields ending with 'B', but map them to regular field names)
-                        const weekBData = {
-                            MedewerkerID: werkroosterData.MedewerkerID,
-                            WeekType: 'B',
-                            IsRotatingSchedule: true
-                        };
-                        
-                        // Map B-suffixed fields to regular field names for Week B
-                        const dayMapping = {
-                            'MaandagStartB': 'MaandagStart', 'MaandagEindB': 'MaandagEind', 'MaandagSoortB': 'MaandagSoort',
-                            'DinsdagStartB': 'DinsdagStart', 'DinsdagEindB': 'DinsdagEind', 'DinsdagSoortB': 'DinsdagSoort',
-                            'WoensdagStartB': 'WoensdagStart', 'WoensdagEindB': 'WoensdagEind', 'WoensdagSoortB': 'WoensdagSoort',
-                            'DonderdagStartB': 'DonderdagStart', 'DonderdagEindB': 'DonderdagEind', 'DonderdagSoortB': 'DonderdagSoort',
-                            'VrijdagStartB': 'VrijdagStart', 'VrijdagEindB': 'VrijdagEind', 'VrijdagSoortB': 'VrijdagSoort'
-                        };
-                        
-                        Object.keys(dayMapping).forEach(bField => {
-                            if (werkroosterData[bField] !== undefined) {
-                                weekBData[dayMapping[bField]] = werkroosterData[bField];
-                            }
-                        });
-                        
-                        // Clean Week B data
-                        this.cleanWorkScheduleData(weekBData);
-
-                        // Save both records
-                        const results = [];
-                        
-                        // Find existing Week A and Week B records
-                        const existingRecords = await this.haalLijstItemsOp("UrenPerWeek");
-                        const existingWeekA = existingRecords.find(r => 
-                            r.MedewerkerID === werkroosterData.MedewerkerID && r.WeekType === 'A'
-                        );
-                        const existingWeekB = existingRecords.find(r => 
-                            r.MedewerkerID === werkroosterData.MedewerkerID && r.WeekType === 'B'
-                        );
-
-                        // Save Week A
-                        if (existingWeekA) {
-                            weekAData.Id = existingWeekA.Id;
-                            results.push(await this.sharepointService.updateSharePointListItem('UrenPerWeek', existingWeekA.Id, weekAData));
-                        } else {
-                            results.push(await this.sharepointService.createSharePointListItem('UrenPerWeek', weekAData));
-                        }
-
-                        // Save Week B
-                        if (existingWeekB) {
-                            weekBData.Id = existingWeekB.Id;
-                            results.push(await this.sharepointService.updateSharePointListItem('UrenPerWeek', existingWeekB.Id, weekBData));
-                        } else {
-                            results.push(await this.sharepointService.createSharePointListItem('UrenPerWeek', weekBData));
-                        }
-
-                        console.log('Rotating schedule saved successfully:', results);
-                        return results;
-                        
+                   
+                    // Validate required fields for new rotation system
+                    if (!werkroosterData.MedewerkerID) {
+                        throw new Error('MedewerkerID is verplicht voor werkrooster opslag');
+                    }
+                   
+                    if (!werkroosterData.WeekType) {
+                        throw new Error('WeekType is verplicht voor werkrooster opslag');
+                    }
+                   
+                    if (werkroosterData.IsRotatingSchedule === undefined || werkroosterData.IsRotatingSchedule === null) {
+                        throw new Error('IsRotatingSchedule is verplicht voor werkrooster opslag');
+                    }
+                   
+                    // Use the correct list name from your config
+                    if (werkroosterData.Id) {
+                        console.log(`Updating existing UrenPerWeek record with ID: ${werkroosterData.Id}`);
+                        return await this.sharepointService.updateSharePointListItem('UrenPerWeek', werkroosterData.Id, werkroosterData);
                     } else {
-                        // For non-rotating schedules, save as a single record
-                        console.log('Handling non-rotating schedule');
-                        
-                        const cleanedData = { ...werkroosterData };
-                        
-                        // Remove Week B fields and set WeekType
-                        Object.keys(cleanedData).forEach(key => {
-                            if (key.endsWith('B')) {
-                                delete cleanedData[key];
-                            }
-                        });
-                        
-                        cleanedData.WeekType = 'A'; // Standard schedule is always Week A
-                        cleanedData.IsRotatingSchedule = false;
-                        
-                        // Clean the data
-                        this.cleanWorkScheduleData(cleanedData);
-
-                        // Validate required fields
-                        if (!cleanedData.MedewerkerID) {
-                            throw new Error('MedewerkerID is verplicht voor werkrooster opslag');
-                        }
-
-                        console.log('Cleaned data for SharePoint:', cleanedData);
-
-                        if (werkroosterData.Id) {
-                            console.log(`Updating existing UrenPerWeek record with ID: ${werkroosterData.Id}`);
-                            return await this.sharepointService.updateSharePointListItem('UrenPerWeek', werkroosterData.Id, cleanedData);
-                        } else {
-                            console.log('Creating new UrenPerWeek record');
-                            return await this.sharepointService.createSharePointListItem('UrenPerWeek', cleanedData);
-                        }
+                        console.log('Creating new UrenPerWeek record');
+                        return await this.sharepointService.createSharePointListItem('UrenPerWeek', werkroosterData);
                     }
                 } catch (error) {
                     console.error('Fout bij opslaan werkrooster:', error);
                     throw error;
                 }
-            }
-
-            cleanWorkScheduleData(data) {
-                // Remove any undefined or null values that might cause issues
-                Object.keys(data).forEach(key => {
-                    if (data[key] === undefined) {
-                        delete data[key];
-                    }
-                    // Convert null to empty string for text fields, or remove entirely
-                    if (data[key] === null) {
-                        if (key === 'CycleStartDate' || key.includes('Datum')) {
-                            delete data[key]; // Remove date fields entirely if null
-                        } else {
-                            data[key] = ''; // Convert other null values to empty string
-                        }
-                    }
-                });
             }
 
             async opslaanInstellingen(instellingenData) {
@@ -783,7 +610,7 @@
                 h('nav', { className: 'flex flex-wrap -mb-px space-x-2 sm:space-x-4 md:space-x-6' },
                     tabs.map(tab => {
                         const hasAccess = !tab.requiredSection || rechten?.sectiesToegang?.includes(tab.requiredSection);
-
+                       
                         return h('button', {
                             key: tab.id,
                             className: `tab-button ${activeTab === tab.id ? 'active' : ''} ${!hasAccess ? 'disabled' : ''}`,
@@ -828,14 +655,14 @@
                     // Helper function to format date properly for Dutch timezone
                     const formatDateForInput = (dateString) => {
                         if (!dateString) return '';
-
+                       
                         // Create date object and adjust for Dutch timezone
                         const date = new Date(dateString);
-
+                       
                         // Get the timezone offset and adjust
                         const timezoneOffset = date.getTimezoneOffset();
                         const adjustedDate = new Date(date.getTime() + (timezoneOffset * 60000));
-
+                       
                         // Format as YYYY-MM-DD for input field
                         return adjustedDate.toISOString().split('T')[0];
                     };
@@ -870,7 +697,7 @@
 
             return h('div', { className: 'p-4 md:p-6' },
                 h('h2', { className: 'text-xl font-semibold mb-6 gradient-text' }, 'Mijn Profiel'),
-
+               
                 h('div', { className: 'flex flex-col items-center sm:flex-row sm:items-start sm:space-x-6 mb-6' },
                     h('div', { className: 'profile-pic-container mb-4 sm:mb-0 flex-shrink-0' },
                         // Always show initials as profile picture is not working yet
@@ -977,7 +804,7 @@
         }
 
         // Werktijden Tab Component
-        function WerktijdenTab({ werkrooster, gebruiker, medewerkerData, statusBericht, rechten, onSave }) {
+        function WerktijdenTab({ werkrooster, statusBericht, rechten, onSave }) {
             const [bewerkModus, setBewerkModus] = useState(false);
             const [isRotatingSchedule, setIsRotatingSchedule] = useState(false);
             const [activeWeek, setActiveWeek] = useState('A'); // 'A' or 'B'
@@ -1003,7 +830,7 @@
                 VrijdagEind: '',
                 VrijdagSoort: 'Normaal',
                 VrijdagVrijeDag: false,
-
+               
                 // Week B data (for rotating schedules)
                 MaandagStartB: '',
                 MaandagEindB: '',
@@ -1039,7 +866,7 @@
                     // Determine if this is a rotating schedule
                     const hasRotatingData = werkrooster.IsRotatingSchedule === true;
                     setIsRotatingSchedule(hasRotatingData);
-
+                   
                     setFormData({
                         // Week A data
                         MaandagStart: werkrooster.MaandagStart || '',
@@ -1062,7 +889,7 @@
                         VrijdagEind: werkrooster.VrijdagEind || '',
                         VrijdagSoort: werkrooster.VrijdagSoort || 'Normaal',
                         VrijdagVrijeDag: werkrooster.VrijdagSoort === 'VVD' && (!werkrooster.VrijdagStart || !werkrooster.VrijdagEind),
-
+                       
                         // Week B data (populate from B-week record if available)
                         MaandagStartB: werkrooster.MaandagStartB || '',
                         MaandagEindB: werkrooster.MaandagEindB || '',
@@ -1085,7 +912,7 @@
                         VrijdagSoortB: werkrooster.VrijdagSoortB || 'Normaal',
                         VrijdagVrijeDagB: werkrooster.VrijdagSoortB === 'VVD' && (!werkrooster.VrijdagStartB || !werkrooster.VrijdagEindB)
                     });
-
+                   
                     // Load existing Ingangsdatum if available
                     if (werkrooster.Ingangsdatum) {
                         try {
@@ -1093,7 +920,7 @@
                             const date = new Date(werkrooster.Ingangsdatum);
                             const today = new Date();
                             today.setHours(0, 0, 0, 0); // Set to beginning of day for proper comparison
-
+                           
                             // Only use the existing date if it's today or in the future
                             if (date >= today) {
                                 setIngangsdatum(date.toISOString().split('T')[0]);
@@ -1108,7 +935,7 @@
                     } else {
                         setIngangsdatum(new Date().toISOString().split('T')[0]);
                     }
-
+                   
                     // Load cycle start date if available
                     if (werkrooster.CycleStartDate) {
                         try {
@@ -1152,19 +979,19 @@
             // Helper function to calculate hours worked
             const calculateHoursWorked = (startTime, endTime) => {
                 if (!startTime || !endTime) return '-';
-
+               
                 const start = new Date(`2000-01-01T${startTime}:00`);
                 const end = new Date(`2000-01-01T${endTime}:00`);
-
+               
                 // Handle invalid combinations
                 if (end <= start) return '-';
-
+               
                 const diffMs = end - start;
                 const diffHours = diffMs / (1000 * 60 * 60);
-
+               
                 // Show dash for very short times (less than 1 hour)
                 if (diffHours < 1) return '-';
-
+               
                 // Format to 1 decimal place if needed
                 return diffHours % 1 === 0 ? diffHours.toString() : diffHours.toFixed(1);
             };
@@ -1172,56 +999,56 @@
             // Helper function to determine work day type based on DagenIndicators logic
             const determineWorkDayType = (startTime, endTime, isVrijeDag = false) => {
                 console.log(`Determining work day type for: ${startTime} - ${endTime}, isVrijeDag: ${isVrijeDag}`);
-
+               
                 // Step 1: Check for explicitly marked free day
                 if (isVrijeDag) {
                     console.log('Explicitly marked as free day, returning VVD');
                     return 'VVD'; // Vaste Vrije Dag
                 }
-
+               
                 // Step 2: Check for flexible working hours (--:-- format or empty)
                 if (!startTime || !endTime || startTime === '--:--' || endTime === '--:--') {
                     console.log('Flexible hours detected (--:-- format or empty), returning Flexibele start tijd');
                     return 'Flexibele start tijd';
                 }
-
+               
                 // Step 3: Parse and validate time inputs
                 const start = new Date(`2000-01-01T${startTime}:00`);
                 const end = new Date(`2000-01-01T${endTime}:00`);
-
+               
                 if (isNaN(start.getTime()) || isNaN(end.getTime())) {
                     console.log('Invalid time format, returning Flexibele start tijd');
                     return 'Flexibele start tijd';
                 }
-
+               
                 console.log(`Parsed times: start=${start.getHours()}:${String(start.getMinutes()).padStart(2, '0')}, end=${end.getHours()}:${String(end.getMinutes()).padStart(2, '0')}`);
-
+               
                 // Step 4: Check for no work (VVD) - start and end times are the same
                 if (startTime === endTime) {
                     console.log('Start and end times are the same, returning VVD');
                     return 'VVD';
                 }
-
+               
                 // Convert to minutes for easier comparison
                 const startMinutes = start.getHours() * 60 + start.getMinutes();
                 const endMinutes = end.getHours() * 60 + end.getMinutes();
-
+               
                 // Step 5: Define time periods
                 const morningStart = 6 * 60;   // 06:00 - Morning period start
                 const morningEnd = 13 * 60;    // 13:00 - Morning period end
                 const afternoonStart = 12 * 60; // 12:00 - Afternoon period start
-
+               
                 // Step 6: Check if working during morning period (06:00-13:00)
                 // Work overlaps with morning if it starts before 13:00 AND ends after 06:00
                 const worksInMorning = startMinutes < morningEnd && endMinutes > morningStart;
-
+               
                 // Step 7: Check if working during afternoon period (12:00+)
                 // Work extends into afternoon if it ends after 12:00
                 const worksInAfternoon = endMinutes > afternoonStart;
-
+               
                 console.log(`Works in morning (06:00-13:00): ${worksInMorning}`);
                 console.log(`Works in afternoon (12:00+): ${worksInAfternoon}`);
-
+               
                 // Step 8: Apply the logic
                 if (!worksInMorning && !worksInAfternoon) {
                     // This case should be rare since step 4 catches same start/end times
@@ -1260,7 +1087,7 @@
             // Helper function to copy Week A data to Week B
             const copyWeekAToWeekB = () => {
                 const updatedFormData = { ...formData };
-
+               
                 DAGEN_VAN_DE_WEEK_DISPLAY.forEach(dag => {
                     const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                     updatedFormData[`${dagCapitalized}StartB`] = formData[`${dagCapitalized}Start`] || '';
@@ -1268,14 +1095,14 @@
                     updatedFormData[`${dagCapitalized}SoortB`] = formData[`${dagCapitalized}Soort`] || 'Normaal';
                     updatedFormData[`${dagCapitalized}VrijeDagB`] = formData[`${dagCapitalized}VrijeDag`] || false;
                 });
-
+               
                 setFormData(updatedFormData);
             };
 
             const handleSetAllTimes = () => {
                 const updatedFormData = { ...formData };
                 const newTimeErrors = { ...timeErrors };
-
+               
                 // First validate the bulk times
                 const errorMessage = validateTimes(bulkStartTime, bulkEndTime);
                 if (errorMessage) {
@@ -1283,10 +1110,10 @@
                     alert(`Fout in de tijdsinstellingen: ${errorMessage}`);
                     return;
                 }
-
+               
                 // Determine which week suffix to use
                 const weekSuffix = (isRotatingSchedule && activeWeek === 'B') ? 'B' : '';
-
+               
                 DAGEN_VAN_DE_WEEK_DISPLAY.forEach(dag => {
                     const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                     // Only set times for days that are not marked as "vrije dag"
@@ -1295,12 +1122,12 @@
                         updatedFormData[`${dagCapitalized}Eind${weekSuffix}`] = bulkEndTime;
                         const calculatedDayType = determineWorkDayType(bulkStartTime, bulkEndTime, false);
                         updatedFormData[`${dagCapitalized}Soort${weekSuffix}`] = calculatedDayType || 'Normaal';
-
+                       
                         // Clear any existing errors for this day
                         delete newTimeErrors[`${dagCapitalized}${weekSuffix}`];
                     }
                 });
-
+               
                 setTimeErrors(newTimeErrors);
                 setFormData(updatedFormData);
             };
@@ -1308,10 +1135,10 @@
             // Function to clear all times
             const handleClearAllTimes = () => {
                 const updatedFormData = { ...formData };
-
+               
                 // Determine which week suffix to use
                 const weekSuffix = (isRotatingSchedule && activeWeek === 'B') ? 'B' : '';
-
+               
                 DAGEN_VAN_DE_WEEK_DISPLAY.forEach(dag => {
                     const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                     updatedFormData[`${dagCapitalized}Start${weekSuffix}`] = '';
@@ -1319,9 +1146,9 @@
                     updatedFormData[`${dagCapitalized}VrijeDag${weekSuffix}`] = true; // Set "vrije dag" checkboxes to true
                     updatedFormData[`${dagCapitalized}Soort${weekSuffix}`] = 'VVD'; // Set to vaste vrije dag
                 });
-
+               
                 setFormData(updatedFormData);
-
+               
                 // Clear errors for the active week
                 const newTimeErrors = { ...timeErrors };
                 DAGEN_VAN_DE_WEEK_DISPLAY.forEach(dag => {
@@ -1330,44 +1157,44 @@
                 });
                 setTimeErrors(newTimeErrors);
             };
-
+           
             const handleTimeChange = (dag, type, value, weekSuffix = '') => {
                 const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                 const updatedFormData = { ...formData };
                 updatedFormData[`${dagCapitalized}${type}${weekSuffix}`] = value;
-
+               
                 // Get both time values for validation
                 const startTime = type === 'Start' ? value : formData[`${dagCapitalized}Start${weekSuffix}`];
                 const endTime = type === 'Eind' ? value : formData[`${dagCapitalized}Eind${weekSuffix}`];
-
+               
                 // Validate the times if both are provided
                 if (startTime && endTime) {
                     const errorMessage = validateTimes(startTime, endTime);
                     const newTimeErrors = { ...timeErrors };
                     const errorKey = `${dagCapitalized}${weekSuffix}`;
-
+                   
                     if (errorMessage) {
                         newTimeErrors[errorKey] = errorMessage;
                     } else {
                         delete newTimeErrors[errorKey];
                     }
-
+                   
                     setTimeErrors(newTimeErrors);
                 }
-
+               
                 // Auto-calculate day type when both times are set
                 const isVrijeDag = formData[`${dagCapitalized}VrijeDag${weekSuffix}`] || false;
                 const calculatedDayType = determineWorkDayType(startTime, endTime, isVrijeDag);
                 updatedFormData[`${dagCapitalized}Soort${weekSuffix}`] = calculatedDayType || (isVrijeDag ? 'VVD' : 'Normaal');
-
+               
                 setFormData(updatedFormData);
             };
-
+           
             const handleVrijedagChange = (dag, isVrij, weekSuffix = '') => {
                 const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                 const updatedFormData = { ...formData };
                 updatedFormData[`${dagCapitalized}VrijeDag${weekSuffix}`] = isVrij;
-
+               
                 if (isVrij) {
                     updatedFormData[`${dagCapitalized}Soort${weekSuffix}`] = 'VVD';
                 } else {
@@ -1377,7 +1204,7 @@
                     const calculatedDayType = determineWorkDayType(startTime, endTime, false);
                     updatedFormData[`${dagCapitalized}Soort${weekSuffix}`] = calculatedDayType || 'Normaal';
                 }
-
+               
                 setFormData(updatedFormData);
             };
 
@@ -1393,23 +1220,23 @@
                 return DAGEN_VAN_DE_WEEK_DISPLAY.map(dag => {
                     const dagLower = dag.toLowerCase();
                     const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
-
+                   
                     // Determine which data to use based on rotation and active week
                     const weekSuffix = (bewerkModus && isRotatingSchedule && activeWeek === 'B') ? 'B' : '';
                     const startField = `${dagCapitalized}Start${weekSuffix}`;
                     const eindField = `${dagCapitalized}Eind${weekSuffix}`;
                     const vrijeDagField = `${dagCapitalized}VrijeDag${weekSuffix}`;
                     const soortField = `${dagCapitalized}Soort${weekSuffix}`;
-
+                   
                     const startTijd = bewerkModus ? formData[startField] : werkrooster?.[startField];
                     const eindTijd = bewerkModus ? formData[eindField] : werkrooster?.[eindField];
                     const isVrijeDag = bewerkModus ?
                         formData[vrijeDagField] :
                         (werkrooster?.[soortField] === 'VVD' && (!werkrooster?.[startField] || !werkrooster?.[eindField]));
-
+                   
                     // Calculate hours worked
                     const hoursWorked = isVrijeDag ? '-' : calculateHoursWorked(startTijd, eindTijd);
-
+                   
                     // Determine day type automatically
                     let calculatedDayType = isVrijeDag ? 'VVD' : determineWorkDayType(startTijd, eindTijd);
                     // Use stored value if in edit mode, otherwise use calculated
@@ -1423,8 +1250,9 @@
                                 h('div', { className: 'flex items-center gap-2' },
                                     h('span', null, dag),
                                     h('span', {
-                                        className: `text-xs px-2 py-1 rounded-full font-medium ${activeWeek === 'A' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-                                            }`
+                                        className: `text-xs px-2 py-1 rounded-full font-medium ${
+                                            activeWeek === 'A' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                                        }`
                                     }, `Week ${activeWeek}`)
                                 ) :
                                 dag
@@ -1462,13 +1290,13 @@
                         ),
                         h('td', { className: 'py-3 text-center' },
                             bewerkModus ?
-                                h('input', {
-                                    type: 'checkbox',
-                                    className: 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500',
-                                    checked: isVrijeDag,
-                                    onChange: (e) => handleVrijedagChange(dag, e.target.checked, weekSuffix)
-                                }) :
-                                (isVrijeDag ? 'Ja' : 'Nee')
+                            h('input', {
+                                type: 'checkbox',
+                                className: 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500',
+                                checked: isVrijeDag,
+                                onChange: (e) => handleVrijedagChange(dag, e.target.checked, weekSuffix)
+                            }) :
+                            (isVrijeDag ? 'Ja' : 'Nee')
                         ),
                         h('td', { className: 'py-3' },
                             h('span', {
@@ -1492,21 +1320,21 @@
                     alert('Los alle tijd-gerelateerde fouten op voordat je het werkrooster opslaat.');
                     return;
                 }
-
+               
                 // Validate ingangsdatum
                 if (!ingangsdatum) {
                     alert('Vul een geldige ingangsdatum in.');
                     return;
                 }
-
+               
                 // Validate cycle start date if rotating schedule is enabled
                 if (isRotatingSchedule && !cycleStartDate) {
                     alert('Vul een geldige cyclus start datum in voor het roterend rooster.');
                     return;
                 }
-
+               
                 setIsLoading(true);
-
+               
                 try {
                     // Debug logging to check available user IDs
                     console.log('Debug - Available user data:');
@@ -1514,64 +1342,64 @@
                     console.log('medewerkerData?.Username:', medewerkerData?.Username);
                     console.log('gebruiker?.normalizedUsername:', gebruiker?.normalizedUsername);
                     console.log('gebruiker?.LoginName:', gebruiker?.LoginName);
-
+                   
                     // Determine the correct MedewerkerID to use
                     const finalMedewerkerID = werkrooster?.MedewerkerID ||
-                        medewerkerData?.Username ||
-                        gebruiker?.normalizedUsername ||
-                        gebruiker?.LoginName?.split('\\').pop();
-
+                                            medewerkerData?.Username ||
+                                            gebruiker?.normalizedUsername ||
+                                            gebruiker?.LoginName?.split('\\').pop();
+                   
                     console.log('Final MedewerkerID to use:', finalMedewerkerID);
-
+                   
                     if (!finalMedewerkerID) {
                         throw new Error('Kan geen geldige MedewerkerID bepalen. Controleer uw gebruikersgegevens.');
                     }
-
+                   
                     // Format dates for SharePoint
                     const formatDateForSharePoint = (dateString) => {
                         if (!dateString) return null;
                         const date = new Date(dateString);
                         return date.toISOString();
                     };
-
+                   
                     const formattedIngangsdatum = formatDateForSharePoint(ingangsdatum);
                     const formattedCycleStartDate = isRotatingSchedule ? formatDateForSharePoint(cycleStartDate) : null;
-
+                   
                     if (isRotatingSchedule) {
                         // For rotating schedules, create/update two separate records: Week A and Week B
                         const weekAData = {};
                         const weekBData = {};
-
+                       
                         // Process Week A data
                         DAGEN_VAN_DE_WEEK_DISPLAY.forEach(dag => {
                             const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                             const startTijd = formData[`${dagCapitalized}Start`];
                             const eindTijd = formData[`${dagCapitalized}Eind`];
                             const isVrijeDag = formData[`${dagCapitalized}VrijeDag`];
-
+                           
                             // Auto-set the day type based on work times and free day status
                             const calculatedDayType = determineWorkDayType(startTijd, eindTijd, isVrijeDag);
-
+                           
                             weekAData[`${dagCapitalized}Start`] = startTijd || '';
                             weekAData[`${dagCapitalized}Eind`] = eindTijd || '';
                             weekAData[`${dagCapitalized}Soort`] = calculatedDayType || (isVrijeDag ? 'VVD' : 'Normaal');
                         });
-
+                       
                         // Process Week B data
                         DAGEN_VAN_DE_WEEK_DISPLAY.forEach(dag => {
                             const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                             const startTijd = formData[`${dagCapitalized}StartB`];
                             const eindTijd = formData[`${dagCapitalized}EindB`];
                             const isVrijeDag = formData[`${dagCapitalized}VrijeDagB`];
-
+                           
                             // Auto-set the day type based on work times and free day status
                             const calculatedDayType = determineWorkDayType(startTijd, eindTijd, isVrijeDag);
-
+                           
                             weekBData[`${dagCapitalized}Start`] = startTijd || '';
                             weekBData[`${dagCapitalized}Eind`] = eindTijd || '';
                             weekBData[`${dagCapitalized}Soort`] = calculatedDayType || (isVrijeDag ? 'VVD' : 'Normaal');
                         });
-
+                       
                         // Add common fields to both records
                         const commonFields = {
                             Ingangsdatum: formattedIngangsdatum,
@@ -1579,102 +1407,87 @@
                             CycleStartDate: formattedCycleStartDate,
                             MedewerkerID: finalMedewerkerID
                         };
-
+                       
                         // Create Week A record
                         const weekARecord = {
                             ...weekAData,
                             ...commonFields,
                             WeekType: 'A'
                         };
-
+                       
                         // If updating existing schedule, preserve the ID for Week A
                         if (werkrooster?.Id && werkrooster?.WeekType === 'A') {
                             weekARecord.Id = werkrooster.Id;
                         }
-
+                       
                         // Create Week B record
                         const weekBRecord = {
                             ...weekBData,
                             ...commonFields,
                             WeekType: 'B'
                         };
-
+                       
                         // Week B will typically be a new record unless we're updating an existing rotating schedule
                         // In that case, we would need to find the existing Week B record ID
-
+                       
                         console.log('Saving rotating schedule:');
                         console.log('Week A record:', weekARecord);
                         console.log('Week B record:', weekBRecord);
-
+                       
                         // Save both records
                         // Important: For new rotating schedules, these will be new records (no existing IDs)
                         // The service should handle creation vs. update based on the presence of Id field
                         await onSave(weekARecord, 'A');
                         await onSave(weekBRecord, 'B');
-
+                       
                     } else {
                         // For standard (non-rotating) schedules, save single record as before
                         const updatedFormData = { ...formData };
-
+                       
                         DAGEN_VAN_DE_WEEK_DISPLAY.forEach(dag => {
                             const dagCapitalized = dag.charAt(0).toUpperCase() + dag.slice(1);
                             const startTijd = formData[`${dagCapitalized}Start`];
                             const eindTijd = formData[`${dagCapitalized}Eind`];
                             const isVrijeDag = formData[`${dagCapitalized}VrijeDag`];
-
+                           
                             // Auto-set the day type based on work times and free day status
                             const calculatedDayType = determineWorkDayType(startTijd, eindTijd, isVrijeDag);
                             updatedFormData[`${dagCapitalized}Soort`] = calculatedDayType || (isVrijeDag ? 'VVD' : 'Normaal');
-
+                           
                             // Don't include VrijeDag field in the data sent to SharePoint
                             delete updatedFormData[`${dagCapitalized}VrijeDag`];
-
+                           
                             // Clean up any Week B fields that might exist
                             delete updatedFormData[`${dagCapitalized}StartB`];
                             delete updatedFormData[`${dagCapitalized}EindB`];
                             delete updatedFormData[`${dagCapitalized}SoortB`];
                             delete updatedFormData[`${dagCapitalized}VrijeDagB`];
                         });
-
+                       
                         // Add Ingangsdatum and rotation fields
                         updatedFormData.Ingangsdatum = formattedIngangsdatum;
                         updatedFormData.IsRotatingSchedule = false;
                         updatedFormData.WeekType = 'A'; // Default to A for non-rotating
-                        // Don't set CycleStartDate to null, either omit it or set to a valid date
-                        if (werkrooster?.CycleStartDate) {
-                            delete updatedFormData.CycleStartDate; // Remove the field entirely
-                        }
+                        updatedFormData.CycleStartDate = null; // No cycle for standard schedules
                         updatedFormData.MedewerkerID = finalMedewerkerID;
-
+                       
                         console.log('Saving standard schedule:', updatedFormData);
-
+                       
                         // For standard schedules, we need to preserve the existing ID if updating
                         const finalData = { ...werkrooster, ...updatedFormData };
-
-                        // Clean up any rotation-specific fields when converting to standard schedule
-                        if (!updatedFormData.IsRotatingSchedule) {
-                            delete finalData.CycleStartDate;
-                        }
-
+                       
                         // If this is a conversion from rotating to standard, keep the Week A record
                         if (werkrooster?.WeekType === 'A') {
                             finalData.Id = werkrooster.Id;
                         }
-
-                        // Remove any undefined or null values that might cause SharePoint issues
-                        Object.keys(finalData).forEach(key => {
-                            if (finalData[key] === null || finalData[key] === undefined) {
-                                delete finalData[key];
-                            }
-                        });
-
+                       
                         console.log('Final standard schedule data:', finalData);
-
+                       
                         await onSave(finalData);
                     }
-
+                   
                     setBewerkModus(false);
-
+                   
                 } catch (error) {
                     console.error('Error saving werkrooster:', error);
                     alert(`Fout bij opslaan: ${error.message}`);
@@ -1722,7 +1535,7 @@
                                         VrijdagSoort: werkrooster.VrijdagSoort || 'Normaal',
                                         VrijdagVrijeDag: werkrooster.VrijdagSoort === 'VVD' && (!werkrooster.VrijdagStart || !werkrooster.VrijdagEind)
                                     });
-
+                                   
                                     // Reset timeErrors
                                     setTimeErrors({});
                                 }
@@ -1746,7 +1559,8 @@
                 ),
 
                 // 2-week rotation controls (only shown in edit mode)
-
+               
+               
                 bewerkModus && h('div', { className: 'mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg' },
                     h('div', { className: 'flex items-center justify-between mb-3' },
                         h('h4', { className: 'text-sm font-medium text-purple-800' }, '2-weken roterend rooster'),
@@ -1770,7 +1584,7 @@
                             ? 'Uw rooster wisselt elke week tussen Week A en Week B.'
                             : 'Schakel in om een rooster in te stellen dat elke week wisselt (bijv. Week 1: ma-vr, Week 2: ma-do).'
                     ),
-
+                   
                     // Week selector (only shown when rotating is enabled)
                     isRotatingSchedule && h('div', { className: 'mb-4' },
                         h('div', { className: 'flex flex-col sm:flex-row sm:items-center gap-3' },
@@ -1778,17 +1592,19 @@
                                 h('span', { className: 'text-sm text-purple-700 font-medium' }, 'Bewerk:'),
                                 h('div', { className: 'flex bg-purple-100 rounded-lg p-1' },
                                     h('button', {
-                                        className: `px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeWeek === 'A'
+                                        className: `px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                                            activeWeek === 'A'
                                                 ? 'bg-purple-600 text-white shadow-sm'
                                                 : 'text-purple-600 hover:bg-purple-200'
-                                            }`,
+                                        }`,
                                         onClick: () => setActiveWeek('A')
                                     }, 'Week A'),
                                     h('button', {
-                                        className: `px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeWeek === 'B'
+                                        className: `px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                                            activeWeek === 'B'
                                                 ? 'bg-purple-600 text-white shadow-sm'
                                                 : 'text-purple-600 hover:bg-purple-200'
-                                            }`,
+                                        }`,
                                         onClick: () => setActiveWeek('B')
                                     }, 'Week B')
                                 )
@@ -1806,7 +1622,7 @@
                             )
                         )
                     ),
-
+                   
                     // Cycle start date (only shown when rotating is enabled)
                     isRotatingSchedule && h('div', { className: 'flex items-center gap-2' },
                         h('label', { className: 'text-sm text-purple-700 font-medium' }, 'Cyclus start datum:'),
@@ -1990,7 +1806,7 @@
                                         VrijdagSoort: werkrooster.VrijdagSoort || 'Normaal',
                                         VrijdagVrijeDag: werkrooster.VrijdagSoort === 'VVD' && (!werkrooster.VrijdagStart || !werkrooster.VrijdagEind)
                                     });
-
+                                   
                                     // Also reset ingangsdatum from the werkrooster or to today
                                     if (werkrooster.Ingangsdatum) {
                                         try {
@@ -1998,7 +1814,7 @@
                                             const date = new Date(werkrooster.Ingangsdatum);
                                             const today = new Date();
                                             today.setHours(0, 0, 0, 0);
-
+                                           
                                             // Only use the existing date if it's today or in the future
                                             if (date >= today) {
                                                 setIngangsdatum(date.toISOString().split('T')[0]);
@@ -2075,7 +1891,7 @@
 
             return h('div', { className: 'p-4 md:p-6' },
                 h('h2', { className: 'text-xl font-semibold mb-6 gradient-text' }, 'Rooster Weergave Instellingen'),
-
+               
                 // Disabled notice
                 h('div', { className: 'mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg' },
                     h('div', { className: 'flex items-center' },
@@ -2090,7 +1906,7 @@
                         )
                     )
                 ),
-
+               
                 h('div', { className: 'space-y-6 opacity-50' },
                     h('div', null,
                         h('label', { className: 'block text-sm font-medium mb-2 text-gray-700' }, 'Thema Voorkeur'),
@@ -2223,7 +2039,7 @@
                         // Load current user
                         const gebruikerInfo = await gInstellingenService.krijgHuidigeGebruiker();
                         console.log('Loaded user:', gebruikerInfo);
-
+                       
                         if (gebruikerInfo) {
                             setGebruiker({
                                 naam: gebruikerInfo.Title || 'Onbekend',
@@ -2245,10 +2061,10 @@
                                 gInstellingenService.haalLijstItemsOp("Teams"),
                                 gInstellingenService.haalLijstItemsOp("keuzelijstFuncties")
                             ]);
-
+                           
                             console.log('Loaded teams:', teamsData);
                             console.log('Loaded functions:', functiesData);
-
+                           
                             setTeams(teamsData || []);
                             setFuncties(functiesData || []);
                         } catch (error) {
@@ -2265,14 +2081,14 @@
                                     m.Username && gebruikerInfo.LoginName &&
                                     m.Username.toLowerCase().includes(gebruikerInfo.LoginName.split('\\').pop()?.toLowerCase())
                                 );
-
+                               
                                 console.log('Found employee data:', medewerker);
                                 setMedewerkerData(medewerker);
-
+                               
                                 // Load work schedule (UrenPerWeek)
                                 if (medewerker?.Username) {
                                     const werkroosterData = await gInstellingenService.haalLijstItemsOp("UrenPerWeek");
-
+                                   
                                     // Look for both Week A and Week B records for rotating schedules
                                     const weekARecord = werkroosterData.find(w =>
                                         w.MedewerkerID === medewerker.Username && w.WeekType === 'A'
@@ -2280,9 +2096,9 @@
                                     const weekBRecord = werkroosterData.find(w =>
                                         w.MedewerkerID === medewerker.Username && w.WeekType === 'B'
                                     );
-
+                                   
                                     let combinedWerkrooster = null;
-
+                                   
                                     if (weekARecord && weekBRecord) {
                                         // Combine both weeks into a single object for the UI
                                         combinedWerkrooster = {
@@ -2312,7 +2128,7 @@
                                         // No specific Week A/B records, try to find any record for this user
                                         combinedWerkrooster = werkroosterData.find(w => w.MedewerkerID === medewerker.Username);
                                     }
-
+                                   
                                     console.log('Found work schedule:', combinedWerkrooster);
                                     setWerkrooster(combinedWerkrooster);
                                 }
@@ -2328,7 +2144,7 @@
                                 s.Title === gebruikerInfo?.LoginName ||
                                 s.Title === gebruikerInfo?.Title
                             );
-
+                           
                             console.log('Found user settings:', userSettings);
                             setInstellingen(userSettings);
                         } catch (error) {
@@ -2352,7 +2168,7 @@
                     // Reload work schedule (UrenPerWeek) for the current user
                     if (medewerkerData?.Username) {
                         const werkroosterData = await gInstellingenService.haalLijstItemsOp("UrenPerWeek");
-
+                       
                         // For rotating schedules, we need to fetch both Week A and Week B records
                         // and combine them into a single object for display
                         const weekARecord = werkroosterData.find(w =>
@@ -2361,9 +2177,9 @@
                         const weekBRecord = werkroosterData.find(w =>
                             w.MedewerkerID === medewerkerData.Username && w.WeekType === 'B'
                         );
-
+                       
                         let combinedWerkrooster = null;
-
+                       
                         if (weekARecord && weekBRecord) {
                             // Combine both weeks into a single object
                             combinedWerkrooster = {
@@ -2393,7 +2209,7 @@
                             // No specific Week A/B records, try to find any record for this user
                             combinedWerkrooster = werkroosterData.find(w => w.MedewerkerID === medewerkerData.Username);
                         }
-
+                       
                         console.log('Refreshed work schedule:', combinedWerkrooster);
                         setWerkrooster(combinedWerkrooster);
                     }
@@ -2410,10 +2226,10 @@
                         ...formData,
                         Id: medewerkerData?.Id // Include the ID for updates
                     };
-
+                   
                     await gInstellingenService.opslaanMedewerkerGegevens(dataToSave);
                     toonStatusBericht('profiel', 'Profiel succesvol opgeslagen!', 'success');
-
+                   
                     // Reload employee data after successful save
                     if (gebruiker?.LoginName) {
                         try {
@@ -2431,15 +2247,15 @@
                     toonStatusBericht('profiel', `Fout bij opslaan: ${error.message}`, 'error');
                 }
             };
-
+           
             const handleWerkroosterSave = async (werkroosterData, weekType = null) => {
                 try {
                     if (weekType) {
                         // This is a rotating schedule save - save the specific week record
                         console.log(`Saving Week ${weekType} schedule:`, werkroosterData);
-
+                       
                         await gInstellingenService.opslaanWerkrooster(werkroosterData);
-
+                       
                         // Store a reference for when saving the other week
                         if (weekType === 'A') {
                             console.log('Week A saved successfully');
@@ -2448,21 +2264,21 @@
                             console.log('Week B saved, rotating schedule complete');
                             // Both weeks are now saved
                             toonStatusBericht('werkuren', 'Roterend werkrooster (Week A & B) succesvol opgeslagen!', 'success');
-
+                           
                             // Refresh the data to show the updated schedule
                             await refreshData();
                         }
-
+                       
                     } else {
                         // This is a standard (non-rotating) schedule save
                         console.log('Saving standard schedule:', werkroosterData);
                         await gInstellingenService.opslaanWerkrooster(werkroosterData);
                         toonStatusBericht('werkuren', 'Werkrooster succesvol opgeslagen!', 'success');
-
+                       
                         // Refresh the data to show the updated schedule
                         await refreshData();
                     }
-
+                   
                 } catch (error) {
                     console.error('Error in handleWerkroosterSave:', error);
                     toonStatusBericht('werkuren', `Fout bij opslaan: ${error.message}`, 'error');
@@ -2494,8 +2310,6 @@
                     case 'werkuren':
                         return h(WerktijdenTab, {
                             werkrooster,
-                            gebruiker,
-                            medewerkerData,
                             statusBericht: statusBerichten.werkuren,
                             rechten,
                             onSave: handleWerkroosterSave
@@ -2512,102 +2326,17 @@
                 }
             };
 
-            // Function to fetch DagenIndicators colors from SharePoint
-            async function fetchDagenIndicatorColors() {
-                try {
-                    console.log('Fetching DagenIndicators colors...');
-                    const indicators = await gInstellingenService.haalLijstItemsOp('DagenIndicators');
-                    
-                    // Transform the data into a color mapping
-                    dagenIndicatorColors = {};
-                    if (indicators && indicators.length > 0) {
-                        indicators.forEach(indicator => {
-                            if (indicator.Title && indicator.Kleur) {
-                                dagenIndicatorColors[indicator.Title] = indicator.Kleur;
-                            }
-                        });
-                        console.log('DagenIndicators colors loaded:', dagenIndicatorColors);
-                    } else {
-                        console.warn('No DagenIndicators found or no color data available');
-                    }
-                    
-                    colorsLoaded = true;
-                    return dagenIndicatorColors;
-                } catch (error) {
-                    console.error('Error fetching DagenIndicators colors:', error);
-                    colorsLoaded = false;
-                    throw error;
-                }
-            }
-
-            // Function to apply day type colors to elements in the DOM
-            function applyDayTypeColors() {
-                try {
-                    console.log('Applying day type colors...');
-                    // Find all elements with day type classes or data attributes
-                    const dayTypeElements = document.querySelectorAll('[data-day-type], .day-type-tag, .dagen-indicator');
-                    
-                    dayTypeElements.forEach(element => {
-                        const dayType = element.getAttribute('data-day-type') || 
-                                       element.textContent?.trim() || 
-                                       element.getAttribute('data-title');
-                        
-                        if (dayType && dagenIndicatorColors[dayType]) {
-                            const color = dagenIndicatorColors[dayType];
-                            // Apply color as background or border color depending on element type
-                            if (element.classList.contains('day-type-tag')) {
-                                element.style.backgroundColor = color;
-                                element.style.borderColor = color;
-                                // Ensure text is readable
-                                element.style.color = getContrastColor(color);
-                            } else {
-                                element.style.borderLeftColor = color;
-                                element.style.borderLeftWidth = '4px';
-                                element.style.borderLeftStyle = 'solid';
-                            }
-                        }
-                    });
-                    
-                    console.log('Day type colors applied successfully');
-                } catch (error) {
-                    console.error('Error applying day type colors:', error);
-                }
-            }
-
-            // Helper function to determine if text should be light or dark based on background color
-            function getContrastColor(hexColor) {
-                // Remove # if present
-                const hex = hexColor.replace('#', '');
-                
-                // Convert to RGB
-                const r = parseInt(hex.substr(0, 2), 16);
-                const g = parseInt(hex.substr(2, 2), 16);
-                const b = parseInt(hex.substr(4, 2), 16);
-                
-                // Calculate brightness
-                const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-                
-                // Return white text for dark backgrounds, black for light
-                return brightness > 128 ? '#000000' : '#ffffff';
-            }
-
             // Global function to fetch DagenIndicators colors from SharePoint
             window.fetchDagenIndicatorColors = fetchDagenIndicatorColors;
 
-            // Fetch colors on app load - only after initialization is complete
+            // Fetch colors on app load
             useEffect(() => {
                 async function loadColors() {
-                    if (!isLoading && gInstellingenService) {
-                        try {
-                            await fetchDagenIndicatorColors();
-                        } catch (error) {
-                            console.warn('Failed to load DagenIndicator colors:', error);
-                        }
-                    }
+                    await fetchDagenIndicatorColors();
                 }
 
                 loadColors();
-            }, [isLoading]); // Run when loading state changes
+            }, []);
 
             // Apply colors to day type tags after they are rendered
             useEffect(() => {
@@ -2617,7 +2346,7 @@
                         applyDayTypeColors();
                     }, 100);
                 }
-            }, [activeTab, colorsLoaded, werkrooster, instellingen]); // Re-apply when tab changes, colors are loaded, or data changes
+            }, [formData, colorsLoaded]); // Re-apply when form data changes or colors are loaded
 
             if (isLoading) {
                 return h('div', null,
@@ -2669,6 +2398,110 @@
             );
         }
 
+        // Function to fetch DagenIndicators colors from SharePoint
+        async function fetchDagenIndicatorColors() {
+            if (colorsLoaded) {
+                return dagenIndicatorColors;
+            }
+
+            try {
+                console.log('Fetching DagenIndicators colors from SharePoint...');
+               
+                // Import the SharePoint service
+                const sharepointService = await import('../js/services/sharepointService.js');
+               
+                // Fetch the DagenIndicators list
+                const dagenIndicatorsData = await sharepointService.fetchSharePointList('DagenIndicators');
+               
+                // Create color mapping based on Title field
+                dagenIndicatorColors = {};
+               
+                dagenIndicatorsData.forEach(item => {
+                    if (item.Title && item.Kleur) {
+                        // Map the titles to our day types
+                        const title = item.Title.trim();
+                        let colorKey = null;
+                       
+                        // Match titles to our day type categories
+                        if (title.toLowerCase().includes('vvo') || title.toLowerCase().includes('vrije ochtend')) {
+                            colorKey = 'VVO';
+                        } else if (title.toLowerCase().includes('vvm') || title.toLowerCase().includes('vrije middag')) {
+                            colorKey = 'VVM';
+                        } else if (title.toLowerCase().includes('vvd') || title.toLowerCase().includes('vrije dag')) {
+                            colorKey = 'VVD';
+                        } else if (title.toLowerCase().includes('normaal') || title.toLowerCase().includes('normale werkdag')) {
+                            colorKey = 'Normaal';
+                        } else if (title.toLowerCase().includes('flexibel') || title.toLowerCase().includes('flexibele start')) {
+                            colorKey = 'Flexibele start tijd';
+                        }
+                       
+                        if (colorKey && item.Kleur) {
+                            // Ensure the color is a valid hex code
+                            let color = item.Kleur.trim();
+                            if (!color.startsWith('#')) {
+                                color = '#' + color;
+                            }
+                            dagenIndicatorColors[colorKey] = color;
+                            console.log(`Color mapping: ${colorKey} -> ${color}`);
+                        }
+                    }
+                });
+               
+                colorsLoaded = true;
+                console.log('DagenIndicators colors loaded:', dagenIndicatorColors);
+               
+                return dagenIndicatorColors;
+               
+            } catch (error) {
+                console.error('Error fetching DagenIndicators colors:', error);
+               
+                // Fallback colors if fetch fails
+                dagenIndicatorColors = {
+                    'VVD': '#ff6b6b',     // Red for no work
+                    'VVO': '#4ecdc4',     // Teal for free morning
+                    'VVM': '#45b7d1',     // Blue for free afternoon  
+                    'Normaal': '#96ceb4', // Green for normal work
+                    'Flexibele start tijd': '#ffeaa7' // Yellow for flexible
+                };
+               
+                colorsLoaded = true;
+                console.log('Using fallback colors:', dagenIndicatorColors);
+                return dagenIndicatorColors;
+            }
+        }
+
+        // Function to get color for a day type
+        function getDayTypeColor(dayType) {
+            return dagenIndicatorColors[dayType] || '#e0e0e0'; // Default gray if not found
+        }
+
+        // Function to apply color to day type tags
+        function applyDayTypeColors() {
+            const dayTypeTags = document.querySelectorAll('.dag-type-tag');
+           
+            dayTypeTags.forEach(tag => {
+                const dayType = tag.textContent.trim();
+                const color = getDayTypeColor(dayType);
+               
+                if (color) {
+                    tag.style.backgroundColor = color;
+                   
+                    // Determine text color based on background brightness
+                    const brightness = getBrightness(color);
+                    tag.style.color = brightness > 128 ? '#000000' : '#ffffff';
+                }
+            });
+        }
+
+        // Helper function to calculate color brightness
+        function getBrightness(hexColor) {
+            const hex = hexColor.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);  
+            const b = parseInt(hex.substr(4, 2), 16);
+            return (r * 299 + g * 587 + b * 114) / 1000;
+        }
+
         // Render de app
         async function renderApp() {
             const container = document.getElementById('ginstellingen-app');
@@ -2680,7 +2513,7 @@
                 } catch (error) {
                     console.warn('Failed to load DagenIndicator colors, using fallback:', error);
                 }
-
+               
                 const root = ReactDOM.createRoot(container);
                 root.render(h(GInstellingenApp));
                 console.log('gInstellingen React App gerenderd met ES6 modules');
@@ -2699,5 +2532,4 @@
         console.log('gInstellingen React App geladen met moderne ES6 structuur');
     </script>
 </body>
-
 </html>
