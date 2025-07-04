@@ -94,9 +94,9 @@ export function determineWorkDayType(startTime, endTime, isVrijeDag = false) {
     
     // Step 6: Apply the corrected logic - if times are filled, determine VVO/VVM/Normaal
     
-    // VVM: Afternoon off - worked morning only (starts before 13:00 AND ends before 13:00)
-    if (startMinutes < morningEnd && endMinutes < morningEnd) {
-        console.log('VVM: Worked morning only, afternoon off (start < 13:00 AND end < 13:00)');
+    // VVM: Afternoon off - worked morning only (starts before 13:00 AND ends at or before 13:00)
+    if (startMinutes < morningEnd && endMinutes <= morningEnd) {
+        console.log('VVM: Worked morning only, afternoon off (start < 13:00 AND end <= 13:00)');
         return DAY_TYPES.VVM;
     }
     
