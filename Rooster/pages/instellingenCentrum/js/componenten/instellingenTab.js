@@ -5,8 +5,7 @@
  * Features auto-saving toggles for display options.
  */
 
-import { SharePointService } from '../../../../js/services/sharepointService.js';
-import { CONFIG_LIJSTEN } from '../../../../js/config/configLijst.js';
+import { getSharePointListItems, createSharePointListItem, updateSharePointListItem } from '../../../../js/services/sharepointService.js';
 
 const { useState, useEffect, createElement: h } = React;
 
@@ -20,9 +19,6 @@ export const SettingsTab = ({ user, data }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [feedback, setFeedback] = useState('');
     const [currentUserId, setCurrentUserId] = useState(null);
-
-    // SharePoint service instance
-    const sharePointService = new SharePointService();
 
     // Load existing user settings on component mount
     useEffect(() => {
@@ -40,22 +36,18 @@ export const SettingsTab = ({ user, data }) => {
         setFeedback('');
 
         try {
-            const gebruikersInstellingenConfig = CONFIG_LIJSTEN.gebruikersInstellingen;
+            const gebruikersInstellingenConfig = window.appConfiguratie.gebruikersInstellingen;
             
             // Try to find existing settings for this user
-            const filter = `Title eq '${user.Title}'`;
-            const existingSettings = await sharePointService.getListItems(
-                gebruikersInstellingenConfig.lijstTitel,
-                filter
-            );
+            const existingSettings = await getSharePointListItems('gebruikersInstellingen');
+            const userSettings = existingSettings.find(setting => setting.Title === user.Title);
 
-            if (existingSettings && existingSettings.length > 0) {
+            if (userSettings) {
                 // Load existing settings
-                const settings = existingSettings[0];
-                setCurrentUserId(settings.Id);
-                setEigenTeamWeergeven(settings.EigenTeamWeergeven || false);
-                setSoortWeergave(settings.soortWeergave || 'week');
-                setWeekendenWeergeven(settings.WeekendenWeergeven !== false); // Default to true
+                setCurrentUserId(userSettings.Id);
+                setEigenTeamWeergeven(userSettings.EigenTeamWeergeven || false);
+                setSoortWeergave(userSettings.soortWeergave || 'week');
+                setWeekendenWeergeven(userSettings.WeekendenWeergeven !== false); // Default to true
                 setFeedback('✓ Je instellingen zijn geladen');
             } else {
                 // No existing settings, create default entry
@@ -66,10 +58,7 @@ export const SettingsTab = ({ user, data }) => {
                     WeekendenWeergeven: true
                 };
 
-                const newItem = await sharePointService.createListItem(
-                    gebruikersInstellingenConfig.lijstTitel,
-                    defaultSettings
-                );
+                const newItem = await createSharePointListItem('gebruikersInstellingen', defaultSettings);
 
                 if (newItem && newItem.Id) {
                     setCurrentUserId(newItem.Id);
@@ -91,14 +80,9 @@ export const SettingsTab = ({ user, data }) => {
         }
 
         try {
-            const gebruikersInstellingenConfig = CONFIG_LIJSTEN.gebruikersInstellingen;
             const updateData = { [fieldName]: value };
 
-            await sharePointService.updateListItem(
-                gebruikersInstellingenConfig.lijstTitel,
-                currentUserId,
-                updateData
-            );
+            await updateSharePointListItem('gebruikersInstellingen', currentUserId, updateData);
 
             setFeedback(`✓ ${getFieldDisplayName(fieldName)} opgeslagen`);
             
