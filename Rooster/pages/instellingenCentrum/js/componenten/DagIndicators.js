@@ -241,10 +241,10 @@ export function generateWorkScheduleData(workHours, options = {}) {
         MedewerkerID: userId,
         Ingangsdatum: ingangsdatum,
         VeranderingsDatum: new Date().toISOString(), // Track when this was created/updated
-        // Note: Rotation fields temporarily disabled until SharePoint list is updated
-        // WeekType: isRotating ? weekType : null,
-        // IsRotatingSchedule: isRotating,
-        // CycleStartDate: isRotating ? cycleStartDate : null,
+        // Re-enable rotation fields for proper A/B week handling
+        WeekType: isRotating ? weekType : null,
+        IsRotatingSchedule: isRotating,
+        CycleStartDate: isRotating ? cycleStartDate : null,
     };
     
     // Add day-specific data

@@ -28,6 +28,27 @@ import {
     WORK_DAYS
 } from './DagIndicators.js';
 
+// Helper function to trim SharePoint login name prefix (i:0;w:org\busselw -> org\busselw)
+const trimLoginNaamPrefix = (loginNaam) => {
+    if (!loginNaam || typeof loginNaam !== 'string') return loginNaam;
+    
+    // Handle SharePoint format: i:0#.w|domain\username or i:0;w:domain\username
+    if (loginNaam.includes('|')) {
+        const parts = loginNaam.split('|');
+        return parts.length > 1 ? parts[parts.length - 1] : loginNaam;
+    }
+    
+    // Handle colon format: i:0;w:domain\username
+    if (loginNaam.includes(':')) {
+        const colonParts = loginNaam.split(':');
+        const lastPart = colonParts[colonParts.length - 1];
+        return lastPart;
+    }
+    
+    // Fallback: just return as-is if no special format detected
+    return loginNaam;
+};
+
 const { useState, createElement: h } = React;
 
 // =====================
@@ -60,6 +81,10 @@ export const WorkHoursTab = ({ user, data }) => {
     const loadUserInfo = async () => {
         try {
             const user = await getCurrentUserInfo();
+            // Trim the login name prefix to get just "org\busselw" instead of "i:0;w:org\busselw"
+            if (user && user.LoginName) {
+                user.LoginName = trimLoginNaamPrefix(user.LoginName);
+            }
             setUserInfo(user);
             // TODO: Load existing work hours from SharePoint when available
         } catch (error) {
@@ -73,11 +98,9 @@ export const WorkHoursTab = ({ user, data }) => {
         
         try {
             if (scheduleType === 'rotating') {
-                // ROTATING SCHEDULE: Currently saving as separate records
-                // Note: Full rotation support requires SharePoint list schema updates
-                console.log('Saving rotating schedule - creating 2 records (basic version)');
+                // ROTATING SCHEDULE: Save 2 records (Week A and Week B)
+                console.log('Saving rotating schedule - creating 2 records with proper WeekType');
                 
-                // For now, save both weeks as separate basic records
                 // Week A data
                 const weekAData = generateWorkScheduleData(workHours, {
                     weekType: 'A',
@@ -96,7 +119,7 @@ export const WorkHoursTab = ({ user, data }) => {
                     cycleStartDate
                 });
                 
-                // Add Title to distinguish between weeks
+                // Add descriptive titles to distinguish between weeks
                 weekAData.Title = `${userInfo?.Title || userInfo?.LoginName} - Week A (${new Date(ingangsdatum).toLocaleDateString('nl-NL')})`;
                 weekBData.Title = `${userInfo?.Title || userInfo?.LoginName} - Week B (${new Date(ingangsdatum).toLocaleDateString('nl-NL')})`;
                 
@@ -112,17 +135,17 @@ export const WorkHoursTab = ({ user, data }) => {
                 console.log('Week A saved with ID:', weekAResult?.ID || weekAResult?.Id);
                 console.log('Week B saved with ID:', weekBResult?.ID || weekBResult?.Id);
                 
-                setFeedback({ type: 'success', message: 'Roterend werkrooster (Week A & B) succesvol opgeslagen! (Basis versie - volledige rotatie-ondersteuning wordt later toegevoegd)' });
+                setFeedback({ type: 'success', message: 'Roterend werkrooster (Week A & B) succesvol opgeslagen!' });
             } else {
                 // FIXED SCHEDULE: Save 1 record
                 console.log('Saving fixed schedule - creating 1 record');
                 
                 const scheduleData = generateWorkScheduleData(workHours, {
-                    weekType: null,
-                    isRotating: false,
+                    weekType: null,           // WeekType = null for fixed schedules
+                    isRotating: false,        // IsRotatingSchedule = false
                     userId: userInfo?.LoginName,
                     ingangsdatum,
-                    cycleStartDate: null
+                    cycleStartDate: null      // CycleStartDate = null for fixed schedules
                 });
                 
                 // Add a descriptive title

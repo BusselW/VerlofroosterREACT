@@ -241,12 +241,15 @@ Otherwise, extract values from DagenIndicators.Title
         { titel: "VrijdagEind", interneNaam: "VrijdagEind", type: "Text" },
         { titel: "VrijdagSoort", interneNaam: "VrijdagSoort", type: "Text" },
         { titel: "VrijdagStart", interneNaam: "VrijdagStart", type: "Text" },
-        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" }
+        { titel: "VrijdagTotaal", interneNaam: "VrijdagTotaal", type: "Text" },
         
-        // Note: Rotation fields will be added when SharePoint list is updated
-        // { titel: "WeekType", interneNaam: "WeekType", type: "Text" },
-        // { titel: "IsRotatingSchedule", interneNaam: "IsRotatingSchedule", type: "Boolean" },
-        // { titel: "CycleStartDate", interneNaam: "CycleStartDate", type: "DateTime" },
+        // Rotation fields - re-enabled for A/B week scheduling
+        { titel: "WeekType", interneNaam: "WeekType", type: "Text" },
+        { titel: "IsRotatingSchedule", interneNaam: "IsRotatingSchedule", type: "Boolean" },
+        { titel: "CycleStartDate", interneNaam: "CycleStartDate", type: "DateTime" }
+        
+        // Note: VrijeDag fields remain disabled as they don't exist in SharePoint yet
+        // Free day status is tracked via dayType (VVD = Vrije Volledige Dag)
         // { titel: "MaandagVrijeDag", interneNaam: "MaandagVrijeDag", type: "Boolean" },
         // { titel: "DinsdagVrijeDag", interneNaam: "DinsdagVrijeDag", type: "Boolean" },
         // { titel: "WoensdagVrijeDag", interneNaam: "WoensdagVrijeDag", type: "Boolean" },
