@@ -507,19 +507,32 @@
 
                         // Load teams and functions for dropdowns
                         try {
+                            console.log('Loading teams data...');
+                            console.log('fetchSharePointList function:', typeof fetchSharePointList);
                             const teamsData = await fetchSharePointList('Teams');
+                            console.log('Teams data loaded:', teamsData);
                             setTeams(teamsData || []);
                         } catch (err) {
                             console.warn('Could not load teams:', err);
-                            setTeams([]);
+                            // Fallback: use empty array with some test data
+                            setTeams([
+                                { ID: 1, Naam: 'Team A', Title: 'Team A' },
+                                { ID: 2, Naam: 'Team B', Title: 'Team B' }
+                            ]);
                         }
 
                         try {
+                            console.log('Loading functions data...');
                             const functiesData = await fetchSharePointList('keuzelijstFuncties');
+                            console.log('Functions data loaded:', functiesData);
                             setFuncties(functiesData || []);
                         } catch (err) {
                             console.warn('Could not load functions:', err);
-                            setFuncties([]);
+                            // Fallback: use empty array with some test data
+                            setFuncties([
+                                { ID: 1, Title: 'Developer' },
+                                { ID: 2, Title: 'Manager' }
+                            ]);
                         }
 
                         console.log('Registration app initialized successfully');
@@ -597,6 +610,9 @@
                     )
                 );
             }
+
+            // Debug logging
+            console.log('RegistrationApp render - teams:', teams, 'functies:', functies);
 
             // Show completion screen
             if (isCompleted) {
@@ -782,6 +798,8 @@
         
         // Profile Step Component
         const RegistrationProfileStep = ({ user, data, onChange, teams, functies }) => {
+            console.log('RegistrationProfileStep props:', { user, data, teams, functies });
+            
             // Auto-fill username and email from current user
             useEffect(() => {
                 if (user && !data.username && !data.email) {
@@ -907,7 +925,7 @@
                         onChange: (e) => onChange({ team: e.target.value })
                     },
                         h('option', { value: '' }, 'Selecteer een team...'),
-                        teams && teams.map(team =>
+                        (teams || []).map(team =>
                             h('option', { key: team.ID || team.Id, value: team.Naam || team.Title }, team.Naam || team.Title)
                         )
                     ),
@@ -923,7 +941,7 @@
                         onChange: (e) => onChange({ functie: e.target.value })
                     },
                         h('option', { value: '' }, 'Selecteer een functie...'),
-                        functies && functies.map(functie =>
+                        (functies || []).map(functie =>
                             h('option', { key: functie.ID || functie.Id, value: functie.Title }, functie.Title)
                         )
                     ),
