@@ -5,7 +5,7 @@
  */
 
 // Import core context
-import { sharePointContext } from './beheerCentrumN.js';
+import { spContext } from './sharepointContext.js';
 
 /**
  * Get items from a SharePoint list
@@ -18,7 +18,7 @@ import { sharePointContext } from './beheerCentrumN.js';
  */
 async function getListItems(listName, selectFields = '*', filterQuery = '', orderBy = 'Id', top = 1000) {
     try {
-        let url = `${sharePointContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items`;
+        let url = `${spContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items`;
         const queryParams = [];
         
         if (selectFields && selectFields !== '*') {
@@ -68,14 +68,14 @@ async function getListItems(listName, selectFields = '*', filterQuery = '', orde
  */
 async function createListItem(listName, itemData) {
     try {
-        const url = `${sharePointContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items`;
+        const url = `${spContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items`;
         
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json;odata=verbose',
                 'Content-Type': 'application/json;odata=verbose',
-                'X-RequestDigest': sharePointContext.requestDigest
+                'X-RequestDigest': spContext.requestDigest
             },
             body: JSON.stringify({ 
                 '__metadata': { 'type': `SP.Data.${listName}ListItem` },
@@ -104,43 +104,25 @@ async function createListItem(listName, itemData) {
  */
 async function updateListItem(listName, itemId, itemData) {
     try {
-        // First, get the item's metadata type
-        const getItemResponse = await fetch(
-            `${sharePointContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items(${itemId})`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json;odata=verbose'
-                }
-            }
-        );
+        const url = `${spContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items(${itemId})`;
         
-        if (!getItemResponse.ok) {
-            throw new Error(`Error ${getItemResponse.status}: ${getItemResponse.statusText}`);
-        }
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json;odata=verbose',
+                'Content-Type': 'application/json;odata=verbose',
+                'X-RequestDigest': spContext.requestDigest,
+                'IF-MATCH': '*',
+                'X-HTTP-Method': 'MERGE'
+            },
+            body: JSON.stringify({
+                '__metadata': { 'type': `SP.Data.${listName}ListItem` },
+                ...itemData
+            })
+        });
         
-        const itemDetails = await getItemResponse.json();
-        const itemType = itemDetails.d.__metadata.type;
-        
-        // Now update the item
-        const updateResponse = await fetch(
-            `${sharePointContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items(${itemId})`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json;odata=verbose',
-                    'Content-Type': 'application/json;odata=verbose',
-                    'X-RequestDigest': sharePointContext.requestDigest,
-                    'X-HTTP-Method': 'MERGE',
-                    'If-Match': itemDetails.d.__metadata.etag
-                },
-                body: JSON.stringify({
-                    '__metadata': { 'type': itemType },
-                    ...itemData
-                })
-            }
-        );
-        
-        if (!updateResponse.ok) {
-            throw new Error(`Error ${updateResponse.status}: ${updateResponse.statusText}`);
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
         
         return true;
@@ -154,41 +136,23 @@ async function updateListItem(listName, itemId, itemData) {
  * Delete an item from a SharePoint list
  * @param {string} listName - The name of the list
  * @param {number} itemId - ID of the item to delete
- * @returns {Promise<boolean>} Success status
+ * @returns {Promise<void>}
  */
 async function deleteListItem(listName, itemId) {
     try {
-        // First, get the item's etag
-        const getItemResponse = await fetch(
-            `${sharePointContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items(${itemId})`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json;odata=verbose'
-                }
+        const url = `${spContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items(${itemId})`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-RequestDigest': spContext.requestDigest,
+                'IF-MATCH': '*',
+                'X-HTTP-Method': 'DELETE'
             }
-        );
+        });
         
-        if (!getItemResponse.ok) {
-            throw new Error(`Error ${getItemResponse.status}: ${getItemResponse.statusText}`);
-        }
-        
-        const itemDetails = await getItemResponse.json();
-        
-        // Now delete the item
-        const deleteResponse = await fetch(
-            `${sharePointContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/items(${itemId})`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json;odata=verbose',
-                    'X-RequestDigest': sharePointContext.requestDigest,
-                    'X-HTTP-Method': 'DELETE',
-                    'If-Match': itemDetails.d.__metadata.etag
-                }
-            }
-        );
-        
-        if (!deleteResponse.ok) {
-            throw new Error(`Error ${deleteResponse.status}: ${deleteResponse.statusText}`);
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
         
         return true;
@@ -206,7 +170,7 @@ async function deleteListItem(listName, itemId) {
  */
 async function getChoiceFieldOptions(listName, fieldName) {
     try {
-        const url = `${sharePointContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/fields?$filter=EntityPropertyName eq '${fieldName}'`;
+        const url = `${spContext.siteUrl}/_api/web/lists/getbytitle('${listName}')/fields?$filter=EntityPropertyName eq '${fieldName}'`;
         
         const response = await fetch(url, {
             method: 'GET',
@@ -238,11 +202,74 @@ async function getChoiceFieldOptions(listName, fieldName) {
     }
 }
 
+/**
+ * Get the user profile by login name
+ * @param {string} loginName - The login name of the user
+ * @returns {Promise<Object>} User profile data
+ */
+async function getUserProfile(loginName) {
+     try {
+         const url = `${spContext.siteUrl}/_api/SP.UserProfiles.PeopleManager/GetPropertiesFor(accountName=@v)?@v='${encodeURIComponent(loginName)}'`;
+        
+         const response = await fetch(url, {
+             method: 'GET',
+             headers: {
+                 'Accept': 'application/json;odata=verbose'
+             }
+         });
+        
+         if (!response.ok) {
+             throw new Error(`Error ${response.status}: ${response.statusText}`);
+         }
+        
+         const data = await response.json();
+         return data.d;
+     } catch (error) {
+         console.error(`Fout bij ophalen van gebruikersprofiel voor ${loginName}:`, error);
+         throw error;
+     }
+}
+
+/**
+ * Search for users in the site collection.
+ * @param {string} query - The search term.
+ * @returns {Promise<Array>} Array of user objects matching the query.
+ */
+async function searchSiteUsers(query) {
+    if (!query || query.length < 3) {
+        return [];
+    }
+    try {
+        // Searches in Title (DisplayName), Email, and LoginName
+        const filter = `substringof('${query}', Title) or substringof('${query}', Email) or substringof('${query}', LoginName)`;
+        const url = `${spContext.siteUrl}/_api/web/siteusers?$filter=${filter}&$top=10`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json;odata=verbose'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.d.results.filter(user => user.PrincipalType === 1); // Filter for users only
+    } catch (error) {
+        console.error('Fout bij zoeken naar gebruikers:', error);
+        throw error;
+    }
+}
+
 // Export functions
 export {
     getListItems,
     createListItem,
     updateListItem,
     deleteListItem,
-    getChoiceFieldOptions
+    getChoiceFieldOptions,
+    getUserProfile,
+    searchSiteUsers
 };
