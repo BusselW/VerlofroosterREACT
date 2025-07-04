@@ -1,42 +1,137 @@
 /**
  * Settings Tab Component
  * 
- * Provides configuration options for notifications, display preferences,
- * regional settings, and system information.
+ * Manages user's personal preferences from the gebruikersInstellingen SharePoint list.
+ * Features auto-saving toggles for display options.
  */
 
-const { useState, createElement: h } = React;
+import { SharePointService } from '../../../../js/services/sharepointService.js';
+import { CONFIG_LIJSTEN } from '../../../../js/config/configLijst.js';
+
+const { useState, useEffect, createElement: h } = React;
 
 export const SettingsTab = ({ user, data }) => {
-    const [weekendDisplay, setWeekendDisplay] = useState(true);
-    const [autoRefresh, setAutoRefresh] = useState(true);
-    const [theme, setTheme] = useState('light');
-    const [language, setLanguage] = useState('nl');
-    const [dateFormat, setDateFormat] = useState('dd-mm-yyyy');
-    const [timeFormat, setTimeFormat] = useState('24h');
-    const [defaultView, setDefaultView] = useState('week');
+    // State for the three gebruikersInstellingen fields
+    const [eigenTeamWeergeven, setEigenTeamWeergeven] = useState(false);
+    const [soortWeergave, setSoortWeergave] = useState('week');
+    const [weekendenWeergeven, setWeekendenWeergeven] = useState(true);
+    
+    // UI state
+    const [isLoading, setIsLoading] = useState(true);
+    const [feedback, setFeedback] = useState('');
+    const [currentUserId, setCurrentUserId] = useState(null);
 
-    const handleSaveSettings = () => {
-        const settings = {
-            weekendDisplay,
-            autoRefresh,
-            theme,
-            language,
-            dateFormat,
-            timeFormat,
-            defaultView
-        };
-        console.log('Instellingen opgeslagen:', settings);
+    // SharePoint service instance
+    const sharePointService = new SharePointService();
+
+    // Load existing user settings on component mount
+    useEffect(() => {
+        loadUserSettings();
+    }, []);
+
+    const loadUserSettings = async () => {
+        if (!user?.Title) {
+            setFeedback('Gebruiker niet gevonden');
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        setFeedback('');
+
+        try {
+            const gebruikersInstellingenConfig = CONFIG_LIJSTEN.gebruikersInstellingen;
+            
+            // Try to find existing settings for this user
+            const filter = `Title eq '${user.Title}'`;
+            const existingSettings = await sharePointService.getListItems(
+                gebruikersInstellingenConfig.lijstTitel,
+                filter
+            );
+
+            if (existingSettings && existingSettings.length > 0) {
+                // Load existing settings
+                const settings = existingSettings[0];
+                setCurrentUserId(settings.Id);
+                setEigenTeamWeergeven(settings.EigenTeamWeergeven || false);
+                setSoortWeergave(settings.soortWeergave || 'week');
+                setWeekendenWeergeven(settings.WeekendenWeergeven !== false); // Default to true
+                setFeedback('✓ Je instellingen zijn geladen');
+            } else {
+                // No existing settings, create default entry
+                const defaultSettings = {
+                    Title: user.Title,
+                    EigenTeamWeergeven: false,
+                    soortWeergave: 'week',
+                    WeekendenWeergeven: true
+                };
+
+                const newItem = await sharePointService.createListItem(
+                    gebruikersInstellingenConfig.lijstTitel,
+                    defaultSettings
+                );
+
+                if (newItem && newItem.Id) {
+                    setCurrentUserId(newItem.Id);
+                    setFeedback('✓ Standaard instellingen aangemaakt');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user settings:', error);
+            setFeedback('⚠️ Kon instellingen niet laden');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleResetSettings = () => {
-        setWeekendDisplay(true);
-        setAutoRefresh(true);
-        setTheme('light');
-        setLanguage('nl');
-        setDateFormat('dd-mm-yyyy');
-        setTimeFormat('24h');
-        setDefaultView('week');
+    const saveSettingToSharePoint = async (fieldName, value) => {
+        if (!currentUserId) {
+            console.warn('No user ID available for saving');
+            return;
+        }
+
+        try {
+            const gebruikersInstellingenConfig = CONFIG_LIJSTEN.gebruikersInstellingen;
+            const updateData = { [fieldName]: value };
+
+            await sharePointService.updateListItem(
+                gebruikersInstellingenConfig.lijstTitel,
+                currentUserId,
+                updateData
+            );
+
+            setFeedback(`✓ ${getFieldDisplayName(fieldName)} opgeslagen`);
+            
+            // Clear feedback after 3 seconds
+            setTimeout(() => setFeedback(''), 3000);
+        } catch (error) {
+            console.error('Error saving setting:', error);
+            setFeedback(`⚠️ Kon ${getFieldDisplayName(fieldName)} niet opslaan`);
+        }
+    };
+
+    const getFieldDisplayName = (fieldName) => {
+        switch (fieldName) {
+            case 'EigenTeamWeergeven': return 'Eigen team weergeven';
+            case 'WeekendenWeergeven': return 'Weekenden weergeven';
+            case 'soortWeergave': return 'Soort weergave';
+            default: return 'instelling';
+        }
+    };
+
+    const handleEigenTeamToggle = (checked) => {
+        setEigenTeamWeergeven(checked);
+        saveSettingToSharePoint('EigenTeamWeergeven', checked);
+    };
+
+    const handleWeekendenToggle = (checked) => {
+        setWeekendenWeergeven(checked);
+        saveSettingToSharePoint('WeekendenWeergeven', checked);
+    };
+
+    const handleSoortWeergaveChange = (value) => {
+        setSoortWeergave(value);
+        saveSettingToSharePoint('soortWeergave', value);
     };
 
     return h('div', null,
@@ -57,231 +152,119 @@ export const SettingsTab = ({ user, data }) => {
                 ),
                 'Instellingen'
             ),
-            h('p', { className: 'text-muted mb-4' }, 'Configureer je persoonlijke voorkeuren en applicatie-instellingen.')
+            h('p', { className: 'text-muted mb-4' }, 'Configureer je persoonlijke voorkeuren voor de roosterweergave.')
         ),
 
-        // Display Settings Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 
-                h('svg', { 
-                    width: '20', 
-                    height: '20', 
-                    fill: 'currentColor', 
-                    viewBox: '0 0 20 20',
-                    style: { marginRight: '0.5rem' }
-                }, 
-                    h('path', { 
-                        fillRule: 'evenodd', 
-                        d: 'M4 2a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z', 
-                        clipRule: 'evenodd' 
-                    })
-                ),
-                'Weergave'
-            ),
-            h('div', { className: 'settings-section' },
-                h('div', { className: 'form-row' },
-                    h('div', { className: 'form-group' },
-                        h('label', { className: 'form-label' }, 'Thema'),
-                        h('select', {
-                            value: theme,
-                            onChange: (e) => setTheme(e.target.value),
-                            className: 'form-input'
-                        },
-                            h('option', { value: 'light' }, 'Licht thema'),
-                            h('option', { value: 'dark' }, 'Donker thema'),
-                            h('option', { value: 'auto' }, 'Automatisch (systeem)')
-                        )
+        // Loading state
+        isLoading && h('div', { className: 'loading-container' },
+            h('div', { className: 'loading-spinner' }),
+            h('p', null, 'Instellingen laden...')
+        ),
+
+        // Feedback message
+        feedback && h('div', { 
+            className: `feedback-message ${feedback.includes('⚠️') ? 'feedback-error' : 'feedback-success'}` 
+        }, feedback),
+
+        // Settings content (only show when not loading)
+        !isLoading && h('div', null,
+            // Display Settings Card
+            h('div', { className: 'card' },
+                h('h3', { className: 'card-title' }, 
+                    h('svg', { 
+                        width: '20', 
+                        height: '20', 
+                        fill: 'currentColor', 
+                        viewBox: '0 0 20 20',
+                        style: { marginRight: '0.5rem' }
+                    }, 
+                        h('path', { 
+                            fillRule: 'evenodd', 
+                            d: 'M4 2a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z', 
+                            clipRule: 'evenodd' 
+                        })
                     ),
+                    'Weergave-instellingen'
+                ),
+                h('div', { className: 'settings-section' },
+                    // Soort weergave dropdown
                     h('div', { className: 'form-group' },
-                        h('label', { className: 'form-label' }, 'Standaard weergave'),
+                        h('label', { className: 'form-label' }, 'Soort weergave'),
                         h('select', {
-                            value: defaultView,
-                            onChange: (e) => setDefaultView(e.target.value),
+                            value: soortWeergave,
+                            onChange: (e) => handleSoortWeergaveChange(e.target.value),
                             className: 'form-input'
                         },
                             h('option', { value: 'week' }, 'Weekweergave'),
-                            h('option', { value: 'month' }, 'Maandweergave'),
-                            h('option', { value: 'list' }, 'Lijstweergave')
-                        )
-                    )
-                ),
-                
-                h('div', { className: 'setting-item' },
-                    h('label', { className: 'setting-label' },
-                        h('input', {
-                            type: 'checkbox',
-                            checked: weekendDisplay,
-                            onChange: (e) => setWeekendDisplay(e.target.checked),
-                            className: 'setting-checkbox'
-                        }),
-                        h('div', { className: 'setting-content' },
-                            h('span', { className: 'setting-text' }, 'Weekenden tonen'),
-                            h('span', { className: 'setting-description' }, 'Toon zaterdag en zondag in de kalenderweergave')
-                        )
-                    )
-                )
-            )
-        ),
-
-        // Regional Settings Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 
-                h('svg', { 
-                    width: '20', 
-                    height: '20', 
-                    fill: 'currentColor', 
-                    viewBox: '0 0 20 20',
-                    style: { marginRight: '0.5rem' }
-                }, 
-                    h('path', { 
-                        fillRule: 'evenodd', 
-                        d: 'M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z', 
-                        clipRule: 'evenodd' 
-                    })
-                ),
-                'Regionale instellingen'
-            ),
-            h('div', { className: 'settings-section' },
-                h('div', { className: 'form-row' },
-                    h('div', { className: 'form-group' },
-                        h('label', { className: 'form-label' }, 'Taal'),
-                        h('select', {
-                            value: language,
-                            onChange: (e) => setLanguage(e.target.value),
-                            className: 'form-input'
-                        },
-                            h('option', { value: 'nl' }, 'Nederlands'),
-                            h('option', { value: 'en' }, 'English'),
-                            h('option', { value: 'de' }, 'Deutsch'),
-                            h('option', { value: 'fr' }, 'Français')
-                        )
+                            h('option', { value: 'maand' }, 'Maandweergave'),
+                            h('option', { value: 'lijst' }, 'Lijstweergave')
+                        ),
+                        h('p', { className: 'form-help' }, 'Kies je standaard weergave voor het rooster')
                     ),
-                    h('div', { className: 'form-group' },
-                        h('label', { className: 'form-label' }, 'Datumformaat'),
-                        h('select', {
-                            value: dateFormat,
-                            onChange: (e) => setDateFormat(e.target.value),
-                            className: 'form-input'
-                        },
-                            h('option', { value: 'dd-mm-yyyy' }, 'DD-MM-YYYY (31-12-2024)'),
-                            h('option', { value: 'mm-dd-yyyy' }, 'MM-DD-YYYY (12-31-2024)'),
-                            h('option', { value: 'yyyy-mm-dd' }, 'YYYY-MM-DD (2024-12-31)'),
-                            h('option', { value: 'dd/mm/yyyy' }, 'DD/MM/YYYY (31/12/2024)')
+                    
+                    // Boolean toggles
+                    h('div', { className: 'setting-toggles' },
+                        // Eigen team weergeven
+                        h('div', { className: 'setting-item' },
+                            h('div', { className: 'setting-content' },
+                                h('span', { className: 'setting-text' }, 'Eigen team weergeven'),
+                                h('span', { className: 'setting-description' }, 'Toon alleen je eigen teamleden in de roosterweergave')
+                            ),
+                            h('label', { className: 'toggle-switch' },
+                                h('input', {
+                                    type: 'checkbox',
+                                    checked: eigenTeamWeergeven,
+                                    onChange: (e) => handleEigenTeamToggle(e.target.checked)
+                                }),
+                                h('span', { className: 'slider' })
+                            )
+                        ),
+                        
+                        // Weekenden weergeven
+                        h('div', { className: 'setting-item' },
+                            h('div', { className: 'setting-content' },
+                                h('span', { className: 'setting-text' }, 'Weekenden weergeven'),
+                                h('span', { className: 'setting-description' }, 'Toon zaterdag en zondag in de kalenderweergave')
+                            ),
+                            h('label', { className: 'toggle-switch' },
+                                h('input', {
+                                    type: 'checkbox',
+                                    checked: weekendenWeergeven,
+                                    onChange: (e) => handleWeekendenToggle(e.target.checked)
+                                }),
+                                h('span', { className: 'slider' })
+                            )
                         )
                     )
-                ),
-                
-                h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Tijdformaat'),
-                    h('select', {
-                        value: timeFormat,
-                        onChange: (e) => setTimeFormat(e.target.value),
-                        className: 'form-input'
-                    },
-                        h('option', { value: '24h' }, '24-uurs (14:30)'),
-                        h('option', { value: '12h' }, '12-uurs (2:30 PM)')
-                    )
                 )
-            )
-        ),
-
-        // System Information Card
-        h('div', { className: 'card' },
-            h('h3', { className: 'card-title' }, 
-                h('svg', { 
-                    width: '20', 
-                    height: '20', 
-                    fill: 'currentColor', 
-                    viewBox: '0 0 20 20',
-                    style: { marginRight: '0.5rem' }
-                }, 
-                    h('path', { 
-                        fillRule: 'evenodd', 
-                        d: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z', 
-                        clipRule: 'evenodd' 
-                    })
-                ),
-                'Systeem informatie'
             ),
-            h('div', { className: 'info-grid' },
-                h('div', { className: 'info-item' },
-                    h('span', { className: 'info-label' }, 'Versie:'),
-                    h('span', { className: 'info-value' }, 'v2.1.0')
-                ),
-                h('div', { className: 'info-item' },
-                    h('span', { className: 'info-label' }, 'Laatst bijgewerkt:'),
-                    h('span', { className: 'info-value' }, 'Vandaag, 14:30')
-                ),
-                h('div', { className: 'info-item' },
-                    h('span', { className: 'info-label' }, 'Browser:'),
-                    h('span', { className: 'info-value' }, navigator.userAgent.includes('Chrome') ? 'Chrome' : 
-                        navigator.userAgent.includes('Firefox') ? 'Firefox' : 
-                        navigator.userAgent.includes('Safari') ? 'Safari' : 'Onbekend')
-                ),
-                h('div', { className: 'info-item' },
-                    h('span', { className: 'info-label' }, 'Gebruiker ID:'),
-                    h('span', { className: 'info-value' }, user?.Id || 'N/A')
-                )
-            )
-        ),
 
-        // Action Buttons Card
-        h('div', { className: 'card' },
-            h('div', { className: 'settings-actions' },
-                h('button', { 
-                    className: 'btn btn-primary',
-                    onClick: handleSaveSettings
-                }, 
+            // Help Information Card
+            h('div', { className: 'card' },
+                h('h3', { className: 'card-title' }, 
                     h('svg', { 
-                        width: '16', 
-                        height: '16', 
-                        fill: 'currentColor', 
-                        viewBox: '0 0 20 20',
-                        style: { marginRight: '0.5rem' }
-                    }, 
-                        h('path', { 
-                            d: 'M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z' 
-                        })
-                    ),
-                    'Alle Instellingen Opslaan'
-                ),
-                h('button', { 
-                    className: 'btn btn-secondary',
-                    onClick: handleResetSettings
-                }, 
-                    h('svg', { 
-                        width: '16', 
-                        height: '16', 
+                        width: '20', 
+                        height: '20', 
                         fill: 'currentColor', 
                         viewBox: '0 0 20 20',
                         style: { marginRight: '0.5rem' }
                     }, 
                         h('path', { 
                             fillRule: 'evenodd', 
-                            d: 'M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z', 
+                            d: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z', 
                             clipRule: 'evenodd' 
                         })
                     ),
-                    'Standaardwaarden'
+                    'Informatie'
                 ),
-                h('button', { 
-                    className: 'btn btn-secondary',
-                    onClick: () => window.location.reload()
-                }, 
-                    h('svg', { 
-                        width: '16', 
-                        height: '16', 
-                        fill: 'currentColor', 
-                        viewBox: '0 0 20 20',
-                        style: { marginRight: '0.5rem' }
-                    }, 
-                        h('path', { 
-                            fillRule: 'evenodd', 
-                            d: 'M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z', 
-                            clipRule: 'evenodd' 
-                        })
-                    ),
-                    'Pagina Vernieuwen'
+                h('div', { className: 'info-content' },
+                    h('p', null, 'Je instellingen worden automatisch opgeslagen wanneer je ze wijzigt.'),
+                    h('p', null, 'Deze voorkeuren gelden alleen voor jouw account en hebben geen invloed op andere gebruikers.'),
+                    h('ul', null,
+                        h('li', null, h('strong', null, 'Soort weergave:'), ' Bepaalt hoe het rooster standaard wordt weergegeven'),
+                        h('li', null, h('strong', null, 'Eigen team:'), ' Filtert de weergave om alleen je teamleden te tonen'),
+                        h('li', null, h('strong', null, 'Weekenden:'), ' Bepaalt of weekend dagen zichtbaar zijn in de kalender')
+                    )
                 )
             )
         )
