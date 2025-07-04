@@ -1578,13 +1578,39 @@
                         return 'A'; // Default to week A if no cycle start date
                     }
                    
-                    // Calculate the number of weeks since the cycle started
-                    const timeDiff = targetDate.getTime() - cycleStartDate.getTime();
-                    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-                    const weeksSinceCycleStart = Math.floor(daysDiff / 7);
+                    // Calculate which calendar week each date falls into
+                    // We use Monday as the start of the week (getDay(): Sun=0, Mon=1, ..., Sat=6)
+                    const getWeekStartDate = (date) => {
+                        const d = new Date(date);
+                        const day = d.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+                        d.setDate(diff);
+                        d.setHours(0, 0, 0, 0);
+                        return d;
+                    };
                    
-                    // Even weeks = A, Odd weeks = B
-                    return weeksSinceCycleStart % 2 === 0 ? 'A' : 'B';
+                    // Get the Monday of the week containing the cycle start date
+                    const cycleWeekStart = getWeekStartDate(cycleStartDate);
+                    
+                    // Get the Monday of the week containing the target date
+                    const targetWeekStart = getWeekStartDate(targetDate);
+                   
+                    // Calculate the number of weeks between these Mondays
+                    const timeDiff = targetWeekStart.getTime() - cycleWeekStart.getTime();
+                    const weeksSinceCycleStart = Math.floor(timeDiff / (7 * 24 * 60 * 60 * 1000));
+                   
+                    // Handle negative weeks (dates before cycle start) properly
+                    // Even weeks = A, Odd weeks = B (using mathematical modulo to handle negatives)
+                    const weekType = ((weeksSinceCycleStart % 2) + 2) % 2 === 0 ? 'A' : 'B';
+                    
+                    // DEBUG: Log week calculation details
+                    console.log(`🔍 Week calculation for ${targetDate.toLocaleDateString()}:`);
+                    console.log(`🔍 Cycle start: ${cycleStartDate.toLocaleDateString()} (week starts ${cycleWeekStart.toLocaleDateString()})`);
+                    console.log(`🔍 Target date: ${targetDate.toLocaleDateString()} (week starts ${targetWeekStart.toLocaleDateString()})`);
+                    console.log(`🔍 Weeks since cycle start: ${weeksSinceCycleStart}`);
+                    console.log(`🔍 Week type: ${weekType}`);
+                   
+                    return weekType;
                 }, []);
 
                 const getUrenPerWeekForDate = useCallback((medewerkerId, date) => {
@@ -1671,23 +1697,28 @@
                         }
                        
                         // DEBUG: Enhanced logging for Week B lookup issues
-                        console.log(`🔍 DEBUG: Selected period for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}:`);
-                        console.log(`🔍 DEBUG: Period Ingangsdatum: ${selectedPeriod.ingangsdatum.toLocaleDateString()}`);
-                        console.log(`🔍 DEBUG: Period is rotating: ${selectedPeriod.isRotating}`);
-                        console.log(`🔍 DEBUG: Available records in period:`,
-                            selectedPeriod.records.map(r => ({
-                                Id: r.Id,
-                                WeekType: r.WeekType,
-                                IsRotatingSchedule: r.IsRotatingSchedule
-                            }))
-                        );
+                        if (medewerkerId.toLowerCase().includes('rauf') || Math.random() < 0.1) { // Log for Rauf or 10% of other calls
+                            console.log(`🔍 DEBUG: Selected period for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}:`);
+                            console.log(`🔍 DEBUG: Period Ingangsdatum: ${selectedPeriod.ingangsdatum.toLocaleDateString()}`);
+                            console.log(`🔍 DEBUG: Period is rotating: ${selectedPeriod.isRotating}`);
+                            console.log(`🔍 DEBUG: Available records in period:`,
+                                selectedPeriod.records.map(r => ({
+                                    Id: r.Id,
+                                    WeekType: r.WeekType,
+                                    IsRotatingSchedule: r.IsRotatingSchedule,
+                                    CycleStartDate: r.CycleStartDate ? new Date(r.CycleStartDate).toLocaleDateString() : 'None'
+                                }))
+                            );
+                        }
                        
                         if (selectedPeriod.isRotating) {
                             // This is a rotating schedule period - find the correct week type
                             const cycleStartDate = selectedPeriod.cycleStartDate || selectedPeriod.ingangsdatum;
                             const requiredWeekType = calculateWeekType(normalizedDate, cycleStartDate);
                            
-                            console.log(`🔍 DEBUG: Looking for Week ${requiredWeekType} in rotating period`);
+                            if (medewerkerId.toLowerCase().includes('rauf') || Math.random() < 0.1) {
+                                console.log(`🔍 DEBUG: Looking for Week ${requiredWeekType} in rotating period (calculated from cycle start: ${cycleStartDate.toLocaleDateString()})`);
+                            }
                            
                             // Find the record for this week type in this period
                             const weekTypeRecord = selectedPeriod.records.find(record =>
@@ -1695,12 +1726,15 @@
                             );
                            
                             if (weekTypeRecord) {
-                                console.log(`✅ Found Week ${requiredWeekType} record for ${medewerkerId}: ID ${weekTypeRecord.Id}`);
+                                if (medewerkerId.toLowerCase().includes('rauf') || Math.random() < 0.1) {
+                                    console.log(`✅ Found Week ${requiredWeekType} record for ${medewerkerId}: ID ${weekTypeRecord.Id}`);
+                                }
                                 return weekTypeRecord;
                             } else {
                                 // Enhanced error logging
                                 console.error(`❌ Could not find Week ${requiredWeekType} record for ${medewerkerId} on ${normalizedDate.toLocaleDateString()}`);
                                 console.error(`❌ Available WeekTypes in period:`, selectedPeriod.records.map(r => r.WeekType));
+                                console.error(`❌ CycleStartDate used for calculation: ${cycleStartDate.toLocaleDateString()}`);
                                
                                 // Fall back to any available record from this period
                                 console.warn(`⚠️ Could not find Week ${requiredWeekType} record for ${medewerkerId}, falling back to available record`);

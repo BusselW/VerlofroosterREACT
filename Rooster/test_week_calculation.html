@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Week Type Calculation Test</title>
+</head>
+<body>
+    <h1>Week Type Calculation Test</h1>
+    <div id="results"></div>
+
+    <script>
+        // Fixed week calculation function
+        function calculateWeekType(targetDate, cycleStartDate) {
+            if (!cycleStartDate || !(cycleStartDate instanceof Date)) {
+                return 'A'; // Default to week A if no cycle start date
+            }
+           
+            // Calculate which calendar week each date falls into
+            // We use Monday as the start of the week (getDay(): Sun=0, Mon=1, ..., Sat=6)
+            const getWeekStartDate = (date) => {
+                const d = new Date(date);
+                const day = d.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+                d.setDate(diff);
+                d.setHours(0, 0, 0, 0);
+                return d;
+            };
+           
+            // Get the Monday of the week containing the cycle start date
+            const cycleWeekStart = getWeekStartDate(cycleStartDate);
+            
+            // Get the Monday of the week containing the target date
+            const targetWeekStart = getWeekStartDate(targetDate);
+           
+            // Calculate the number of weeks between these Mondays
+            const timeDiff = targetWeekStart.getTime() - cycleWeekStart.getTime();
+            const weeksSinceCycleStart = Math.floor(timeDiff / (7 * 24 * 60 * 60 * 1000));
+           
+            // Handle negative weeks (dates before cycle start) properly
+            // Even weeks = A, Odd weeks = B (using mathematical modulo to handle negatives)
+            const weekType = ((weeksSinceCycleStart % 2) + 2) % 2 === 0 ? 'A' : 'B';
+            
+            return {
+                weekType,
+                cycleWeekStart: cycleWeekStart.toLocaleDateString(),
+                targetWeekStart: targetWeekStart.toLocaleDateString(),
+                weeksSinceCycleStart
+            };
+        }
+
+        // Test with your data: CycleStartDate = July 4, 2025 (Friday)
+        const cycleStartDate = new Date(2025, 6, 4); // July 4, 2025
+        
+        const testDates = [
+            // Week before cycle start
+            new Date(2025, 5, 30), // June 30, 2025 (Monday)
+            new Date(2025, 6, 1),  // July 1, 2025 (Tuesday)
+            new Date(2025, 6, 2),  // July 2, 2025 (Wednesday)
+            new Date(2025, 6, 3),  // July 3, 2025 (Thursday)
+            
+            // Week of cycle start
+            new Date(2025, 6, 4),  // July 4, 2025 (Friday) - Cycle start
+            new Date(2025, 6, 5),  // July 5, 2025 (Saturday)
+            new Date(2025, 6, 6),  // July 6, 2025 (Sunday)
+            
+            // Next week
+            new Date(2025, 6, 7),  // July 7, 2025 (Monday)
+            new Date(2025, 6, 8),  // July 8, 2025 (Tuesday)
+            new Date(2025, 6, 9),  // July 9, 2025 (Wednesday)
+            new Date(2025, 6, 10), // July 10, 2025 (Thursday)
+            new Date(2025, 6, 11), // July 11, 2025 (Friday)
+            new Date(2025, 6, 12), // July 12, 2025 (Saturday)
+            new Date(2025, 6, 13), // July 13, 2025 (Sunday)
+            
+            // Week after
+            new Date(2025, 6, 14), // July 14, 2025 (Monday)
+            new Date(2025, 6, 15), // July 15, 2025 (Tuesday)
+        ];
+
+        let results = '<h2>Test Results:</h2>';
+        results += `<p><strong>Cycle Start Date:</strong> ${cycleStartDate.toLocaleDateString()} (${cycleStartDate.toLocaleDateString('en-US', {weekday: 'long'})})</p>`;
+        results += '<table border="1" style="border-collapse: collapse;">';
+        results += '<tr><th>Date</th><th>Day</th><th>Week Type</th><th>Week Start (Monday)</th><th>Weeks Since Cycle</th></tr>';
+        
+        testDates.forEach(date => {
+            const result = calculateWeekType(date, cycleStartDate);
+            const dayName = date.toLocaleDateString('en-US', {weekday: 'long'});
+            results += `<tr>
+                <td>${date.toLocaleDateString()}</td>
+                <td>${dayName}</td>
+                <td><strong>${result.weekType}</strong></td>
+                <td>${result.targetWeekStart}</td>
+                <td>${result.weeksSinceCycleStart}</td>
+            </tr>`;
+        });
+        
+        results += '</table>';
+        
+        results += '<h3>Expected Behavior:</h3>';
+        results += '<ul>';
+        results += '<li>All days within the same calendar week should have the same Week Type</li>';
+        results += '<li>Week containing July 4, 2025 should be Week A (cycle start week)</li>';
+        results += '<li>Next week (July 7-13) should be Week B</li>';
+        results += '<li>Week after (July 14+) should be Week A again</li>';
+        results += '</ul>';
+        
+        document.getElementById('results').innerHTML = results;
+    </script>
+</body>
+</html>
