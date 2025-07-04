@@ -674,7 +674,9 @@
                         currentStep, 
                         user, 
                         registrationData, 
-                        setRegistrationData 
+                        setRegistrationData,
+                        teams,
+                        functies
                     }),
 
                     // Navigation buttons
@@ -737,7 +739,7 @@
         // =====================
         // Step Content Component
         // =====================
-        const StepContent = ({ currentStep, user, registrationData, setRegistrationData }) => {
+        const StepContent = ({ currentStep, user, registrationData, setRegistrationData, teams, functies }) => {
             const updateStepData = useCallback((stepKey, data) => {
                 setRegistrationData(prev => ({
                     ...prev,
