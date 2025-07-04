@@ -1,0 +1,555 @@
+/**
+ * Profile Cards Styling
+ * This CSS provides styling for the employee profile cards that appear on hover
+ */
+
+/* Card container */
+#profile-card-container {
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+    animation: fadeIn 0.2s ease-in-out;
+    font-family: 'Inter', sans-serif;
+    max-width: 100%;
+}
+
+.profile-card-loading {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
+    width: 200px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.profile-card-loading:after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    margin: 10px auto 0;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Main card */
+.profile-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 340px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Card header with avatar and basic info */
+.profile-card-header {
+    display: flex;
+    padding: 16px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e1e5eb;
+    align-items: center;
+}
+
+.profile-card-avatar {
+    flex: 0 0 64px;
+    margin-right: 16px;
+}
+
+.profile-card-avatar img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.profile-card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profile-card-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.profile-card-function {
+    font-size: 14px;
+    color: #546e7a;
+    margin-bottom: 4px;
+}
+
+.profile-card-email {
+    font-size: 12px;
+    color: #607d8b;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.profile-card-email a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.profile-card-email a:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.profile-card-hearing {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #78909c;
+    background-color: #f1f5f9;
+    border-radius: 12px;
+    padding: 2px 8px;
+    display: inline-flex;
+    align-self: flex-start;
+}
+
+.profile-card-hearing-icon {
+    width: 14px;
+    height: 14px;
+    margin-left: 6px;
+}
+
+/* Hours section */
+.profile-card-hours {
+    padding: 12px 16px;
+    background-color: #fafbfc;
+    border-top: 1px solid #e1e5eb;
+}
+
+.profile-card-hours-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #455a64;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+}
+
+.profile-card-hours-title:before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23607d8b'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    margin-right: 6px;
+}
+
+/* Modern compact hours grid */
+.profile-card-hours-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 2px 8px;
+    font-size: 12px;
+    color: #546e7a;
+}
+
+.profile-card-hours-grid .day-header {
+    grid-column: span 4;
+    border-bottom: 1px solid #e1e5eb;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #78909c;
+    text-transform: uppercase;
+}
+
+.profile-card-hours-grid .day-row {
+    display: contents;
+}
+
+.profile-card-hours-grid .day-row:hover > div {
+    background-color: #f1f5f9;
+}
+
+.profile-card-hours-grid .day-name {
+    font-weight: 600;
+    padding: 4px 0;
+    color: #455a64;
+}
+
+.profile-card-hours-grid .day-time {
+    padding: 4px 0;
+}
+
+.profile-card-hours-grid .day-hours {
+    text-align: right;
+    padding: 4px 0;
+}
+
+.profile-card-hours-grid .day-type {
+    text-align: right;
+    padding: 4px 0;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* Day type chips */
+.day-type-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    padding: 1px 8px;
+    font-weight: 500;
+    font-size: 10px;
+    line-height: 16px;
+    text-transform: uppercase;
+}
+
+.day-type-vvd {
+    background-color: #ffebee;
+    color: #e53935;
+}
+
+.day-type-vvo, 
+.day-type-vvm {
+    background-color: #fff8e1;
+    color: #ff8f00;
+}
+
+.day-type-normaal {
+    background-color: #e8f5e9;
+    color: #43a047;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 480px) {
+    .profile-card {
+        width: 300px;
+    }
+    
+    .profile-card-avatar {
+        flex: 0 0 56px;
+    }
+    
+    .profile-card-avatar img {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .profile-card-hours-grid {
+        font-size: 11px;
+    }
+    
+    .profile-card-hours-grid .day-type-chip {
+        font-size: 9px;
+        padding: 1px 6px;
+    }
+}
+
+/**
+ * Interactive Tutorial Styling
+ * Styling for the interactive tour through the application
+ */
+
+/* Highlight effect for tutorial elements */
+.tutorial-highlight-active {
+    position: relative;
+    z-index: 2000;
+    box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.5);
+    border-radius: 4px;
+    animation: tutorial-pulse 1.5s infinite;
+}
+
+/* Pulse animation for highlighted elements */
+@keyframes tutorial-pulse {
+    0% { box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(33, 150, 243, 0.3); }
+    100% { box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.5); }
+}
+
+/* Overlay for the tutorial background */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1500;
+    pointer-events: none;
+}
+
+/* Tutorial tooltip container */
+.tutorial-tooltip {
+    position: absolute;
+    z-index: 2500;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    width: 300px;
+    max-width: 90vw;
+    font-family: 'Inter', sans-serif;
+    animation: fadeIn 0.3s ease-out;
+    pointer-events: auto;
+}
+
+/* Tutorial tooltip arrow for positioning */
+.tutorial-tooltip::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+/* Position variants for the tooltip arrow */
+.tutorial-tooltip.position-top::before {
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 10px 10px 0 10px;
+    border-color: #ffffff transparent transparent transparent;
+}
+
+.tutorial-tooltip.position-bottom::before {
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 10px 10px 10px;
+    border-color: transparent transparent #ffffff transparent;
+}
+
+.tutorial-tooltip.position-left::before {
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 10px 0 10px 10px;
+    border-color: transparent transparent transparent #ffffff;
+}
+
+.tutorial-tooltip.position-right::before {
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 10px 10px 10px 0;
+    border-color: transparent #ffffff transparent transparent;
+}
+
+/* Tutorial tooltip header */
+.tutorial-tooltip-header {
+    font-weight: 600;
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.tutorial-tooltip-header::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233498db'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    margin-right: 8px;
+}
+
+/* Tutorial tooltip content */
+.tutorial-tooltip-content {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #546e7a;
+    margin-bottom: 16px;
+}
+
+/* Tutorial navigation buttons container */
+.tutorial-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+/* Tutorial button base styles */
+.tutorial-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tutorial-btn:hover {
+    transform: translateY(-1px);
+}
+
+.tutorial-btn:active {
+    transform: translateY(1px);
+}
+
+/* Primary tutorial button */
+.tutorial-btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.tutorial-btn-primary:hover {
+    background-color: #2980b9;
+}
+
+/* Secondary tutorial button */
+.tutorial-btn-secondary {
+    background-color: #f1f5f9;
+    color: #546e7a;
+}
+
+.tutorial-btn-secondary:hover {
+    background-color: #e1e5eb;
+}
+
+/* Close button for the tutorial */
+.tutorial-btn-close {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    color: #78909c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+    line-height: 1;
+    border: none;
+    padding: 0;
+}
+
+.tutorial-btn-close:hover {
+    background-color: #e1e5eb;
+    color: #546e7a;
+}
+
+/* Skip tutorial button */
+.tutorial-btn-skip {
+    background-color: transparent;
+    color: #78909c;
+    padding: 8px;
+    font-size: 12px;
+    text-decoration: underline;
+}
+
+.tutorial-btn-skip:hover {
+    color: #546e7a;
+    background-color: transparent;
+}
+
+/* Tutorial progress indicator */
+.tutorial-progress {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+    gap: 6px;
+}
+
+.tutorial-progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #e1e5eb;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.tutorial-progress-dot.active {
+    background-color: #3498db;
+    transform: scale(1.2);
+}
+
+/* Tutorial icon animations */
+.tutorial-icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.tutorial-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Tutorial for mobile devices */
+@media (max-width: 768px) {
+    .tutorial-tooltip {
+        width: 280px;
+        padding: 12px;
+    }
+    
+    .tutorial-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .tutorial-tooltip-header {
+        font-size: 15px;
+    }
+    
+    .tutorial-tooltip-content {
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+}
+
+/**
+ * Team Leader Display Styling
+ * This CSS provides styling for the team leader display in the user interface
+ */
+
+.user-teamleader {
+    font-size: 0.7rem;
+    color: #b0b0b0;
+    display: block;
+    line-height: 1;
+    position: absolute;
+    bottom: 3px;
+    left: 40px;
+    font-style: italic;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
