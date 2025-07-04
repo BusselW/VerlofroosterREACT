@@ -355,8 +355,7 @@ export const ProfileTab = ({ user, data }) => {
                     h('select', {
                         className: 'form-input',
                         value: formData.team,
-                        onChange: (e) => handleInputChange('team', e.target.value),
-                        disabled: loading
+                        onChange: (e) => handleInputChange('team', e.target.value)
                     },
                         h('option', { value: '' }, loading ? 'Laden...' : 'Selecteer team...'),
                         teams.map(team =>
@@ -372,8 +371,7 @@ export const ProfileTab = ({ user, data }) => {
                     h('select', {
                         className: 'form-input',
                         value: formData.functie,
-                        onChange: (e) => handleInputChange('functie', e.target.value),
-                        disabled: loading
+                        onChange: (e) => handleInputChange('functie', e.target.value)
                     },
                         h('option', { value: '' }, loading ? 'Laden...' : 'Selecteer functie...'),
                         functies.map(functie =>

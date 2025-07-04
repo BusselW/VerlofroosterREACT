@@ -760,15 +760,16 @@ export const WorkHoursTab = ({ user, data }) => {
                         `Werktijden voor Week ${activeWeek}` : 
                         'Mijn Werktijden'
                 ),
-                // Integrated bulk time setter - moved to center/left
+                // Integrated bulk time setter - centered
                 h('div', { 
                     className: 'bulk-time-setter',
                     style: {
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'flex-start',
+                        alignItems: 'center',
                         gap: '0.5rem',
-                        marginTop: '1rem'
+                        marginTop: '1rem',
+                        textAlign: 'center'
                     }
                 },
                     h('label', { className: 'form-label' }, 

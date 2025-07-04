@@ -12,7 +12,7 @@ const { useState, useEffect, createElement: h } = React;
 export const SettingsTab = ({ user, data }) => {
     // State for the three gebruikersInstellingen fields
     const [eigenTeamWeergeven, setEigenTeamWeergeven] = useState(false);
-    const [soortWeergave, setSoortWeergave] = useState('week');
+    const [soortWeergave, setSoortWeergave] = useState('licht');
     const [weekendenWeergeven, setWeekendenWeergeven] = useState(true);
     
     // UI state
@@ -46,7 +46,7 @@ export const SettingsTab = ({ user, data }) => {
                 // Load existing settings
                 setCurrentUserId(userSettings.Id);
                 setEigenTeamWeergeven(userSettings.EigenTeamWeergeven || false);
-                setSoortWeergave(userSettings.soortWeergave || 'week');
+                setSoortWeergave(userSettings.soortWeergave || 'licht');
                 setWeekendenWeergeven(userSettings.WeekendenWeergeven !== false); // Default to true
                 setFeedback('✓ Je instellingen zijn geladen');
             } else {
@@ -54,7 +54,7 @@ export const SettingsTab = ({ user, data }) => {
                 const defaultSettings = {
                     Title: user.Title,
                     EigenTeamWeergeven: false,
-                    soortWeergave: 'week',
+                    soortWeergave: 'licht',
                     WeekendenWeergeven: true
                 };
 
@@ -179,11 +179,10 @@ export const SettingsTab = ({ user, data }) => {
                             onChange: (e) => handleSoortWeergaveChange(e.target.value),
                             className: 'form-input'
                         },
-                            h('option', { value: 'week' }, 'Weekweergave'),
-                            h('option', { value: 'maand' }, 'Maandweergave'),
-                            h('option', { value: 'lijst' }, 'Lijstweergave')
+                            h('option', { value: 'licht' }, 'Lichte modus'),
+                            h('option', { value: 'donker' }, 'Donkere modus')
                         ),
-                        h('p', { className: 'form-help' }, 'Kies je standaard weergave voor het rooster')
+                        h('p', { className: 'form-help' }, 'Kies je kleurenschema voor de interface')
                     ),
                     
                     // Boolean toggles
@@ -245,7 +244,7 @@ export const SettingsTab = ({ user, data }) => {
                     h('p', null, 'Je instellingen worden automatisch opgeslagen wanneer je ze wijzigt.'),
                     h('p', null, 'Deze voorkeuren gelden alleen voor jouw account en hebben geen invloed op andere gebruikers.'),
                     h('ul', null,
-                        h('li', null, h('strong', null, 'Soort weergave:'), ' Bepaalt hoe het rooster standaard wordt weergegeven'),
+                        h('li', null, h('strong', null, 'Soort weergave:'), ' Bepaalt het kleurenschema van de interface'),
                         h('li', null, h('strong', null, 'Eigen team:'), ' Filtert de weergave om alleen je teamleden te tonen'),
                         h('li', null, h('strong', null, 'Weekenden:'), ' Bepaalt of weekend dagen zichtbaar zijn in de kalender')
                     )

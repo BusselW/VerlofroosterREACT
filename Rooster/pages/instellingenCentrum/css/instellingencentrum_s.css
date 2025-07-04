@@ -708,7 +708,7 @@ input[type="checkbox"]:disabled + label {
 
 .bulk-time-inputs .form-input {
     width: auto;
-    min-width: 100px;
+    min-width: 120px;
 }
 
 .time-separator {
@@ -772,7 +772,7 @@ input[type="checkbox"]:disabled + label {
 }
 
 .time-input {
-    max-width: 100px;
+    min-width: 120px;
     font-family: 'JetBrains Mono', monospace;
 }
 
