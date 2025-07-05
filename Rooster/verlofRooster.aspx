@@ -306,7 +306,7 @@
                     // Admin button - Visible to FullAccess (Admin)
                     userPermissions.isAdmin && h('button', {
                         className: 'btn btn-admin',
-                        onClick: () => navigateTo('adminCentrum.aspx'),
+                        onClick: () => navigateTo('adminCentrum/adminCentrumN.aspx'),
                         title: 'Administratie Centrum'
                     },
                         h('i', { className: 'fas fa-cog' }),
@@ -316,7 +316,7 @@
                     // Beheer button - Visible to Functional (beheer)
                     userPermissions.isFunctional && h('button', {
                         className: 'btn btn-functional',
-                        onClick: () => navigateTo('beheerCentrum.aspx'),
+                        onClick: () => navigateTo('beheerCentrum/beheerCentrumN.aspx'),
                         title: 'Beheer Centrum'
                     },
                         h('i', { className: 'fas fa-tools' }),
@@ -326,7 +326,7 @@
                     // Behandelen button - Visible to Taakbeheer
                     userPermissions.isTaakbeheer && h('button', {
                         className: 'btn btn-taakbeheer',
-                        onClick: () => navigateTo('behandelCentrum.aspx'),
+                        onClick: () => navigateTo('behandelCentrum/behandelCentrumN.aspx'),
                         title: 'Behandel Centrum'
                     },
                         h('i', { className: 'fas fa-tasks' }),
