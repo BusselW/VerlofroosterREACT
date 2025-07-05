@@ -445,10 +445,17 @@
         // Import services and components
         import { fetchSharePointList, getCurrentUser, getUserInfo, createSharePointListItem } from '../../js/services/sharepointService.js';
         
-        // Import existing tab components (we'll reuse their logic)
-        import { ProfileTab } from './js/componenten/profielTab.js';
-        import { WorkHoursTab } from './js/componenten/werktijdenTab.js';
-        import { SettingsTab } from './js/componenten/instellingenTab.js';
+        // Import day logic components for work hours
+        import { 
+            determineWorkDayType, 
+            calculateHoursWorked, 
+            DAY_TYPES, 
+            DEFAULT_WORK_HOURS, 
+            WORK_DAYS,
+            generateWorkScheduleData,
+            getDayTypeStyle,
+            getWorkDayTypeDisplay
+        } from './js/componenten/DagIndicators.js';
 
         // React setup
         const { useState, useEffect, useMemo, useCallback, createElement: h, Fragment } = React;
@@ -739,7 +746,108 @@
         // =====================
         // Step Content Component
         // =====================
-        const StepContent = ({ currentStep, user, registrationData, setRegistrationData, teams, functies }) => {
+        // =====================
+        // Profile Picture Component (matches instellingenCentrumN.aspx logic exactly)
+        // =====================
+        const ProfilePicture = ({ user, className = '' }) => {
+            const [profilePicUrl, setProfilePicUrl] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const loadProfilePicture = async () => {
+                    if (!user?.LoginName) {
+                        setLoading(false);
+                        return;
+                    }
+
+                    try {
+                        console.log('Loading profile picture for:', user.LoginName);
+                        
+                        // Use the exact same logic as profielTab.js
+                        const photoUrl = `/_layouts/15/userphoto.aspx?size=M&username=${encodeURIComponent(user.LoginName)}`;
+                        
+                        // Test if the image loads successfully
+                        const img = new Image();
+                        img.onload = () => {
+                            console.log('Profile photo loaded successfully from SharePoint');
+                            setProfilePicUrl(photoUrl);
+                            setLoading(false);
+                        };
+                        img.onerror = () => {
+                            console.log('Profile photo not found in SharePoint, using initials fallback');
+                            setProfilePicUrl(null);
+                            setLoading(false);
+                        };
+                        img.src = photoUrl;
+
+                    } catch (error) {
+                        console.error('Error loading profile picture:', error);
+                        setProfilePicUrl(null);
+                        setLoading(false);
+                    }
+                };
+
+                loadProfilePicture();
+            }, [user?.LoginName]);
+
+            const getInitials = () => {
+                if (!user?.Title) return 'U';
+                return user.Title
+                    .split(' ')
+                    .map(name => name[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+            };
+
+            if (loading) {
+                return h('div', { 
+                    className: `profile-picture loading ${className}`,
+                    style: { 
+                        width: '80px', 
+                        height: '80px', 
+                        backgroundColor: '#f0f0f0', 
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }
+                }, h('div', { className: 'spinner-small' }));
+            }
+
+            if (profilePicUrl) {
+                return h('img', {
+                    className: `profile-picture ${className}`,
+                    src: profilePicUrl,
+                    alt: user?.Title || 'Profielfoto',
+                    style: { 
+                        width: '80px', 
+                        height: '80px', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover',
+                        border: '3px solid #e0e0e0'
+                    }
+                });
+            }
+
+            // Fallback to initials (same style as profielTab.js)
+            return h('div', {
+                className: `profile-picture initials ${className}`,
+                style: {
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    backgroundColor: '#007acc',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    border: '3px solid #e0e0e0'
+                }
+            }, getInitials());
+        };
             const updateStepData = useCallback((stepKey, data) => {
                 setRegistrationData(prev => ({
                     ...prev,
@@ -802,6 +910,9 @@
         const RegistrationProfileStep = ({ user, data, onChange, teams, functies }) => {
             console.log('RegistrationProfileStep props:', { user, data, teams, functies });
             
+            // State for profile picture
+            const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
+            
             // Auto-fill username and email from current user
             useEffect(() => {
                 if (user && !data.username && !data.email) {
@@ -824,6 +935,92 @@
                 }
             }, [user, data.username, data.email, onChange]);
 
+            // Fetch user avatar info - same logic as profielTab.js
+            useEffect(() => {
+                let isMounted = true;
+                const fetchUserData = async () => {
+                    const loginName = user?.LoginName || data.username;
+                    if (loginName) {
+                        if (isMounted) setSharePointUser({ PictureURL: null, IsLoading: true });
+                        try {
+                            const userData = await getUserInfo(loginName);
+                            if (isMounted) {
+                                setSharePointUser({ ...(userData || {}), IsLoading: false });
+                            }
+                        } catch (error) {
+                            console.warn('Could not load user info:', error);
+                            if (isMounted) {
+                                setSharePointUser({ PictureURL: null, IsLoading: false });
+                            }
+                        }
+                    } else if (isMounted) {
+                        setSharePointUser({ PictureURL: null, IsLoading: false });
+                    }
+                };
+                fetchUserData();
+                return () => { isMounted = false; };
+            }, [user?.LoginName, data.username]);
+
+            const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
+
+            const getAvatarUrl = () => {
+                if (sharePointUser.IsLoading) return '';
+                
+                // Try SharePoint profile photo first (from getUserInfo)
+                if (sharePointUser.PictureURL) return sharePointUser.PictureURL;
+                
+                // Use the exact same logic as profielTab.js getProfilePhotoUrl function
+                const loginName = user?.LoginName || data.username;
+                if (loginName) {
+                    // Extract username from domain\username format or claim format
+                    let usernameOnly = loginName;
+                    if (loginName.includes('\\')) {
+                        usernameOnly = loginName.split('\\')[1];
+                    } else if (loginName.includes('|')) {
+                        usernameOnly = loginName.split('|')[1];
+                    }
+                    
+                    // Remove domain prefix if still there
+                    if (usernameOnly.includes('\\')) {
+                        usernameOnly = usernameOnly.split('\\')[1];
+                    }
+                    
+                    // Construct URL to SharePoint profile photo
+                    const siteUrl = window.appConfiguratie?.instellingen?.siteUrl || '';
+                    const profileUrl = `${siteUrl}/_layouts/15/userphoto.aspx?size=L&accountname=${usernameOnly}@org.om.local`;
+                    return profileUrl;
+                }
+                
+                // Fallback to initials
+                return generateInitialsUrl(data.naam || user?.Title);
+            };
+
+            const handleImageError = (e) => {
+                e.target.onerror = null;
+                // Try smaller size first, then fallback to initials
+                const loginName = user?.LoginName || data.username;
+                if (loginName && !e.target.src.includes('size=S')) {
+                    let usernameOnly = loginName;
+                    if (loginName.includes('\\')) {
+                        usernameOnly = loginName.split('\\')[1];
+                    } else if (loginName.includes('|')) {
+                        usernameOnly = loginName.split('|')[1];
+                    }
+                    
+                    // Remove domain prefix if still there
+                    if (usernameOnly.includes('\\')) {
+                        usernameOnly = usernameOnly.split('\\')[1];
+                    }
+                    
+                    const siteUrl = window.appConfiguratie?.instellingen?.siteUrl || '';
+                    const fallbackUrl = `${siteUrl}/_layouts/15/userphoto.aspx?size=S&accountname=${usernameOnly}@org.om.local`;
+                    e.target.src = fallbackUrl;
+                } else {
+                    // Final fallback to initials
+                    e.target.src = generateInitialsUrl(data.naam || user?.Title);
+                }
+            };
+
             // Generate initials for profile picture
             const generateInitials = (naam) => {
                 if (!naam) return 'NG';
@@ -832,6 +1029,11 @@
                     return `${delen[0].charAt(0)}${delen[delen.length - 1].charAt(0)}`.toUpperCase();
                 }
                 return naam.substring(0, 2).toUpperCase();
+            };
+
+            const generateInitialsUrl = (naam) => {
+                const initials = generateInitials(naam);
+                return `${fallbackAvatar}${initials}`;
             };
 
             return h('div', { className: 'form-grid' },
@@ -861,7 +1063,20 @@
                             fontWeight: '600'
                         }
                     },
-                        generateInitials(data.naam)
+                        sharePointUser.IsLoading ? 
+                            h('div', { className: 'loading-spinner' }) :
+                            (getAvatarUrl() && !getAvatarUrl().includes('placehold.co')) ?
+                                h('img', {
+                                    src: getAvatarUrl(),
+                                    alt: 'Profielfoto',
+                                    style: {
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover'
+                                    },
+                                    onError: handleImageError
+                                }) :
+                                generateInitials(data.naam || user?.Title)
                     )
                 ),
 
@@ -918,11 +1133,11 @@
                     h('div', { className: 'form-help' }, 'Verplicht voor verjaardagsherinneringen in het systeem.')
                 ),
 
-                // Team selection
+                // Team selection (NOT disabled)
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Team *'),
                     h('select', {
-                        className: 'form-input',
+                        className: 'form-input', // Regular styling, not disabled
                         value: data.team || '',
                         onChange: (e) => onChange({ team: e.target.value })
                     },
@@ -934,11 +1149,11 @@
                     h('div', { className: 'form-help' }, 'Selecteer het team waarvan je deel uitmaakt.')
                 ),
 
-                // Function selection
+                // Function selection (NOT disabled)
                 h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 'Functie *'),
                     h('select', {
-                        className: 'form-input',
+                        className: 'form-input', // Regular styling, not disabled
                         value: data.functie || '',
                         onChange: (e) => onChange({ functie: e.target.value })
                     },
