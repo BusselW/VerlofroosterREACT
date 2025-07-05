@@ -409,7 +409,7 @@
         // =====================
         // User Registration Check Component
         // =====================
-        const UserRegistrationCheck = ({ onUserValidated }) => {
+        const UserRegistrationCheck = ({ onUserValidated, children }) => {
             const [isChecking, setIsChecking] = useState(true);
             const [isRegistered, setIsRegistered] = useState(false);
             const [currentUser, setCurrentUser] = useState(null);
@@ -505,79 +505,198 @@
             };
 
             const redirectToRegistration = () => {
-                window.location.href = 'pages/registratie.aspx';
+                window.location.href = 'pages/instellingenCentrum/registratie.aspx';
             };
 
-            if (isChecking) {
-                return h('div', {
-                    className: 'flex items-center justify-center min-h-screen bg-gray-50',
-                    style: { fontFamily: 'Inter, sans-serif' }
-                },
-                    h('div', { className: 'text-center' },
-                        h('div', { className: 'loading-spinner', style: { margin: '0 auto 16px' } }),
-                        h('h2', { className: 'text-xl font-medium text-gray-900' }, 'Gebruiker valideren...'),
-                        h('p', { className: 'text-gray-600 mt-2' }, 'Even geduld, we controleren uw toegangsrechten.')
-                    )
-                );
-            }
-
-            if (!isRegistered) {
-                return h('div', {
-                    className: 'flex items-center justify-center min-h-screen bg-gray-50',
-                    style: { fontFamily: 'Inter, sans-serif' }
-                },
-                    h('div', { className: 'max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center' },
-                        h('div', { className: 'mb-6' },
+            // Show registration overlay if user is not registered
+            if (!isRegistered && !isChecking) {
+                return h('div', null,
+                    // Show dimmed app content in background
+                    children,
+                    // Registration overlay
+                    h('div', {
+                        style: {
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 9999,
+                            fontFamily: 'Inter, sans-serif'
+                        }
+                    },
+                        h('div', {
+                            style: {
+                                maxWidth: '480px',
+                                width: '90%',
+                                backgroundColor: 'white',
+                                borderRadius: '12px',
+                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                                padding: '32px',
+                                textAlign: 'center'
+                            }
+                        },
+                            // Icon
                             h('div', {
-                                className: 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4'
+                                style: {
+                                    margin: '0 auto 24px',
+                                    width: '64px',
+                                    height: '64px',
+                                    backgroundColor: '#fef3c7',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }
                             },
-                                h('i', { className: 'fas fa-exclamation-triangle text-yellow-600' })
+                                h('i', {
+                                    className: 'fas fa-user-plus',
+                                    style: {
+                                        fontSize: '24px',
+                                        color: '#d97706'
+                                    }
+                                })
                             ),
-                            h('h2', { className: 'text-xl font-semibold text-gray-900 mb-2' }, 'Registratie Vereist'),
-                            h('p', { className: 'text-gray-600' },
-                                `Uw account (${currentUser?.Title || 'onbekend'}) is nog niet geregistreerd in het verlofrooster systeem.`
-                            )
-                        ),
-                        h('div', { className: 'space-y-4' },
-                            h('p', { className: 'text-sm text-gray-500' },
-                                'Om toegang te krijgen tot het verlofrooster, moet u eerst uw profiel instellen en registreren in het systeem.'
-                            ),
+                            // Title
+                            h('h2', {
+                                style: {
+                                    fontSize: '24px',
+                                    fontWeight: '600',
+                                    color: '#111827',
+                                    marginBottom: '12px'
+                                }
+                            }, 'Account Registratie Vereist'),
+                            // Description
+                            h('p', {
+                                style: {
+                                    fontSize: '16px',
+                                    color: '#6b7280',
+                                    marginBottom: '24px',
+                                    lineHeight: '1.5'
+                                }
+                            }, `Hallo ${currentUser?.Title || 'gebruiker'}! Om het verlofrooster te kunnen gebruiken, moet je eerst je account registreren en instellen.`),
+                            // Call to action
                             h('button', {
-                                className: 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200',
-                                onClick: redirectToRegistration
+                                onClick: redirectToRegistration,
+                                style: {
+                                    width: '100%',
+                                    backgroundColor: '#3b82f6',
+                                    color: 'white',
+                                    fontWeight: '500',
+                                    fontSize: '16px',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    marginBottom: '16px',
+                                    transition: 'background-color 0.2s'
+                                },
+                                onMouseEnter: (e) => e.target.style.backgroundColor = '#2563eb',
+                                onMouseLeave: (e) => e.target.style.backgroundColor = '#3b82f6'
                             },
-                                h('i', { className: 'fas fa-user-plus mr-2' }),
+                                h('i', { className: 'fas fa-arrow-right', style: { marginRight: '8px' } }),
                                 'Ga naar Registratie'
                             ),
+                            // Secondary action
                             h('button', {
-                                className: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 mt-2',
-                                onClick: checkUserRegistration
+                                onClick: checkUserRegistration,
+                                style: {
+                                    width: '100%',
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#374151',
+                                    fontWeight: '500',
+                                    fontSize: '14px',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.2s'
+                                },
+                                onMouseEnter: (e) => e.target.style.backgroundColor = '#e5e7eb',
+                                onMouseLeave: (e) => e.target.style.backgroundColor = '#f3f4f6'
                             },
-                                h('i', { className: 'fas fa-sync-alt mr-2' }),
+                                h('i', { className: 'fas fa-sync-alt', style: { marginRight: '8px' } }),
                                 'Opnieuw Controleren'
                             ),
-                            h('div', { className: 'mt-4 pt-4 border-t border-gray-200' },
-                                h('p', { className: 'text-xs text-gray-400 mb-2' },
-                                    'Heeft u al toegang tot het oude systeem?'
-                                ),
-                                h('a', {
-                                    href: '../index.html',
-                                    className: 'text-xs text-blue-600 hover:text-blue-800 transition duration-200'
-                                },
-                                    'Ga naar het oude verlofrooster systeem'
-                                )
-                            )
-                        ),
-                        currentUser && h('div', { className: 'mt-6 pt-6 border-t border-gray-200' },
-                            h('p', { className: 'text-xs text-gray-400' },
-                                `Gebruiker: ${currentUser.LoginName}`
+                            // User info
+                            currentUser && h('div', {
+                                style: {
+                                    marginTop: '24px',
+                                    paddingTop: '16px',
+                                    borderTop: '1px solid #e5e7eb'
+                                }
+                            },
+                                h('p', {
+                                    style: {
+                                        fontSize: '12px',
+                                        color: '#9ca3af'
+                                    }
+                                }, `Ingelogd als: ${currentUser.LoginName}`)
                             )
                         )
                     )
                 );
             }
 
-            return null; // User is registered, don't render anything
+            // Show loading overlay while checking
+            if (isChecking) {
+                return h('div', null,
+                    // Show dimmed app content in background
+                    children,
+                    // Loading overlay
+                    h('div', {
+                        style: {
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 9999,
+                            fontFamily: 'Inter, sans-serif'
+                        }
+                    },
+                        h('div', {
+                            style: {
+                                backgroundColor: 'white',
+                                borderRadius: '12px',
+                                padding: '32px',
+                                textAlign: 'center',
+                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                            h('div', { 
+                                className: 'loading-spinner', 
+                                style: { margin: '0 auto 16px' } 
+                            }),
+                            h('h2', {
+                                style: {
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    color: '#111827',
+                                    marginBottom: '8px'
+                                }
+                            }, 'Gebruiker valideren...'),
+                            h('p', {
+                                style: {
+                                    fontSize: '14px',
+                                    color: '#6b7280'
+                                }
+                            }, 'Even geduld, we controleren je toegangsrechten.')
+                        )
+                    )
+                );
+            }
+
+            // User is registered, show normal app
+            return children;
         };
 
         // =====================
