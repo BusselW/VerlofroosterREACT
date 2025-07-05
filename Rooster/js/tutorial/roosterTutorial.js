@@ -5,39 +5,47 @@
 export const tutorialSteps = [
     {
         targetId: 'root',
-        message: "👋 Hallo! Welkom bij het Verlofrooster! Ik ga je even laten zien hoe alles werkt. In een paar minuten kun je zelf aan de slag. Klaar?",
+        message: "Welkom bij het Verlofrooster! Ik ga je snel op weg helpen door kort te laten zien hoe alles werkt.",
     },
     {
         targetId: 'header',
-        message: "📱 Dit is de hoofdnavigatie. Links kun je meldingen doen, rechts vind je de beheertools (als je daar toegang toe hebt).",
+        message: "Dit is de titelbalk. In dit gebied zijn verschillende knoppen geplaatst.",
+    },
+    {
+        targetId: 'btn-melding',
+        message: "Deze knop gebruik je om feedback te geven over het verlofrooster. Denk aan verbeterpunten of dingen die simpelweg niet werken."
+    },
+    {
+        targetId: 'btn-settings',
+        message: "Dit is het persoonlijke instellingen menu. Hier pas je dingen aan zoals je werktijden, naamsgegevens en later ook de weergave van dit rooster."
     },
     {
         targetId: 'toolbar',
-        message: "🛠️ Dit is je werkbalk! Hier navigeer je door de tijd, schakel je tussen week- en maandweergave, en zoek je mensen en teams.",
+        message: "Dit is de werkbalk! Hier navigeer je door de tijd, schakel je tussen week- en maandweergave, en zoek je mensen en teams.",
     },
     {
         targetId: 'periode-navigatie',
-        message: "📅 <strong>Door de tijd navigeren:</strong><br>• Gebruik de pijltjes ⬅️➡️ om door weken/maanden te gaan<br>• Kies 'Week' voor details of 'Maand' voor een overzicht<br>• <em>Tip: weekweergave is perfect voor planning!</em>",
+        message: 'Met de pijlen links en rechts verander je van periode. Standaard opent het verlofrooster op de huidige maand. Als je wisselt naar de weekweergave zal dat uiteraard de huidige week zijn.',
     },
     {
-        targetId: 'filter-groep',  
-        message: "🔍 <strong>Zoeken en filteren:</strong><br>• Typ een naam in het zoekveld (probeer bijvoorbeeld 'Bussel')<br>• Kies een team uit de dropdown<br>• <em>Super handig in grote organisaties!</em>",
+        targetId: 'filter-groep', 
+        message: 'Dit zijn het filter menu en de zoekbalk. Je kan medewerkers vinden door een deel van hun naam in te typen. Wil je liever het verlof van een heel team zien? Selecteer dat team via de keuzelijst en alle andere teams zijn niet meer zichtbaar.',
     },
     {
         targetId: 'legenda-container',
-        message: 'Dit is de legenda. Hier zie je welke kleuren voor welke activiteiten worden gebruikt. Groen is voor goedgekeurd verlof, rood voor ziekmeldingen, blauw voor compensatie-uren en oranje voor zittingsvrije dagen.',
-    },
-    {
-        targetId: 'rooster-table',
-        message: 'En hier is het rooster zelf. Elke rij toont een medewerker, elke kolom een dag. De kleuren laten meteen zien wie wanneer afwezig is en waarom.',
+        message: 'Dit is de legenda. Hier zie je welke kleuren en afkortingen voor welke activiteiten worden gebruikt. VER is verlof, ZK ziekmeldingen, CU compensatie-uren en ZV zittingsvrije dagen. Elke activiteit heeft zijn eigen kleur.',
     },
     {
         targetId: 'medewerker-kolom',
-        message: 'In deze kolom staan alle medewerkers. Ze zijn gegroepeerd per team en je ziet hun profielfoto. Teamleiders hebben een speciale markering.',
+        message: 'In deze kolom staan alle medewerkers met hun profielfoto. Ze zijn gegroepeerd per team en teamleiders hebben een speciale markering. Klik op een foto om meer info over die persoon te zien.',
+    },
+    {
+        targetId: 'rooster-table',
+        message: 'Dit is het rooster zelf. Elke rij is een medewerker, elke kolom een dag. In de cellen zie je alle activiteiten: verlofblokken, ziekmeldingen, compensatie-uren, feestdagen en meer.',
     },
     {
         targetId: 'dag-cel',
-        message: 'Deze cellen zijn waar de magie gebeurt. Je kan erop klikken om dagen te selecteren. Klik op meerdere dagen om een periode te kiezen. Shift+klik selecteert alles tussen twee punten.',
+        message: 'Dit zijn de dagcellen waar alles gebeurt. Je ziet hier verlofblokken (groen), ziekmeldingen (rood), compensatie-uren (blauw) en andere activiteiten. Hover erover voor details, klik om te selecteren.',
         demoActions: [
             {
                 type: 'highlight',
@@ -46,12 +54,36 @@ export const tutorialSteps = [
         ]
     },
     {
+        targetId: 'verlof-blok',
+        message: 'Dit zijn verlofblokken. De kleur toont de status: groen voor goedgekeurd, geel voor in behandeling, rood voor afgekeurd. Hover erover om details te zien zoals periode, type verlof en toelichting.',
+    },
+    {
+        targetId: 'ziekte-blok',
+        message: 'Rode blokken zijn ziekmeldingen. Deze tonen wanneer iemand ziek gemeld is. Hover erover om te zien vanaf welke datum en eventuele toelichtingen.',
+    },
+    {
+        targetId: 'compensatie-uur-blok',
+        message: 'Blauwe blokken zijn compensatie-uren. Deze tonen overuren (+) of minuren (-). Het cijfer geeft aan hoeveel uren. Hover voor details over wanneer en waarom.',
+    },
+    {
+        targetId: 'feestdag',
+        message: 'Oranje kolommen markeren feestdagen. Deze dagen zijn voor iedereen vrij. De naam van de feestdag staat bovenaan de kolom.',
+    },
+    {
+        targetId: 'weekend-kolom',
+        message: 'Grijze kolommen zijn weekenden. Deze hebben een andere achtergrondkleur zodat je makkelijk weekdagen van weekenden kan onderscheiden.',
+    },
+    {
+        targetId: 'vandaag-kolom',
+        message: 'De kolom van vandaag heeft een speciale markering zodat je altijd weet waar je bent in de tijd. Deze kolom wordt automatisch bijgewerkt.',
+    },
+    {
         targetId: 'fab-container',
-        message: 'Deze ronde knop is je snelkoppeling. Hiermee maak je snel verlofaanvragen, meld je je ziek, registreer je compensatie-uren of vraag je zittingsvrije dagen aan. Probeer gerust!',
+        message: 'Deze ronde knop is je snelkoppeling. Hiermee maak je snel verlofaanvragen, meld je je ziek, registreer je compensatie-uren of vraag je zittingsvrije dagen aan.',
     },
     {
         targetId: 'dag-cel',
-        message: 'Nog handiger is rechtsklikken op een dagcel. Dan krijg je hetzelfde menu maar al gekoppeld aan die specifieke dag. Dat scheelt klikken!',
+        message: 'Selecteer eerst één of meerdere dagen door erop te klikken. Shift+klik selecteert een bereik. Daarna rechtsklik je voor het contextmenu met alle opties.',
         demoActions: [
             {
                 type: 'highlight',
@@ -61,11 +93,11 @@ export const tutorialSteps = [
     },
     {
         targetId: 'user-dropdown',
-        message: 'Klik op je naam of foto voor je persoonlijke instellingen. Hier pas je je werktijden aan, update je contactgegevens en stel je voorkeuren in.',
+        message: 'Klik op je naam of foto voor je persoonlijke instellingen. Hier pas je je werktijden aan, bekijk je verlof overzicht en stel je voorkeuren in.',
     },
     {
         targetId: 'nav-buttons-right',
-        message: 'Hier zie je de beheertools (als je daar rechten voor hebt) en de helpknop. Hiermee kan je deze uitleg later opnieuw bekijken. Je weet nu hoe het werkt - veel succes met plannen!',
+        message: 'Hier zie je de beheertools (als je rechten hebt) en de helpknop. Gebruik de helpknop om deze uitleg later opnieuw te bekijken. Je weet nu hoe alles werkt!',
     }
 ];
 
@@ -98,6 +130,45 @@ export const highlightElement = (elementId) => {
                          document.querySelector('td.dag-kolom:not(.weekend)') ||
                          document.querySelector('td[class*="dag"]');
                 break;
+            case 'verlof-blok':
+                // Find verlof block
+                element = document.querySelector('.verlof-blok') ||
+                         document.querySelector('[data-afkorting="VER"]') ||
+                         document.querySelector('.blok[style*="green"]');
+                break;
+            case 'ziekte-blok':
+                // Find ziekte block  
+                element = document.querySelector('.ziekte-blok') ||
+                         document.querySelector('[data-afkorting="ZK"]') ||
+                         document.querySelector('.blok[style*="red"]');
+                break;
+            case 'compensatie-uur-blok':
+                // Find compensatie block
+                element = document.querySelector('.compensatie-uur-blok') ||
+                         document.querySelector('.compensatie-uur-container') ||
+                         document.querySelector('[data-afkorting="CU"]') ||
+                         document.querySelector('.blok[style*="blue"]');
+                break;
+            case 'feestdag':
+                // Find feestdag column
+                element = document.querySelector('.feestdag') ||
+                         document.querySelector('[data-feestdag]') ||
+                         document.querySelector('.dag-kolom.feestdag') ||
+                         document.querySelector('th[class*="feestdag"]');
+                break;
+            case 'weekend-kolom':
+                // Find weekend column
+                element = document.querySelector('.weekend') ||
+                         document.querySelector('.dag-kolom.weekend') ||
+                         document.querySelector('th.weekend');
+                break;
+            case 'vandaag-kolom':
+                // Find today column
+                element = document.querySelector('.vandaag') ||
+                         document.querySelector('.dag-kolom.vandaag') ||
+                         document.querySelector('th.vandaag') ||
+                         document.querySelector('[class*="today"]');
+                break;
             case 'fab-container':
                 // Find FAB by class if ID doesn't work
                 element = document.querySelector('.fab-container') ||
@@ -126,6 +197,19 @@ export const highlightElement = (elementId) => {
                          document.querySelector('#legenda-container') ||
                          document.querySelector('[class*="legenda"]') ||
                          document.querySelector('[class*="legend"]');
+                break;
+            case 'btn-melding':
+                element = document.querySelector('.btn-melding') ||
+                         document.querySelector('#btn-melding') ||
+                         document.querySelector('button[class*="melding"]') ||
+                         document.querySelector('[href*="melding"]');
+                break;
+            case 'btn-settings':
+                element = document.querySelector('.btn-settings') ||
+                         document.querySelector('#btn-settings') ||
+                         document.querySelector('.user-dropdown') ||
+                         document.querySelector('[class*="settings"]') ||
+                         document.querySelector('[class*="user"]');
                 break;
         }
     }
@@ -487,9 +571,15 @@ export class RoosterTutorial {
             "Door de Tijd Navigeren",
             "Zoeken en Filteren",
             "Kleuren Uitgelegd",
+            "Medewerkerskolom",
             "Het Rooster Zelf",
-            "Al Je Collega's",
-            "Dagcellen - Hier Gebeurt Het!",
+            "Dagcellen - Waar Alles Gebeurt",
+            "Verlofblokken",
+            "Ziekmeldingen", 
+            "Compensatie-uren",
+            "Feestdagen",
+            "Weekenden",
+            "Vandaag Markering",
             "Snelle Acties",
             "Rechtsklik Menu",
             "Je Profiel",
