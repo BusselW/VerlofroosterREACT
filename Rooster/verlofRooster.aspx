@@ -2437,10 +2437,10 @@
                             initialData: selection && selection.itemData ? selection.itemData : {}
                         }))
                     )
-                );
-                    })() // Close the anonymous function that wraps the app content
-                );
-            };
+                ); // Close the app content function
+            })() // Close the anonymous function that wraps the app content
+        ); // Close the UserRegistrationCheck component
+    }; // Close the RoosterApp function
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(h(ErrorBoundary, null, h(RoosterApp)));
