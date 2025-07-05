@@ -59,12 +59,22 @@ const renderCompensatieMomenten = (compensatieMomenten, options = {}) => {
         return h('div', {
             key: `${moment.item.ID}-${moment.type}`,
             className: 'compensatie-uur-container',
+            'data-medewerker': moment.item.MedewerkerNaam || 'Onbekend',
+            'data-datum': moment.item.Datum || moment.item.StartCompensatieUren || new Date().toISOString(),
+            'data-uren': moment.item.Uren || moment.item.AantalUren || moment.item.UrenTotaal || 0,
+            'data-toelichting': moment.item.Toelichting || moment.item.Omschrijving || '',
+            'data-type': moment.type,
             onContextMenu: handleContextMenu,
             onClick: handleClick,
             ref: (element) => {
                 if (element && !element.dataset.tooltipAttached) {
                     TooltipManager.attach(element, () => {
-                        return TooltipManager.createCompensatieTooltip(moment.item);
+                        return TooltipManager.createCompensatieTooltip({
+                            ...moment.item,
+                            MedewerkerNaam: moment.item.MedewerkerNaam || 'Onbekend',
+                            Datum: moment.item.Datum || moment.item.StartCompensatieUren,
+                            AantalUren: moment.item.Uren || moment.item.AantalUren || moment.item.UrenTotaal || 0
+                        });
                     });
                 }
             }
@@ -149,6 +159,12 @@ const DagCell = ({ dag, medewerker, onContextMenu, getVerlofVoorDag, getZittings
             className,
             style: { backgroundColor },
             'data-afkorting': afkorting,
+            'data-titel': label,
+            'data-medewerker': medewerker.Naam,
+            'data-startdatum': verlof.StartDatum,
+            'data-einddatum': verlof.EindDatum,
+            'data-status': verlof.Status,
+            'data-toelichting': verlof.Toelichting || '',
             ref: (element) => {
                 if (element && !element.dataset.tooltipAttached) {
                     TooltipManager.attach(element, () => {
@@ -166,8 +182,13 @@ const DagCell = ({ dag, medewerker, onContextMenu, getVerlofVoorDag, getZittings
     const renderZittingsvrijBlok = (zittingsvrij) => {
         // Use a standard color for zittingsvrij indicators with proper styling
         return h('div', {
-            className: 'dag-indicator-blok zittingsvrij',
+            className: 'dag-indicator-blok zittingsvrij-blok',
             style: { backgroundColor: '#8e44ad' }, // Consistent purple color for zittingsvrij
+            'data-afkorting': 'ZV',
+            'data-medewerker': medewerker.Naam,
+            'data-startdatum': zittingsvrij.StartDatum,
+            'data-einddatum': zittingsvrij.EindDatum,
+            'data-toelichting': zittingsvrij.Toelichting || '',
             ref: (element) => {
                 if (element && !element.dataset.tooltipAttached) {
                     TooltipManager.attach(element, () => {
@@ -183,6 +204,9 @@ const DagCell = ({ dag, medewerker, onContextMenu, getVerlofVoorDag, getZittings
 
     return h('td', {
         className: `dag-cel ${isWeekend ? 'weekend' : ''} ${isFeestdag ? 'feestdag' : ''}`,
+        'data-feestdag': isFeestdag ? feestdagNaam : undefined,
+        'data-datum': dag.toISOString ? dag.toISOString().split('T')[0] : dag.toString(),
+        'data-medewerker': medewerker.Naam,
         onContextMenu: handleContextMenu,
         onClick: onCellClick && (() => {
             const itemToEdit = verlofItem || zittingsvrijItem || 

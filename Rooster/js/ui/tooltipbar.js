@@ -322,6 +322,195 @@ const TooltipManager = {
                 ` : ''}
             </div>
         `;
+    },
+    
+    /**
+     * Automatisch tooltips toewijzen aan elementen in de DOM
+     */
+    autoAttachTooltips: function() {
+        console.log('🔍 Auto-attaching tooltips to DOM elements...');
+        
+        // Attach tooltips to verlof blocks
+        document.querySelectorAll('.verlof-blok').forEach(element => {
+            if (element.dataset.tooltipAttached === 'true') return;
+            
+            this.attach(element, () => {
+                const verlofData = this.extractVerlofData(element);
+                return this.createVerlofTooltip(verlofData);
+            });
+        });
+        
+        // Attach tooltips to compensatie-uren blocks
+        document.querySelectorAll('.compensatie-uur-blok, .compensatie-uur-container').forEach(element => {
+            if (element.dataset.tooltipAttached === 'true') return;
+            
+            this.attach(element, () => {
+                const compensatieData = this.extractCompensatieData(element);
+                return this.createCompensatieTooltip(compensatieData);
+            });
+        });
+        
+        // Attach tooltips to zittingsvrij blocks
+        document.querySelectorAll('.zittingsvrij-blok, [data-afkorting="ZV"]').forEach(element => {
+            if (element.dataset.tooltipAttached === 'true') return;
+            
+            this.attach(element, () => {
+                const zittingsvrijData = this.extractZittingsvrijData(element);
+                return this.createZittingsvrijTooltip(zittingsvrijData);
+            });
+        });
+        
+        // Attach tooltips to ziekte blocks
+        document.querySelectorAll('.ziekte-blok, [data-afkorting="ZK"]').forEach(element => {
+            if (element.dataset.tooltipAttached === 'true') return;
+            
+            this.attach(element, () => {
+                const ziekteData = this.extractZiekteData(element);
+                return this.createZiekteTooltip(ziekteData);
+            });
+        });
+        
+        // Attach tooltips to holiday elements
+        document.querySelectorAll('.feestdag, [data-feestdag]').forEach(element => {
+            if (element.dataset.tooltipAttached === 'true') return;
+            
+            this.attach(element, () => {
+                const feestdagNaam = element.dataset.feestdag || element.getAttribute('title') || 'Feestdag';
+                const datum = element.dataset.datum ? new Date(element.dataset.datum) : new Date();
+                return this.createFeestdagTooltip(feestdagNaam, datum);
+            });
+        });
+        
+        // Attach tooltips to icons with titles
+        document.querySelectorAll('i[title], .icon[title], [data-tooltip]').forEach(element => {
+            if (element.dataset.tooltipAttached === 'true') return;
+            
+            const tooltipText = element.dataset.tooltip || element.getAttribute('title') || '';
+            if (tooltipText) {
+                this.attach(element, `<div class="custom-tooltip-title">${tooltipText}</div>`);
+            }
+        });
+        
+        console.log('✅ Auto-attach tooltips completed');
+    },
+    
+    /**
+     * Extraheert verlof data uit een DOM element
+     * @param {HTMLElement} element - Het verlof element
+     * @returns {Object} Verlof data object
+     */
+    extractVerlofData: function(element) {
+        const data = {
+            Titel: element.dataset.titel || element.textContent?.trim() || 'Verlof',
+            MedewerkerNaam: element.dataset.medewerker || 'Onbekend',
+            StartDatum: element.dataset.startdatum || new Date().toISOString(),
+            EindDatum: element.dataset.einddatum || null,
+            Status: element.dataset.status || 'Onbekend',
+            Toelichting: element.dataset.toelichting || ''
+        };
+        
+        // Try to extract from CSS classes
+        if (element.classList.contains('status-nieuw')) data.Status = 'Nieuw';
+        else if (element.classList.contains('status-goedgekeurd')) data.Status = 'Goedgekeurd';
+        else if (element.classList.contains('status-afgekeurd')) data.Status = 'Afgekeurd';
+        
+        return data;
+    },
+    
+    /**
+     * Extraheert compensatie data uit een DOM element
+     * @param {HTMLElement} element - Het compensatie element
+     * @returns {Object} Compensatie data object
+     */
+    extractCompensatieData: function(element) {
+        return {
+            MedewerkerNaam: element.dataset.medewerker || 'Onbekend',
+            Datum: element.dataset.datum || new Date().toISOString(),
+            AantalUren: parseFloat(element.dataset.uren) || 0,
+            Toelichting: element.dataset.toelichting || element.getAttribute('title') || ''
+        };
+    },
+    
+    /**
+     * Extraheert zittingsvrij data uit een DOM element
+     * @param {HTMLElement} element - Het zittingsvrij element
+     * @returns {Object} Zittingsvrij data object
+     */
+    extractZittingsvrijData: function(element) {
+        return {
+            MedewerkerNaam: element.dataset.medewerker || 'Onbekend',
+            StartDatum: element.dataset.startdatum || new Date().toISOString(),
+            EindDatum: element.dataset.einddatum || null,
+            Toelichting: element.dataset.toelichting || ''
+        };
+    },
+    
+    /**
+     * Extraheert ziekte data uit een DOM element
+     * @param {HTMLElement} element - Het ziekte element
+     * @returns {Object} Ziekte data object
+     */
+    extractZiekteData: function(element) {
+        return {
+            MedewerkerNaam: element.dataset.medewerker || 'Onbekend',
+            StartDatum: element.dataset.startdatum || new Date().toISOString(),
+            EindDatum: element.dataset.einddatum || null,
+            Toelichting: element.dataset.toelichting || ''
+        };
+    },
+    
+    /**
+     * Observeer DOM veranderingen en pas tooltips toe op nieuwe elementen
+     */
+    observeDOM: function() {
+        if (this.observer) return; // Al actief
+        
+        this.observer = new MutationObserver((mutations) => {
+            let shouldReattach = false;
+            
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    // Check of er nieuwe elementen zijn toegevoegd die tooltips nodig hebben
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            const hasTooltipElements = node.querySelectorAll ? 
+                                node.querySelectorAll('.verlof-blok, .compensatie-uur-blok, .ziekte-blok, [data-tooltip], [title]').length > 0 ||
+                                node.matches('.verlof-blok, .compensatie-uur-blok, .ziekte-blok, [data-tooltip], [title]') : false;
+                                
+                            if (hasTooltipElements) {
+                                shouldReattach = true;
+                            }
+                        }
+                    });
+                }
+            });
+            
+            if (shouldReattach) {
+                // Debounce de reattach functie
+                clearTimeout(this.reattachTimeout);
+                this.reattachTimeout = setTimeout(() => {
+                    this.autoAttachTooltips();
+                }, 100);
+            }
+        });
+        
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        console.log('👁️ DOM observer started for tooltips');
+    },
+    
+    /**
+     * Stop DOM observatie
+     */
+    stopObserving: function() {
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
+            console.log('👁️ DOM observer stopped');
+        }
     }
 };
 
@@ -333,11 +522,28 @@ if (typeof window !== 'undefined') {
     window.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 Initializing TooltipManager on DOMContentLoaded');
         TooltipManager.init();
+        // Auto-attach tooltips to existing elements
+        setTimeout(() => {
+            TooltipManager.autoAttachTooltips();
+            TooltipManager.observeDOM();
+        }, 500);
     });
     
     // Also initialize immediately in case the DOM is already loaded
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         console.log('🚀 Initializing TooltipManager immediately');
         TooltipManager.init();
+        setTimeout(() => {
+            TooltipManager.autoAttachTooltips();
+            TooltipManager.observeDOM();
+        }, 100);
     }
+    
+    // React integration - listen for React updates
+    window.addEventListener('react-update', function() {
+        console.log('⚛️ React update detected, re-attaching tooltips');
+        setTimeout(() => {
+            TooltipManager.autoAttachTooltips();
+        }, 50);
+    });
 }
