@@ -28,7 +28,9 @@ class BehandelcentrumApp {
         this.ziekteAanvragen = [];
         this.compensatieAanvragen = [];
         this.zittingsvrijAanvragen = [];
-        this.activeTab = 'verlof';
+        this.verlofInBehandeling = [];
+        this.compensatieInBehandeling = [];
+        this.activeTab = 'verlof-behandeling';
     }
 
     async init() {
@@ -50,15 +52,27 @@ class BehandelcentrumApp {
         const allVerlofItems = await sharepointService.getListItems('Verlof');
         
         // Verdeel in verlof en ziekte op basis van reden
-        this.verlofAanvragen = allVerlofItems.filter(item => 
+        const verlofItems = allVerlofItems.filter(item => 
             !item.Reden || item.Reden.toLowerCase().includes('verlof') || item.Reden.toLowerCase().includes('vakantie')
         );
         this.ziekteAanvragen = allVerlofItems.filter(item => 
             item.Reden && item.Reden.toLowerCase().includes('ziekte')
         );
         
+        // Filter verlof voor nieuwe items (in behandeling)
+        this.verlofInBehandeling = verlofItems.filter(item => 
+            this.isInBehandeling(item.Status)
+        );
+        this.verlofAanvragen = verlofItems; // Alle verlof items voor volledig overzicht
+        
         // Haal compensatie-uren op
-        this.compensatieAanvragen = await sharepointService.getListItems('CompensatieUren');
+        const allCompensatieItems = await sharepointService.getListItems('CompensatieUren');
+        
+        // Filter compensatie voor nieuwe items (in behandeling)
+        this.compensatieInBehandeling = allCompensatieItems.filter(item => 
+            this.isInBehandeling(item.Status)
+        );
+        this.compensatieAanvragen = allCompensatieItems; // Alle compensatie items voor volledig overzicht
         
         // Haal zittingsvrij op (aangenomen dat er een lijst is)
         try {
@@ -67,6 +81,16 @@ class BehandelcentrumApp {
             console.warn('Zittingsvrij lijst niet gevonden:', error);
             this.zittingsvrijAanvragen = [];
         }
+    }
+
+    isInBehandeling(status) {
+        if (!status) return true; // Geen status = nieuw = in behandeling
+        const statusLower = status.toLowerCase();
+        return statusLower === 'nieuw' || 
+               statusLower === 'new' || 
+               statusLower === 'in behandeling' || 
+               statusLower === 'pending' ||
+               statusLower === '';
     }
 
     render() {
@@ -79,24 +103,56 @@ class BehandelcentrumApp {
     }
 
     renderTabs() {
-        return h('div', { class: 'tab-container' },
+        return h('div', { class: 'tab-container gradient-border' },
             h('div', { class: 'tab-navigation' },
                 h('button', { 
+                    class: `tab-button ${this.activeTab === 'verlof-behandeling' ? 'active' : ''}`,
+                    'data-tab': 'verlof-behandeling',
+                    'data-tooltip': 'Verlofaanvragen die nog goedkeuring behoeven'
+                }, 
+                    'Verlofaanvragen - In behandeling',
+                    h('span', { class: 'badge' }, this.verlofInBehandeling.length.toString())
+                ),
+                h('button', { 
+                    class: `tab-button ${this.activeTab === 'compensatie-behandeling' ? 'active' : ''}`,
+                    'data-tab': 'compensatie-behandeling',
+                    'data-tooltip': 'Compensatie-uren aanvragen die nog goedkeuring behoeven'
+                }, 
+                    'Compensatie-uren - In behandeling',
+                    h('span', { class: 'badge' }, this.compensatieInBehandeling.length.toString())
+                ),
+                h('button', { 
                     class: `tab-button ${this.activeTab === 'verlof' ? 'active' : ''}`,
-                    'data-tab': 'verlof'
-                }, `Verlof (${this.verlofAanvragen.length})`),
+                    'data-tab': 'verlof',
+                    'data-tooltip': 'Alle verlofaanvragen (inclusief verwerkte)'
+                }, 
+                    'Alle Verlof',
+                    h('span', { class: 'badge' }, this.verlofAanvragen.length.toString())
+                ),
                 h('button', { 
                     class: `tab-button ${this.activeTab === 'ziekte' ? 'active' : ''}`,
-                    'data-tab': 'ziekte'
-                }, `Ziekte (${this.ziekteAanvragen.length})`),
+                    'data-tab': 'ziekte',
+                    'data-tooltip': 'Alle ziektemeldingen'
+                }, 
+                    'Ziekte',
+                    h('span', { class: 'badge' }, this.ziekteAanvragen.length.toString())
+                ),
                 h('button', { 
                     class: `tab-button ${this.activeTab === 'compensatie' ? 'active' : ''}`,
-                    'data-tab': 'compensatie'
-                }, `Compensatie-uren (${this.compensatieAanvragen.length})`),
+                    'data-tab': 'compensatie',
+                    'data-tooltip': 'Alle compensatie-uren (inclusief verwerkte)'
+                }, 
+                    'Alle Compensatie-uren',
+                    h('span', { class: 'badge' }, this.compensatieAanvragen.length.toString())
+                ),
                 h('button', { 
                     class: `tab-button ${this.activeTab === 'zittingsvrij' ? 'active' : ''}`,
-                    'data-tab': 'zittingsvrij'
-                }, `Zittingsvrij (${this.zittingsvrijAanvragen.length})`)
+                    'data-tab': 'zittingsvrij',
+                    'data-tooltip': 'Zittingsvrije dagen'
+                }, 
+                    'Zittingsvrij',
+                    h('span', { class: 'badge' }, this.zittingsvrijAanvragen.length.toString())
+                )
             )
         );
     }
@@ -104,11 +160,25 @@ class BehandelcentrumApp {
     renderTabContent() {
         return h('div', { class: 'tab-content-container' },
             h('div', { 
+                class: `tab-content ${this.activeTab === 'verlof-behandeling' ? 'active' : ''}`,
+                id: 'tab-verlof-behandeling'
+            }, 
+                h('h2', null, 'Verlofaanvragen - In behandeling'),
+                this.renderActionableTable(this.verlofInBehandeling, ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status', 'Acties'])
+            ),
+            h('div', { 
+                class: `tab-content ${this.activeTab === 'compensatie-behandeling' ? 'active' : ''}`,
+                id: 'tab-compensatie-behandeling'
+            }, 
+                h('h2', null, 'Compensatie-uren - In behandeling'),
+                this.renderActionableTable(this.compensatieInBehandeling, ['Medewerker', 'Datum', 'AantalUren', 'Reden', 'Status', 'Acties'])
+            ),
+            h('div', { 
                 class: `tab-content ${this.activeTab === 'verlof' ? 'active' : ''}`,
                 id: 'tab-verlof'
             }, 
-                h('h2', null, 'Verlof Aanvragen'),
-                this.renderActionableTable(this.verlofAanvragen, ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status', 'Acties'])
+                h('h2', null, 'Alle Verlof Aanvragen'),
+                this.renderTable(this.verlofAanvragen, ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status'])
             ),
             h('div', { 
                 class: `tab-content ${this.activeTab === 'ziekte' ? 'active' : ''}`,
@@ -121,8 +191,8 @@ class BehandelcentrumApp {
                 class: `tab-content ${this.activeTab === 'compensatie' ? 'active' : ''}`,
                 id: 'tab-compensatie'
             }, 
-                h('h2', null, 'Compensatie Uren'),
-                this.renderActionableTable(this.compensatieAanvragen, ['Medewerker', 'Datum', 'AantalUren', 'Reden', 'Status', 'Acties'])
+                h('h2', null, 'Alle Compensatie Uren'),
+                this.renderTable(this.compensatieAanvragen, ['Medewerker', 'Datum', 'AantalUren', 'Reden', 'Status'])
             ),
             h('div', { 
                 class: `tab-content ${this.activeTab === 'zittingsvrij' ? 'active' : ''}`,
@@ -155,58 +225,144 @@ class BehandelcentrumApp {
     }
 
     async handleApprove(event) {
-        const itemId = event.target.dataset.itemId;
-        const itemType = event.target.dataset.itemType;
+        const button = event.target;
+        const itemId = button.dataset.itemId;
+        const itemType = button.dataset.itemType;
+        const row = button.closest('tr');
+        
+        // Disable button en toon loading state
+        button.disabled = true;
+        button.innerHTML = '⟳ Verwerken...';
+        button.classList.add('loading');
         
         try {
             await sharepointService.updateListItem(itemType, itemId, { Status: 'Goedgekeurd' });
-            await this.loadData();
-            this.render();
-            this.bindEvents();
+            
+            // Succes feedback
+            row.classList.add('success-flash');
+            button.innerHTML = '✓ Goedgekeurd';
+            button.classList.remove('loading');
+            button.classList.add('btn-approved');
+            
+            // Wacht even voor visuele feedback
+            setTimeout(async () => {
+                await this.loadData();
+                this.render();
+                this.bindEvents();
+            }, 800);
+            
         } catch (error) {
             console.error('Fout bij goedkeuren:', error);
-            alert('Er is een fout opgetreden bij het goedkeuren van de aanvraag.');
+            
+            // Error feedback
+            row.classList.add('error-flash');
+            button.innerHTML = '✗ Fout opgetreden';
+            button.classList.remove('loading');
+            button.disabled = false;
+            
+            // Reset na 2 seconden
+            setTimeout(() => {
+                button.innerHTML = '✓ Goedkeuren';
+                row.classList.remove('error-flash');
+            }, 2000);
+            
+            alert('Er is een fout opgetreden bij het goedkeuren van de aanvraag. Probeer het opnieuw.');
         }
     }
 
     async handleReject(event) {
-        const itemId = event.target.dataset.itemId;
-        const itemType = event.target.dataset.itemType;
+        const button = event.target;
+        const itemId = button.dataset.itemId;
+        const itemType = button.dataset.itemType;
+        const row = button.closest('tr');
+        
+        // Confirm dialog
+        if (!confirm('Weet u zeker dat u deze aanvraag wilt afwijzen?')) {
+            return;
+        }
+        
+        // Disable button en toon loading state
+        button.disabled = true;
+        button.innerHTML = '⟳ Verwerken...';
+        button.classList.add('loading');
         
         try {
             await sharepointService.updateListItem(itemType, itemId, { Status: 'Afgekeurd' });
-            await this.loadData();
-            this.render();
-            this.bindEvents();
+            
+            // Succes feedback
+            row.classList.add('success-flash');
+            button.innerHTML = '✗ Afgekeurd';
+            button.classList.remove('loading');
+            button.classList.add('btn-rejected');
+            
+            // Wacht even voor visuele feedback
+            setTimeout(async () => {
+                await this.loadData();
+                this.render();
+                this.bindEvents();
+            }, 800);
+            
         } catch (error) {
             console.error('Fout bij afwijzen:', error);
-            alert('Er is een fout opgetreden bij het afwijzen van de aanvraag.');
+            
+            // Error feedback
+            row.classList.add('error-flash');
+            button.innerHTML = '✗ Fout opgetreden';
+            button.classList.remove('loading');
+            button.disabled = false;
+            
+            // Reset na 2 seconden
+            setTimeout(() => {
+                button.innerHTML = '✗ Afwijzen';
+                row.classList.remove('error-flash');
+            }, 2000);
+            
+            alert('Er is een fout opgetreden bij het afwijzen van de aanvraag. Probeer het opnieuw.');
         }
     }
 
     renderTable(items, columns) {
         if (!items || items.length === 0) {
             return h('div', { class: 'empty-state' }, 
-                h('p', null, 'Geen gegevens beschikbaar')
+                h('p', null, 'Geen gegevens beschikbaar voor deze categorie')
             );
         }
 
-        return h('table', { class: 'data-tabel' },
+        return h('table', { class: 'data-tabel elevation-2' },
             h('thead', null,
-                h('tr', null, ...columns.map(col => h('th', null, col)))
+                h('tr', null, ...columns.map(col => 
+                    h('th', { 'data-tooltip': this.getColumnTooltip(col) }, col)
+                ))
             ),
             h('tbody', null,
-                ...items.map(item =>
-                    h('tr', null,
+                ...items.map((item, index) =>
+                    h('tr', { 
+                        'data-item-id': item.ID || item.Id,
+                        tabindex: 0,
+                        'aria-label': `Rij ${index + 1} van ${items.length}`
+                    },
                         ...columns.map(col => {
                             let value = item[col];
                             if (col === 'Status') {
                                 return h('td', null, this.renderStatusBadge(value));
                             }
                             if (col.includes('Datum') && value) {
-                                value = new Date(value).toLocaleDateString('nl-NL');
+                                const date = new Date(value);
+                                value = date.toLocaleDateString('nl-NL');
+                                return h('td', { 
+                                    'data-tooltip': `Exacte tijd: ${date.toLocaleString('nl-NL')}`
+                                }, value);
                             }
-                            return h('td', null, value ? value.toString() : '-');
+                            if (col === 'AantalUren' && value !== undefined) {
+                                const formatted = `${value > 0 ? '+' : ''}${value} uur`;
+                                return h('td', { 
+                                    'data-tooltip': value > 0 ? 'Extra uren' : value < 0 ? 'Compensatie uren' : 'Neutrale uren',
+                                    class: value > 0 ? 'positive-hours' : value < 0 ? 'negative-hours' : 'neutral-hours'
+                                }, formatted);
+                            }
+                            return h('td', { 
+                                'data-tooltip': value ? value.toString() : 'Geen waarde'
+                            }, value ? value.toString() : '-');
                         })
                     )
                 )
@@ -217,20 +373,27 @@ class BehandelcentrumApp {
     renderActionableTable(items, columns) {
         if (!items || items.length === 0) {
             return h('div', { class: 'empty-state' }, 
-                h('p', null, 'Geen gegevens beschikbaar')
+                h('p', null, 'Geen items in behandeling op dit moment')
             );
         }
 
-        return h('table', { class: 'data-tabel' },
+        return h('table', { class: 'data-tabel elevation-2' },
             h('thead', null,
-                h('tr', null, ...columns.map(col => h('th', null, col)))
+                h('tr', null, ...columns.map(col => 
+                    h('th', { 'data-tooltip': this.getColumnTooltip(col) }, col)
+                ))
             ),
             h('tbody', null,
-                ...items.map(item =>
-                    h('tr', null,
+                ...items.map((item, index) =>
+                    h('tr', { 
+                        'data-item-id': item.ID || item.Id,
+                        tabindex: 0,
+                        'aria-label': `Actieve rij ${index + 1} van ${items.length}`,
+                        class: 'actionable-row'
+                    },
                         ...columns.map(col => {
                             if (col === 'Acties') {
-                                return h('td', null, this.renderActionButtons(item));
+                                return h('td', { class: 'action-cell' }, this.renderActionButtons(item));
                             }
                             
                             let value = item[col];
@@ -238,12 +401,22 @@ class BehandelcentrumApp {
                                 return h('td', null, this.renderStatusBadge(value));
                             }
                             if (col.includes('Datum') && value) {
-                                value = new Date(value).toLocaleDateString('nl-NL');
+                                const date = new Date(value);
+                                value = date.toLocaleDateString('nl-NL');
+                                return h('td', { 
+                                    'data-tooltip': `Exacte tijd: ${date.toLocaleString('nl-NL')}`
+                                }, value);
                             }
-                            if (col === 'AantalUren' && value) {
-                                value = `${value > 0 ? '+' : ''}${value} uur`;
+                            if (col === 'AantalUren' && value !== undefined) {
+                                const formatted = `${value > 0 ? '+' : ''}${value} uur`;
+                                return h('td', { 
+                                    'data-tooltip': value > 0 ? 'Extra uren' : value < 0 ? 'Compensatie uren' : 'Neutrale uren',
+                                    class: value > 0 ? 'positive-hours' : value < 0 ? 'negative-hours' : 'neutral-hours'
+                                }, formatted);
                             }
-                            return h('td', null, value ? value.toString() : '-');
+                            return h('td', { 
+                                'data-tooltip': value ? value.toString() : 'Geen waarde'
+                            }, value ? value.toString() : '-');
                         })
                     )
                 )
@@ -259,20 +432,39 @@ class BehandelcentrumApp {
             return this.renderStatusBadge(status);
         }
 
-        const listType = this.activeTab === 'verlof' ? 'Verlof' : 'CompensatieUren';
+        const listType = this.activeTab === 'verlof-behandeling' ? 'Verlof' : 'CompensatieUren';
+        const itemId = item.ID || item.Id;
 
         return h('div', { class: 'action-buttons' },
             h('button', { 
                 class: 'btn-action btn-approve',
-                'data-item-id': item.ID || item.Id,
-                'data-item-type': listType
-            }, 'Goedkeuren'),
+                'data-item-id': itemId,
+                'data-item-type': listType,
+                'data-tooltip': 'Klik om deze aanvraag goed te keuren',
+                'aria-label': `Goedkeuren: ${item.Medewerker || 'Onbekende medewerker'}`
+            }, '✓ Goedkeuren'),
             h('button', { 
                 class: 'btn-action btn-reject',
-                'data-item-id': item.ID || item.Id,
-                'data-item-type': listType
-            }, 'Afwijzen')
+                'data-item-id': itemId,
+                'data-item-type': listType,
+                'data-tooltip': 'Klik om deze aanvraag af te wijzen',
+                'aria-label': `Afwijzen: ${item.Medewerker || 'Onbekende medewerker'}`
+            }, '✗ Afwijzen')
         );
+    }
+
+    getColumnTooltip(column) {
+        const tooltips = {
+            'Medewerker': 'Naam van de medewerker die de aanvraag heeft ingediend',
+            'StartDatum': 'Begin datum van de aanvraag',
+            'EindDatum': 'Eind datum van de aanvraag',
+            'Datum': 'Datum van de aanvraag',
+            'Reden': 'Opgegeven reden voor de aanvraag',
+            'Status': 'Huidige status van de aanvraag',
+            'AantalUren': 'Aantal uren (+ = extra, - = compensatie)',
+            'Acties': 'Beschikbare acties voor deze aanvraag'
+        };
+        return tooltips[column] || `Informatie over ${column}`;
     }
 
     renderStatusBadge(status) {
