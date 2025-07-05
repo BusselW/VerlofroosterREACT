@@ -2340,7 +2340,9 @@
                                         );
                                     })
                                 )
-                            ),
+                            ) // Close table
+                        ) // Close table-responsive-wrapper div
+                    ), // Close main element
                         // h(ShiftModal, { isOpen: modalOpen, sluit: sluitModal, opslaan: opslaanShift, medewerker: geselecteerdeMedewerker, datum: geselecteerdeDatum, bestaandeShift: bewerkenShift, shiftTypes: shiftTypes }),
                         contextMenu && h(ContextMenu, {
                             x: contextMenu.x,
@@ -2438,7 +2440,7 @@
                         }))
                     ); // Close Fragment with all app content (table + contextMenu + FAB + 4 modals)
                 })() // Close the anonymous function that wraps the app content  
-            ); // Close the UserRegistrationCheck component
+                ); // Close the UserRegistrationCheck component
         }; // Close the RoosterApp function
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
