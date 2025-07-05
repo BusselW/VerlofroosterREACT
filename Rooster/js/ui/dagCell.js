@@ -140,19 +140,21 @@ const DagCell = ({ dag, medewerker, onContextMenu, getVerlofVoorDag, getZittings
     };
 
     const renderVerlofBlok = (verlof) => {
+        const isZiekte = verlof.Status === 'Ziek';
         const verlofReden = shiftTypes[verlof.VerlofRedenId];
-        const backgroundColor = verlofReden?.kleur || verlof.shiftType?.Kleur || '#4a90e2';
-        const label = verlofReden?.label || verlof.shiftType?.Titel || 'Verlof';
-        const afkorting = verlofReden?.afkorting || verlof.shiftType?.AfkortingTitel || 'V';
+        const backgroundColor = isZiekte ? '#e74c3c' : (verlofReden?.kleur || verlof.shiftType?.Kleur || '#4a90e2');
+        const label = isZiekte ? 'Ziekmelding' : (verlofReden?.label || verlof.shiftType?.Titel || 'Verlof');
+        const afkorting = isZiekte ? 'ZK' : (verlofReden?.afkorting || verlof.shiftType?.AfkortingTitel || 'V');
         const status = verlof.Status?.toLowerCase() || 'nieuw';
         
         // CSS classes for proper styling
         const className = [
-            'verlof-blok',
+            isZiekte ? 'ziekte-blok' : 'verlof-blok',
             `status-${status}`,
             verlof.isStartBlok ? 'start-blok' : '',
             verlof.isEindBlok ? 'eind-blok' : '',
-            verlof.Afkorting === 'VER' || verlof.ShiftTypeId === 1 ? 'ver-item' : ''
+            verlof.Afkorting === 'VER' || verlof.ShiftTypeId === 1 ? 'ver-item' : '',
+            isZiekte ? 'zk-item' : ''
         ].filter(Boolean).join(' ');
         
         return h('div', {
@@ -167,8 +169,12 @@ const DagCell = ({ dag, medewerker, onContextMenu, getVerlofVoorDag, getZittings
             'data-toelichting': verlof.Toelichting || '',
             ref: (element) => {
                 if (element && !element.dataset.tooltipAttached) {
+                    const tooltipFunction = isZiekte ? 
+                        TooltipManager.createZiekteTooltip : 
+                        TooltipManager.createVerlofTooltip;
+                    
                     TooltipManager.attach(element, () => {
-                        return TooltipManager.createVerlofTooltip({
+                        return tooltipFunction({
                             ...verlof,
                             Titel: label,
                             MedewerkerNaam: medewerker.Naam

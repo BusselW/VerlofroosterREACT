@@ -803,12 +803,34 @@
             // Initialize profile cards after data is loaded
             useEffect(() => {
                 if (!loading && medewerkers.length > 0) {
-                    console.log('🔍 Initializing ProfielKaarten from RoosterApp');
                     setTimeout(() => {
-                        ProfielKaarten.init('.medewerker-naam, .medewerker-avatar');
-                    }, 500); // Small delay to ensure DOM is ready
+                        if (typeof ProfielKaarten !== 'undefined' && ProfielKaarten.init) {
+                            ProfielKaarten.init();
+                        }
+                    }, 500);
                 }
             }, [loading, medewerkers]);
+
+            // Trigger tooltip re-attachment after data loads and DOM updates
+            useEffect(() => {
+                if (!loading && medewerkers.length > 0) {
+                    // Allow React to finish rendering before attaching tooltips
+                    setTimeout(() => {
+                        console.log('🔄 Triggering tooltip re-attachment after data load');
+                        TooltipManager.autoAttachTooltips();
+                        
+                        // Dispatch custom event for any components listening
+                        const event = new CustomEvent('react-update', {
+                            detail: { 
+                                verlofItems: verlofItems.length, 
+                                compensatieItems: compensatieUrenItems.length,
+                                zittingsvrijItems: zittingsvrijItems.length 
+                            }
+                        });
+                        window.dispatchEvent(event);
+                    }, 200);
+                }
+            }, [loading, verlofItems, compensatieUrenItems, zittingsvrijItems, medewerkers, huidigMaand, huidigJaar, weergaveType]);
 
             // Check if required services are available
             useEffect(() => {
@@ -2318,8 +2340,7 @@
                                         );
                                     })
                                 )
-                            )
-                        ),
+                            ),
                         // h(ShiftModal, { isOpen: modalOpen, sluit: sluitModal, opslaan: opslaanShift, medewerker: geselecteerdeMedewerker, datum: geselecteerdeDatum, bestaandeShift: bewerkenShift, shiftTypes: shiftTypes }),
                         contextMenu && h(ContextMenu, {
                             x: contextMenu.x,
@@ -2428,6 +2449,7 @@
             window.canManageOthersEvents = canManageOthersEvents;
             window.getProfilePhotoUrl = getProfilePhotoUrl;
             window.fetchSharePointList = fetchSharePointList;
+            window.TooltipManager = TooltipManager; // Expose TooltipManager for debugging
     </script>
 </body>
 </html>

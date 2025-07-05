@@ -130,65 +130,56 @@ const TooltipManager = {
     createVerlofTooltip: function(verlofItem) {
         if (!verlofItem) return '';
         
-        try {
-            // Bepaal de status CSS klasse
-            let statusClass = '';
-            let statusText = '';
-            
-            switch(verlofItem.Status) {
-                case 'Nieuw':
-                    statusClass = 'tooltip-status-new';
-                    statusText = 'Nieuw';
-                    break;
-                case 'Goedgekeurd':
-                    statusClass = 'tooltip-status-approved';
-                    statusText = 'Goedgekeurd';
-                    break;
-                case 'Afgekeurd':
-                    statusClass = 'tooltip-status-rejected';
-                    statusText = 'Afgekeurd';
-                    break;
-                case 'Ziek':
-                    statusClass = 'tooltip-status-sick';
-                    statusText = 'Ziek';
-                    break;
-                default:
-                    statusClass = '';
-                    statusText = verlofItem.Status || 'Onbekend';
-            }
-            
-            let startDatum = new Date(verlofItem.StartDatum);
-            let eindDatum = new Date(verlofItem.EindDatum || verlofItem.StartDatum);
-            
-            return `
-                <div class="custom-tooltip-title">${verlofItem.Titel || 'Verlof'}</div>
-                <div class="custom-tooltip-content">
-                    <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">Medewerker:</span>
-                        <span class="custom-tooltip-value">${verlofItem.MedewerkerNaam || 'Onbekend'}</span>
-                    </div>
-                    <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">Periode:</span>
-                        <span class="custom-tooltip-value">
-                            ${startDatum.toLocaleDateString('nl-NL')} 
-                            ${startDatum.getTime() !== eindDatum.getTime() ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ''}
-                        </span>
-                    </div>
-                    ${verlofItem.Toelichting ? `
-                    <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">Toelichting:</span>
-                        <span class="custom-tooltip-value">${verlofItem.Toelichting}</span>
-                    </div>
-                    ` : ''}
-                    <div class="custom-tooltip-info">
-                        <span class="tooltip-status ${statusClass}">${statusText}</span>
-                    </div>
-                </div>
-            `;
-        } catch (error) {
-            console.error('Error creating verlof tooltip:', error, verlofItem);
-            return '<div class="custom-tooltip-title">Verlof</div><div class="custom-tooltip-content">Fout bij laden van gegevens</div>';
+        // Bepaal de status CSS klasse
+        let statusClass = '';
+        let statusText = '';
+        
+        switch(verlofItem.Status) {
+            case 'Nieuw':
+                statusClass = 'tooltip-status-new';
+                statusText = 'Nieuw';
+                break;
+            case 'Goedgekeurd':
+                statusClass = 'tooltip-status-approved';
+                statusText = 'Goedgekeurd';
+                break;
+            case 'Afgekeurd':
+                statusClass = 'tooltip-status-rejected';
+                statusText = 'Afgekeurd';
+                break;
+            default:
+                statusClass = '';
+                statusText = verlofItem.Status || 'Onbekend';
         }
+        
+        let startDatum = new Date(verlofItem.StartDatum);
+        let eindDatum = new Date(verlofItem.EindDatum || verlofItem.StartDatum);
+        
+        return `
+            <div class="custom-tooltip-title">${verlofItem.Titel || 'Verlof'}</div>
+            <div class="custom-tooltip-content">
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">Medewerker:</span>
+                    <span class="custom-tooltip-value">${verlofItem.MedewerkerNaam || 'Onbekend'}</span>
+                </div>
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">Periode:</span>
+                    <span class="custom-tooltip-value">
+                        ${startDatum.toLocaleDateString('nl-NL')} 
+                        ${startDatum.getTime() !== eindDatum.getTime() ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ''}
+                    </span>
+                </div>
+                ${verlofItem.Toelichting ? `
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">Toelichting:</span>
+                    <span class="custom-tooltip-value">${verlofItem.Toelichting}</span>
+                </div>
+                ` : ''}
+                <div class="custom-tooltip-info">
+                    <span class="tooltip-status ${statusClass}">${statusText}</span>
+                </div>
+            </div>
+        `;
     },
     
     /**
@@ -539,40 +530,7 @@ const TooltipManager = {
             this.observer = null;
             console.log('👁️ DOM observer stopped');
         }
-    },
-    
-    /**
-     * Test functie om tooltip systeem te verifiëren
-     */
-    testTooltipSystem: function() {
-        console.log('🧪 Testing tooltip system...');
-        
-        const testResults = {
-            initialized: !!this.tooltipElement,
-            elementCount: {
-                verlof: document.querySelectorAll('.verlof-blok').length,
-                compensatie: document.querySelectorAll('.compensatie-uur-blok, .compensatie-uur-container').length,
-                zittingsvrij: document.querySelectorAll('.zittingsvrij-blok, [data-afkorting="ZV"]').length,
-                ziekte: document.querySelectorAll('.ziekte-blok, [data-afkorting="ZK"]').length,
-                feestdagen: document.querySelectorAll('.feestdag, [data-feestdag]').length,
-                icons: document.querySelectorAll('i[title], .icon[title], [data-tooltip], img[title], button[title]').length
-            },
-            attachedCount: document.querySelectorAll('[data-tooltip-attached="true"]').length
-        };
-        
-        console.log('📊 Tooltip test results:', testResults);
-        
-        if (testResults.initialized) {
-            console.log('✅ TooltipManager is initialized');
-        } else {
-            console.log('❌ TooltipManager is NOT initialized');
-        }
-        
-        console.log(`📋 Found ${Object.values(testResults.elementCount).reduce((a, b) => a + b, 0)} total elements that should have tooltips`);
-        console.log(`🔗 Currently ${testResults.attachedCount} elements have tooltips attached`);
-        
-        return testResults;
-    },
+    }
 };
 
 // Exporteer de manager voor gebruik in andere modules

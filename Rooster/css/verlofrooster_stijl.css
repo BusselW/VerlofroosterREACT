@@ -2173,18 +2173,39 @@ td .compensatie-uur-container img.compensatie-icon-svg {
 }
 
 .tooltip-status-new {
-    background-color: #E3F2FD;
-    color: #1976D2;
+    background-color: #3498db;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 .tooltip-status-approved {
-    background-color: #E8F5E9;
-    color: #388E3C;
+    background-color: #27ae60;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 .tooltip-status-rejected {
-    background-color: #FFEBEE;
-    color: #D32F2F;
+    background-color: #e74c3c;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.tooltip-status-sick {
+    background-color: #e67e22;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 /* Holiday tooltip styling */
