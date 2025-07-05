@@ -308,3 +308,242 @@ body.dark-theme .data-tabel tbody tr:nth-child(even):hover {
         padding: 8px 12px;
     }
 }
+
+/* ==========================================================================
+   Tab Systeem
+   ========================================================================== */
+.tab-container {
+    margin: 1rem 0;
+}
+
+.tab-navigation {
+    display: flex;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    gap: 0;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+.tab-button:hover {
+    color: var(--primary-blue);
+    background-color: rgba(30, 58, 138, 0.05);
+}
+
+.tab-button.active {
+    color: var(--primary-blue);
+    border-bottom-color: var(--primary-blue);
+    background-color: rgba(30, 58, 138, 0.1);
+    font-weight: 600;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab content specifieke styling */
+.tab-pane {
+    min-height: 200px;
+}
+
+/* ==========================================================================
+   Action Buttons (Goedkeuren/Afwijzen)
+   ========================================================================== */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    min-width: 80px;
+}
+
+.btn-approve {
+    background: linear-gradient(135deg, var(--primary-green) 0%, #2dd874 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2);
+}
+
+.btn-approve:hover {
+    background: linear-gradient(135deg, #2dd874 0%, var(--primary-green) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-reject {
+    background: linear-gradient(135deg, var(--primary-red) 0%, #e74c3c 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(211, 47, 47, 0.2);
+}
+
+.btn-reject:hover {
+    background: linear-gradient(135deg, #e74c3c 0%, var(--primary-red) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
+}
+
+.btn-pending {
+    background: linear-gradient(135deg, var(--accent-orange) 0%, #f39c12 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(194, 65, 12, 0.2);
+}
+
+.btn-pending:hover {
+    background: linear-gradient(135deg, #f39c12 0%, var(--accent-orange) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(194, 65, 12, 0.3);
+}
+
+.btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.status-approved {
+    background: rgba(39, 174, 96, 0.1);
+    color: var(--primary-green);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.status-rejected {
+    background: rgba(211, 47, 47, 0.1);
+    color: var(--primary-red);
+    border: 1px solid rgba(211, 47, 47, 0.3);
+}
+
+.status-pending {
+    background: rgba(194, 65, 12, 0.1);
+    color: var(--accent-orange);
+    border: 1px solid rgba(194, 65, 12, 0.3);
+}
+
+.status-new {
+    background: rgba(30, 58, 138, 0.1);
+    color: var(--primary-blue);
+    border: 1px solid rgba(30, 58, 138, 0.3);
+}
+
+/* Dark theme aanpassingen */
+body.dark-theme .tab-button {
+    color: var(--text-muted);
+}
+
+body.dark-theme .tab-button:hover {
+    color: #60a5fa;
+    background-color: rgba(96, 165, 250, 0.1);
+}
+
+body.dark-theme .tab-button.active {
+    color: #60a5fa;
+    border-bottom-color: #60a5fa;
+    background-color: rgba(96, 165, 250, 0.15);
+}
+
+body.dark-theme .tab-navigation {
+    border-bottom-color: #374151;
+}
+
+/* Responsive tabs */
+@media (max-width: 768px) {
+    .tab-button {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        min-width: 100px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .btn-action {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+/* ==========================================================================
+   Empty State & Loading
+   ========================================================================== */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin: 0;
+    font-style: italic;
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
