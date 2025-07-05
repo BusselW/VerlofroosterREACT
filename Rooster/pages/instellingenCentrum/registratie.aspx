@@ -18,27 +18,25 @@
     <!-- Instellingen Styles -->
     <link href="css/instellingencentrum_s.css" rel="stylesheet">
     
-    <!-- Registration specific styles -->
+    <!-- Minimal registration wizard styles -->
     <style>
-        .registration-wizard {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
         .progress-bar {
             display: flex;
             justify-content: space-between;
             margin-bottom: 30px;
             position: relative;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .progress-bar::before {
             content: '';
             position: absolute;
             top: 50%;
-            left: 0;
-            right: 0;
+            left: 10%;
+            right: 10%;
             height: 2px;
             background: #e9ecef;
             z-index: 1;
@@ -75,7 +73,6 @@
         .progress-step.current .step-number {
             background: #28a745;
             color: white;
-            transform: scale(1.1);
         }
         
         .step-title {
@@ -83,6 +80,7 @@
             color: #333;
             margin-bottom: 4px;
             font-size: 14px;
+            text-align: center;
         }
         
         .progress-step.active .step-title {
@@ -99,119 +97,16 @@
             text-align: center;
         }
         
-        .step-card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .step-card .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px 12px 0 0;
-            padding: 20px;
-            border: none;
-        }
-        
-        .step-card .card-header h3 {
-            margin: 0 0 8px 0;
-            font-size: 20px;
-        }
-        
-        .step-card .card-header p {
-            margin: 0;
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e9ecef;
-            color: #6c757d;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .step-label {
-            font-size: 12px;
-            color: #6c757d;
-            text-align: center;
-        }
-        
-        .step-content {
-            min-height: 400px;
-            margin-bottom: 30px;
-        }
-        
         .navigation-buttons {
             display: flex;
             justify-content: space-between;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
+            padding: 20px 0;
+            margin-top: 20px;
         }
         
         .btn-group {
             display: flex;
             gap: 10px;
-        }
-        
-        .registration-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .registration-header h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .registration-header p {
-            color: #6c757d;
-            font-size: 16px;
-        }
-        
-        .success-screen {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        
-        .success-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid transparent;
-        }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-        
-        .alert h6 {
-            font-weight: 600;
-            margin: 0;
-        }
-        
-        .btn-outline-secondary {
-            color: #6c757d;
-            border-color: #6c757d;
-            background-color: transparent;
-        }
-        
-        .btn-outline-secondary:hover {
-            background-color: #6c757d;
-            color: white;
         }
     </style>
 </head>
@@ -302,8 +197,8 @@
         const Header = ({ user }) => {
             return h('div', { className: 'header' },
                 h('div', { className: 'container' },
-                    h('h1', null, 'Verlofrooster - Registratie'),
-                    h('p', null, `Hallo ${user?.Title || 'nieuwe gebruiker'}, laten we je account instellen!`)
+                    h('h1', null, 'Account registratie'),
+                    h('p', null, `Welkom ${user?.Title || 'nieuwe gebruiker'}! Stel je account in voor het verlofrooster.`)
                 )
             );
         };
@@ -333,11 +228,8 @@
                 
                 switch (step) {
                     case 1: // Profile validation
-                        if (!data.firstName || data.firstName.trim() === '') {
-                            errors.firstName = 'Voornaam is verplicht';
-                        }
-                        if (!data.lastName || data.lastName.trim() === '') {
-                            errors.lastName = 'Achternaam is verplicht';
+                        if (!data.naam || data.naam.trim() === '') {
+                            errors.naam = 'Volledige naam is verplicht';
                         }
                         if (!data.email || data.email.trim() === '') {
                             errors.email = 'E-mail is verplicht';
@@ -346,8 +238,8 @@
                         }
                         break;
                     case 2: // Work hours validation
-                        if (!data.department || data.department.trim() === '') {
-                            errors.department = 'Afdeling is verplicht';
+                        if (!data.team || data.team.trim() === '') {
+                            errors.team = 'Team is verplicht';
                         }
                         break;
                     case 3: // Preferences validation
@@ -428,18 +320,18 @@
             };
 
             if (isCompleted) {
-                return h('div', { className: 'registration-wizard' },
-                    h('div', { className: 'registration-header success-screen' },
-                        h('div', { className: 'success-icon' }, '✅'),
+                return h('div', null,
+                    h('div', { style: { textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' } },
+                        h('div', { style: { fontSize: '4rem', marginBottom: '20px' } }, '✅'),
                         h('h1', null, '🎉 Registratie voltooid!'),
                         h('p', null, 'Welkom bij Verlofrooster! Je account is succesvol aangemaakt.'),
-                        h('div', { className: 'btn-group', style: { justifyContent: 'center', marginTop: '20px' } },
+                        h('div', { style: { display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' } },
                             h('button', {
                                 className: 'btn btn-primary',
                                 onClick: () => window.location.href = '../../verlofRooster.aspx'
                             }, 'Naar de app'),
                             h('button', {
-                                className: 'btn btn-outline-secondary',
+                                className: 'btn btn-secondary',
                                 onClick: () => window.location.href = 'instellingenCentrumN.aspx'
                             }, 'Instellingen aanpassen')
                         )
@@ -447,12 +339,7 @@
                 );
             }
 
-            return h('div', { className: 'registration-wizard' },
-                h('div', { className: 'registration-header' },
-                    h('h1', null, 'Account aanmaken'),
-                    h('p', null, 'Vul je gegevens in om je account in te stellen')
-                ),
-                
+            return h('div', null,
                 // Progress bar
                 h('div', { className: 'progress-bar' },
                     ...steps.map(step =>
@@ -468,8 +355,17 @@
                 ),
                 
                 // Validation errors
-                Object.keys(errors).length > 0 && h('div', { className: 'alert alert-danger', style: { margin: '20px 0' } },
-                    h('h6', { style: { marginBottom: '10px' } }, '⚠️ Corrigeer de volgende fouten:'),
+                Object.keys(errors).length > 0 && h('div', { 
+                    style: { 
+                        backgroundColor: '#f8d7da', 
+                        borderColor: '#f5c6cb', 
+                        color: '#721c24',
+                        padding: '15px',
+                        borderRadius: '8px',
+                        margin: '20px 0'
+                    } 
+                },
+                    h('h6', { style: { marginBottom: '10px', fontWeight: '600' } }, '⚠️ Corrigeer de volgende fouten:'),
                     h('ul', { style: { marginBottom: '0', paddingLeft: '20px' } },
                         ...Object.values(errors).map((error, index) =>
                             h('li', { key: index }, error)
@@ -477,17 +373,15 @@
                     )
                 ),
                 
-                // Step content
-                h('div', { className: 'step-content' },
-                    h(StepContent, { 
-                        currentStep, 
-                        user, 
-                        data, 
-                        registrationData,
-                        updateRegistrationData,
-                        errors
-                    })
-                ),
+                // Step content - using same structure as original tabs
+                h(StepContent, { 
+                    currentStep, 
+                    user, 
+                    data, 
+                    registrationData,
+                    updateRegistrationData,
+                    errors
+                }),
                 
                 // Navigation buttons
                 h('div', { className: 'navigation-buttons' },
@@ -532,52 +426,34 @@
 
             switch (currentStep) {
                 case 1:
-                    return h('div', { className: 'card step-card' },
-                        h('div', { className: 'card-header' },
-                            h('h3', null, '👤 Persoonlijke gegevens'),
-                            h('p', null, 'Vul je profiel informatie in voor het verlofrooster systeem')
-                        ),
-                        h(ProfileTab, { 
-                            user, 
-                            data,
-                            isRegistration: true,
-                            onDataUpdate: handleProfileUpdate,
-                            initialData: registrationData.profile,
-                            errors
-                        })
-                    );
+                    return h(ProfileTab, { 
+                        user, 
+                        data,
+                        isRegistration: true,
+                        onDataUpdate: handleProfileUpdate,
+                        registrationData: registrationData.profile,
+                        errors
+                    });
                 case 2:
-                    return h('div', { className: 'card step-card' },
-                        h('div', { className: 'card-header' },
-                            h('h3', null, '⏰ Werktijden'),
-                            h('p', null, 'Configureer je standaard werktijden en beschikbaarheid')
-                        ),
-                        h(WorkHoursTab, { 
-                            user, 
-                            data,
-                            isRegistration: true,
-                            onDataUpdate: handleWorkHoursUpdate,
-                            initialData: registrationData.workHours,
-                            errors
-                        })
-                    );
+                    return h(WorkHoursTab, { 
+                        user, 
+                        data,
+                        isRegistration: true,
+                        onDataUpdate: handleWorkHoursUpdate,
+                        registrationData: registrationData.workHours,
+                        errors
+                    });
                 case 3:
-                    return h('div', { className: 'card step-card' },
-                        h('div', { className: 'card-header' },
-                            h('h3', null, '⚙️ Voorkeuren'),
-                            h('p', null, 'Personaliseer je ervaring met het verlofrooster')
-                        ),
-                        h(SettingsTab, { 
-                            user, 
-                            data,
-                            isRegistration: true,
-                            onDataUpdate: handlePreferencesUpdate,
-                            initialData: registrationData.preferences,
-                            errors
-                        })
-                    );
+                    return h(SettingsTab, { 
+                        user, 
+                        data,
+                        isRegistration: true,
+                        onDataUpdate: handlePreferencesUpdate,
+                        registrationData: registrationData.preferences,
+                        errors
+                    });
                 default:
-                    return h('div', { className: 'card' },
+                    return h('div', null,
                         h('p', null, 'Ongeldige stap')
                     );
             }
