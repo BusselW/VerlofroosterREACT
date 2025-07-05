@@ -197,3 +197,114 @@ body {
 .behandelcentrum-app h2:first-child {
     margin-top: 0;
 }
+
+/* ==========================================================================
+   Data Tabellen - Verbeterde Styling
+   ========================================================================== */
+.data-tabel {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--content-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 0.9rem;
+    margin: 1rem 0 2rem 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.data-tabel th,
+.data-tabel td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+    line-height: 1.5;
+}
+
+.data-tabel th {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.data-tabel tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.data-tabel tbody tr:hover {
+    background-color: #f8fafc;
+    transform: scale(1.001);
+}
+
+.data-tabel tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+.data-tabel tbody tr:nth-child(even):hover {
+    background-color: #f1f5f9;
+}
+
+.data-tabel td {
+    color: var(--text-color);
+    font-weight: 400;
+}
+
+.data-tabel tr:last-child td {
+    border-bottom: none;
+}
+
+/* Dark theme voor tabellen */
+body.dark-theme .data-tabel {
+    background-color: var(--content-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .data-tabel th {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    color: #f1f5f9;
+}
+
+body.dark-theme .data-tabel td {
+    border-bottom-color: #374151;
+    color: var(--text-color);
+}
+
+body.dark-theme .data-tabel tbody tr:hover {
+    background-color: #374151;
+}
+
+body.dark-theme .data-tabel tbody tr:nth-child(even) {
+    background-color: #2d3748;
+}
+
+body.dark-theme .data-tabel tbody tr:nth-child(even):hover {
+    background-color: #4a5568;
+}
+
+/* Lege tabel styling */
+.data-tabel tbody:empty::after {
+    content: "Geen gegevens beschikbaar";
+    display: table-cell;
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Responsive tabel */
+@media (max-width: 768px) {
+    .data-tabel {
+        font-size: 0.8rem;
+    }
+    
+    .data-tabel th,
+    .data-tabel td {
+        padding: 8px 12px;
+    }
+}
