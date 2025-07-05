@@ -1,53 +1,71 @@
 // tutorial.js - Interactieve tour voor het Team Rooster systeem
+// Enhanced version focusing on the most important UI elements and user actions
+// Provides practical examples and actionable guidance for effective onboarding
 
 export const tutorialSteps = [
     {
         targetId: 'root',
-        message: "Welkom bij de Team Rooster Manager! Deze tour laat je zien hoe je het rooster systeem gebruikt. Druk op 'Volgende' om te beginnen.",
+        message: "🎉 Welkom bij het Verlofrooster systeem! Deze interactieve tour toont je in 13 stappen hoe je verlof plant, het rooster navigeert en snel acties uitvoert. Klaar om te beginnen?",
     },
     {
         targetId: 'header',
-        message: "Dit is de hoofdheader. Hier vind je navigatie naar andere delen van het systeem en je persoonlijke instellingen.",
+        message: "📱 Dit is de hoofdheader. Links vind je 'Melding' om problemen te rapporteren, en rechts zie je knoppen voor verschillende beheercentra (admin, beheer, behandelen) - afhankelijk van je toegangsrechten.",
     },
     {
         targetId: 'toolbar',
-        message: "De toolbar bevat alle belangrijke bedieningselementen: periode navigatie, weergave-opties en filters voor medewerkers en teams.",
+        message: "🛠️ De toolbar is jouw controlecentrum! Hier vind je periode-navigatie, weergave-opties (week/maand), filters voor medewerkers en teams, plus de legenda met alle verloftypen.",
     },
     {
         targetId: 'periode-navigatie',
-        message: "Gebruik deze knoppen om tussen weken en maanden te navigeren. Je kunt ook schakelen tussen week- en maandweergave.",
+        message: "📅 <strong>Tijd reizen door het rooster:</strong><br>• Gebruik ⬅️➡️ pijltjes om tussen periodes te gaan<br>• Schakel tussen 'Week' (7 dagen detail) en 'Maand' (overzicht)<br>• <em>Tip: Weekweergave is handig voor planning, maand voor overzicht!</em>",
     },
     {
         targetId: 'filter-groep',  
-        message: "Met deze filters kun je specifieke medewerkers zoeken of alleen bepaalde teams weergeven.",
+        message: "🔍 <strong>Zoeken en filteren:</strong><br>• Zoek specifieke medewerkers: typ bijv. 'Bussel' of 'Jansen'<br>• Filter per team via de dropdown<br>• <em>Voorbeeld: selecteer 'IT-team' om alleen IT-medewerkers te zien</em>",
     },
     {
         targetId: 'legenda-container',
-        message: "De legenda toont alle verloftypen en hun kleuren. Hiermee kun je snel zien wat elk symbool betekent.",
+        message: "🎨 <strong>Kleurcode legenda:</strong> Hier zie je wat alle kleuren betekenen:<br>• <span style='color: green'>VER = Verlof</span> (vakantie)<br>• <span style='color: red'>ZK = Ziek</span><br>• <span style='color: blue'>CU = Compensatie-uren</span><br>• <span style='color: orange'>ZV = Zittingsvrij</span><br>Onthoud deze kleuren voor snelle herkenning!",
     },
     {
         targetId: 'rooster-table',
-        message: "Dit is het hoofdrooster. Elke rij toont een medewerker, elke kolom een dag. Verlof en afwezigheid worden hier kleurgecodeerd weergegeven.",
+        message: "📊 <strong>Het hoofdrooster - waar alles gebeurt!</strong><br>• Elke rij = een medewerker<br>• Elke kolom = een dag<br>• Kleuren tonen verloftypen<br>• Weekenden en feestdagen hebben andere achtergronden",
     },
     {
         targetId: 'medewerker-kolom',
-        message: "In deze kolom zie je de medewerkernamen en hun profielfoto's. De medewerkers zijn gegroepeerd per team.",
+        message: "👥 <strong>Medewerkerskolom:</strong><br>• Profielfoto's en namen<br>• Gegroepeerd per team (verschillende kleuren)<br>• Teamleiders worden speciaal gemarkeerd<br>• <em>Tip: Teams hebben eigen kleuren voor snelle herkenning</em>",
     },
     {
         targetId: 'dag-cel',
-        message: "Dit zijn de dagcellen. Klik op een cel om verlof aan te vragen. Rechtsklik voor meer opties zoals ziek melden of compensatieuren. Je kunt ook meerdere dagen selecteren door op de eerste dag te klikken en dan op de laatste dag.",
+        message: "✨ <strong>Dagcellen - hier gebeurt de magie!</strong><br><strong>Praktische voorbeelden:</strong><br>• <strong>Eén klik:</strong> Selecteer deze dag voor org\\busselw<br>• <strong>Tweekliks:</strong> Klik hier, dan op een andere dag = periode selecteren<br>• <strong>Rechtsklik:</strong> Open actiemenu (verlof, ziek melden, etc.)<br>• <strong>Shift+klik:</strong> Selecteer bereik van dagen",
+        demoActions: [
+            {
+                type: 'highlight',
+                description: 'We markeren een voorbeeldcel voor org\\busselw'
+            }
+        ]
     },
     {
         targetId: 'fab-container',
-        message: "De Floating Action Button (FAB) geeft je snelle toegang tot de meest gebruikte acties: verlof aanvragen, ziek melden, en compensatieuren.",
+        message: "🚀 <strong>Floating Action Button (FAB) - snelle acties:</strong><br>• 📝 <strong>Verlof aanvragen:</strong> Plan je vakantie<br>• 🤒 <strong>Ziek melden:</strong> Voor vandaag of een periode<br>• ⏰ <strong>Compensatie-uren:</strong> Overwerk doorgeven<br>• 🏛️ <strong>Zittingsvrij:</strong> Rechterlijke dagen<br><em>Probeer: klik op de FAB om alle opties te zien!</em>",
+    },
+    {
+        targetId: 'dag-cel',
+        message: "🖱️ <strong>Context Menu - Rechtsklik Acties:</strong><br><strong>Pro tip:</strong> Rechtsklik op een dagcel voor hetzelfde menu als de FAB!<br>• <strong>Voordeel:</strong> Direct gekoppeld aan de geselecteerde dag(en)<br>• <strong>Sneller:</strong> Geen extra navigatie nodig<br>• <strong>Context-bewust:</strong> Toont relevante opties voor die specifieke dag<br><em>Probeer: rechtsklik op een dagcel om het contextmenu te zien</em>",
+        demoActions: [
+            {
+                type: 'highlight',
+                description: 'We markeren een dagcel waar je kunt rechtsklikken'
+            }
+        ]
     },
     {
         targetId: 'user-dropdown',
-        message: "Via je profielmenu kun je je persoonlijke gegevens en roosterinstellingen beheren.",
+        message: "⚙️ <strong>Je persoonlijke menu:</strong><br>• Zie je naam en profielfoto<br>• Teamleider info (indien van toepassing)<br>• <strong>Klik erop</strong> voor toegang tot persoonlijke instellingen<br>• Beheer werktijden, voorkeuren en profiel",
     },
     {
         targetId: 'nav-buttons-right',
-        message: "Deze knoppen geven toegang tot verschillende beheercentra, afhankelijk van je rechten in het systeem.",
+        message: "🔧 <strong>Laatste stap - Beheercentra:</strong><br>Afhankelijk van je rechten zie je hier:<br>• <strong>Admin:</strong> Systeem beheer (voor beheerders)<br>• <strong>Beheer:</strong> Functioneel beheer<br>• <strong>Behandelen:</strong> Verzoeken afhandelen (voor leidinggevenden)<br>• <strong>Help:</strong> Deze tour herhalen, handleiding en FAQ<br><br>🎉 <strong>Je bent klaar!</strong> Begin met plannen!",
     }
 ];
 
@@ -113,42 +131,122 @@ export const removeHighlight = () => {
     });
 };
 
-// Extra uitleg per onderwerp
+// Extra uitleg per onderwerp met praktische voorbeelden
 export const tutorialTopics = {
     verlofAanvragen: {
-        title: "Verlof Aanvragen",
+        title: "Verlof Aanvragen - Stap voor Stap",
         steps: [
-            "Klik op een dagcel of selecteer meerdere dagen door te slepen",
-            "Rechtsklik en kies 'Verlof aanvragen' of gebruik de FAB knop", 
-            "Vul het formulier in met het type verlof en eventuele opmerkingen",
-            "Klik op 'Opslaan' om je aanvraag in te dienen"
+            "🎯 <strong>Stap 1:</strong> Selecteer je gewenste periode:",
+            "   • <em>Enkele dag:</em> Klik op bijv. maandag 15 juli",
+            "   • <em>Periode:</em> Klik op startdag → klik op einddag", 
+            "   • <em>Tip:</em> Shift+klik selecteert automatisch alles ertussen",
+            "🖱️ <strong>Stap 2:</strong> Open het verlofformulier:",
+            "   • <strong>Methode 1:</strong> Rechtsklik op geselecteerde dag(en) → 'Verlof aanvragen'",
+            "   • <strong>Methode 2:</strong> Gebruik de blauwe FAB knop (➕) rechtsonder",
+            "   • <em>Tip:</em> Rechtsklik is sneller, FAB is handig als je geen selectie hebt",
+            "📝 <strong>Stap 3:</strong> Vul het formulier in voor org\\busselw:",
+            "   • <em>Verloftype:</em> Vakantie, Kort verzuim, Verlof zonder behoud van salaris",
+            "   • <em>Periode controle:</em> Check of data kloppen (bijv. 15-19 juli)",
+            "   • <em>Opmerking:</em> 'Familievakantie naar Frankrijk' of 'Doktersafspraak'",
+            "   • <em>Halve dagen:</em> Vink aan voor ochtend/middag vrij",
+            "✅ <strong>Stap 4:</strong> Verstuur je verzoek:",
+            "   • Klik 'Opslaan' - je verzoek wordt ter goedkeuring ingediend",
+            "   • Je ziet direct een preview in het rooster (meestal geel = 'in afwachting')",
+            "   • Je manager krijgt automatisch een notificatie"
         ]
     },
     ziekMelden: {
-        title: "Ziek Melden", 
+        title: "Ziek Melden - Snel en Eenvoudig", 
         steps: [
-            "Selecteer de dag(en) waarop je ziek bent",
-            "Rechtsklik en kies 'Ziek melden'",
-            "Voeg eventueel een opmerking toe",
-            "Bevestig je ziekmelding"
+            "🚨 <strong>Voor vandaag (meest gebruikt):</strong>",
+            "   • Zoek je eigen rij in het rooster",
+            "   • Klik op vandaag's datum in je rij",
+            "   • Rechtsklik → 'Ziek melden'",
+            "� <strong>Voor meerdere dagen:</strong>",
+            "   • Selecteer startdag (bijv. maandag) → einddag (bijv. woensdag)",
+            "   • Rechtsklik → 'Ziek melden'",
+            "📝 <strong>Formulier invullen:</strong>",
+            "   • <em>Type:</em> Ziek, Doktersbezoek, Ziekte kind",
+            "   • <em>Opmerking:</em> 'Griep' of 'Tandarts afspraak' (optioneel)",
+            "   • <em>Halve dag:</em> Vink aan als je maar ochtend/middag ziek bent",
+            "⚡ <strong>Direct zichtbaar:</strong>",
+            "   • Ziekmeldingen zijn meteen zichtbaar (meestal rood)",
+            "   • Geen goedkeuring nodig - direct actief",
+            "   • Leidinggevende krijgt automatisch bericht"
         ]
     },
     compensatieUren: {
-        title: "Compensatieuren",
+        title: "Compensatie-uren Beheren",
         steps: [
-            "Selecteer de relevante periode",
-            "Kies 'Compensatieuren doorgeven' uit het menu",
-            "Specificeer of het gaat om overuren, ruildagen, of andere compensatie",
-            "Voeg een beschrijving toe en sla op"
+            "⏰ <strong>Overuren registreren:</strong>",
+            "   • Selecteer de werkdag(en) waar je extra uren maakte",
+            "   • Bijvoorbeeld: klik op afgelopen vrijdag in je rij",
+            "📋 <strong>Formulier openen:</strong>",
+            "   • <strong>Methode 1:</strong> Rechtsklik → 'Compensatieuren doorgeven'",
+            "   • <strong>Methode 2:</strong> Gebruik FAB knop → 'Compensatieuren'",
+            "   • <em>Voorkeur:</em> Rechtsklik is directer en contextbewuster",
+            "🔢 <strong>Details invullen voor org\\busselw:</strong>",
+            "   • <em>Type:</em> Overuren, Ruildag, Extra dienst, Reistijd",
+            "   • <em>Aantal uren:</em> bijv. 2,5 uur (gebruik komma, niet punt)",
+            "   • <em>Beschrijving:</em> 'Avonddienst vanwege spoedklus X123'",
+            "   • <em>Datum/tijd:</em> Wanneer de extra uren zijn gemaakt",
+            "💾 <strong>Opslaan en zien:</strong>",
+            "   • Compensatie-uren verschijnen als blauwe blokjes in het rooster",
+            "   • Plus/min uren worden bijgehouden in je saldo",
+            "   • Leidinggevende kan deze goedkeuren of aanpassen"
         ]
     },
     navigatie: {
-        title: "Navigatie Tips",
+        title: "Slim Navigeren door het Rooster",
         steps: [
-            "Gebruik de pijltjes om tussen periodes te navigeren",
-            "Schakel tussen week- en maandweergave voor betere overzicht",
-            "Filter op team of zoek specifieke medewerkers",
-            "Gebruik de legenda om verloftypen te herkennen"
+            "📅 <strong>Tussen periodes bewegen:</strong>",
+            "   • ⬅️➡️ Pijltjes: ga naar vorige/volgende week of maand",
+            "   • <em>Sneltoets:</em> Gebruik pijltjestoetsen op je keyboard",
+            " <strong>Weergave optimaliseren:</strong>",
+            "   • <em>'Week' weergave:</em> Perfect voor gedetailleerde planning (7 dagen)",
+            "   • <em>'Maand' weergave:</em> Overzicht van 30+ dagen tegelijk",
+            "   • <em>Tip:</em> Wissel vaak tussen beide voor beste resultaat",
+            "🔍 <strong>Zoeken en filteren:</strong>",
+            "   • <em>Zoeken:</em> Typ 'Jansen' om alle Jansens te vinden",
+            "   • <em>Team filter:</em> Selecteer 'IT-team' → zie alleen IT-medewerkers",
+            "   • <em>Combinatie:</em> Filter op team + zoek op naam voor precisie",
+            "🎨 <strong>Kleuren herkennen:</strong>",
+            "   • Gebruik de legenda om snel verloftypen te herkennen",
+            "   • <em>Groen:</em> Goedgekeurd verlof",
+            "   • <em>Geel:</em> In afwachting van goedkeuring",
+            "   • <em>Rood:</em> Ziek of afgewezen",
+            "💡 <strong>Pro tips:</strong>",
+            "   • <em>Ctrl+klik:</em> Selecteer meerdere losse dagen",
+            "   • <em>Shift+klik:</em> Selecteer een heel bereik",
+            "   • <em>Dubbelklik:</em> Zoom in op specifieke dag"
+        ]
+    },
+    shortcutKeys: {
+        title: "Handige Sneltoetsen & Trucs",
+        steps: [
+            "⌨️ <strong>Navigatie sneltoetsen:</strong>",
+            "   • <em>Pijltjes (← →):</em> Vorige/volgende periode",
+            "   • <em>Pijltjes (↑ ↓):</em> Scroll door medewerkerslijst",
+            "   • <em>Home/End:</em> Ga naar begin/eind van jaar",
+            "🖱️ <strong>Muis combinaties:</strong>",
+            "   • <em>Ctrl+klik:</em> Selecteer meerdere losse dagen",
+            "   • <em>Shift+klik:</em> Selecteer bereik (van → naar)",
+            "   • <em>Dubbelklik:</em> Open snelle actie voor die dag",
+            "🔍 <strong>Zoek & filter shortcuts:</strong>",
+            "   • <em>Ctrl+F:</em> Browserpagina doorzoeken",
+            "   • <em>Tab:</em> Spring naar volgende invoerveld",
+            "   • <em>Escape:</em> Sluit open modals/dropdowns",
+            "⚡ <strong>Snelle acties:</strong>",
+            "   • <em>Rechtsklik:</em> Contextmenu op geselecteerde dag(en) - snelste methode",
+            "   • <em>FAB:</em> Floating Action Button voor globale acties",
+            "   • <em>Spatie:</em> Open FAB menu (als niks geselecteerd)",
+            "   • <em>Enter:</em> Bevestig actie in open formulier",
+            "   • <em>Escape:</em> Annuleer huidige actie",
+            "🔄 <strong>Systeem shortcuts:</strong>",
+            "   • <em>F5 of Ctrl+R:</em> Ververs pagina voor laatste data",
+            "   • <em>Ctrl+Shift+R:</em> Hard refresh (cache wissen)",
+            "   • <em>Ctrl + (plus):</em> Zoom in op pagina",
+            "   • <em>Ctrl - (min):</em> Zoom uit op pagina"
         ]
     }
 };
@@ -190,6 +288,9 @@ export class RoosterTutorial {
         // Remove highlight
         removeHighlight();
         
+        // Remove demo highlights
+        this.cleanupDemoElements();
+        
         // Remove tooltip
         if (this.tooltipElement) {
             document.body.removeChild(this.tooltipElement);
@@ -209,6 +310,13 @@ export class RoosterTutorial {
         document.dispatchEvent(new CustomEvent('tutorial-completed'));
     }
 
+    // Clean up demo elements
+    cleanupDemoElements() {
+        document.querySelectorAll('.tutorial-demo-highlight, .tutorial-demo-click').forEach(el => {
+            el.classList.remove('tutorial-demo-highlight', 'tutorial-demo-click');
+        });
+    }
+
     // Create overlay
     createOverlay() {
         this.overlayElement = document.createElement('div');
@@ -223,14 +331,66 @@ export class RoosterTutorial {
             return;
         }
         
+        // Clean up previous demo elements
+        this.cleanupDemoElements();
+        
         this.currentStep = stepIndex;
         const step = tutorialSteps[stepIndex];
         
         // Highlight target element
         const targetElement = highlightElement(step.targetId);
         
+        // Execute demo actions if specified
+        if (step.demoActions) {
+            this.executeDemoActions(step.demoActions, targetElement);
+        }
+        
         // Create or update tooltip
         this.createTooltip(step, targetElement);
+    }
+
+    // Execute demo actions for interactive examples
+    executeDemoActions(actions, targetElement) {
+        actions.forEach((action, index) => {
+            setTimeout(() => {
+                switch (action.type) {
+                    case 'highlight':
+                        // Find a specific cell for org\busselw if available
+                        const targetCell = this.findDemonstrationCell();
+                        if (targetCell) {
+                            targetCell.classList.add('tutorial-demo-highlight');
+                            console.log('🎯 Demo:', action.description);
+                        }
+                        break;
+                    case 'click':
+                        if (targetElement) {
+                            // Simulate a visual click effect
+                            targetElement.classList.add('tutorial-demo-click');
+                            setTimeout(() => {
+                                targetElement.classList.remove('tutorial-demo-click');
+                            }, 300);
+                        }
+                        break;
+                    case 'openModal':
+                        // This would be called when showing form examples
+                        console.log('🎯 Demo: Opening example modal for', action.description);
+                        break;
+                }
+            }, index * 1000); // Stagger actions by 1 second
+        });
+    }
+
+    // Find a suitable cell for demonstration
+    findDemonstrationCell() {
+        // Look for a cell in the first few rows that's not a weekend
+        const cells = document.querySelectorAll('.dag-cel:not(.weekend)');
+        if (cells.length > 0) {
+            return cells[0]; // Return first suitable cell
+        }
+        
+        // Fallback to any cell
+        const anyCells = document.querySelectorAll('td.dag-kolom:not(.weekend)');
+        return anyCells.length > 0 ? anyCells[0] : null;
     }
 
     // Create tooltip for current step
@@ -250,16 +410,17 @@ export class RoosterTutorial {
             <div class="tutorial-tooltip-content">${step.message}</div>
             <div class="tutorial-navigation">
                 ${this.currentStep > 0 ? 
-                    '<button class="tutorial-btn tutorial-btn-secondary" id="tutorial-prev">Vorige</button>' : 
-                    '<button class="tutorial-btn-skip" id="tutorial-skip">Overslaan</button>'}
+                    '<button class="tutorial-btn tutorial-btn-secondary" id="tutorial-prev">⬅️ Vorige</button>' : 
+                    '<button class="tutorial-btn-skip" id="tutorial-skip">⏭️ Overslaan</button>'}
                 <button class="tutorial-btn tutorial-btn-primary" id="tutorial-next">
-                    ${this.currentStep < this.totalSteps - 1 ? 'Volgende' : 'Afronden'}
+                    ${this.currentStep < this.totalSteps - 1 ? 'Volgende ➡️' : '🎉 Klaar!'}
                 </button>
             </div>
             <div class="tutorial-progress">
+                <span class="tutorial-progress-text">Stap ${this.currentStep + 1} van ${this.totalSteps}</span>
                 ${this.createProgressDots()}
             </div>
-            <button class="tutorial-btn-close" id="tutorial-close">✕</button>
+            <button class="tutorial-btn-close" id="tutorial-close" title="Tour sluiten">✕</button>
         `;
         
         // Add to DOM
@@ -276,21 +437,22 @@ export class RoosterTutorial {
     getStepTitle(step) {
         // Default titles based on step index
         const defaultTitles = [
-            "Welkom bij de Tour!",
-            "Header & Navigatie",
-            "Toolbar",
-            "Periode Navigatie",
-            "Filters",
-            "Legenda",
-            "Rooster Overzicht",
-            "Medewerkers",
-            "Dagcellen",
-            "Snelle Acties",
-            "Gebruikersmenu",
-            "Beheercentra"
+            "🎯 Welkom bij het Verlofrooster!",
+            "📱 Header & Hoofdnavigatie",
+            "🛠️ Jouw Controlecentrum",
+            "📅 Tijd Navigeren",
+            "🔍 Zoeken & Filteren",
+            "🎨 Kleurcode Legenda",
+            "📊 Het Hoofdrooster",
+            "👥 Medewerkers & Teams",
+            "✨ Dagcellen - De Kern van het Systeem",
+            "🚀 Snelle Acties (FAB)",
+            "🖱️ Context Menu - Rechtsklik Magie",
+            "⚙️ Persoonlijk Menu",
+            "🔧 Beheer & Voltooiing"
         ];
         
-        return step.title || defaultTitles[this.currentStep] || `Stap ${this.currentStep + 1}`;
+        return step.title || defaultTitles[this.currentStep] || `📋 Stap ${this.currentStep + 1}`;
     }
 
     // Create progress dots

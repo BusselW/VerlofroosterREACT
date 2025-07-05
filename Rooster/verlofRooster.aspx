@@ -161,6 +161,7 @@
             });
 
             const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
+            const [helpDropdownOpen, setHelpDropdownOpen] = useState(false);
 
             useEffect(() => {
                 const loadUserData = async () => {
@@ -262,11 +263,14 @@
                     if (settingsDropdownOpen && !event.target.closest('.user-dropdown')) {
                         setSettingsDropdownOpen(false);
                     }
+                    if (helpDropdownOpen && !event.target.closest('.help-dropdown')) {
+                        setHelpDropdownOpen(false);
+                    }
                 };
 
                 document.addEventListener('click', handleClickOutside);
                 return () => document.removeEventListener('click', handleClickOutside);
-            }, [settingsDropdownOpen]);
+            }, [settingsDropdownOpen, helpDropdownOpen]);
 
             // Position dropdown correctly when it opens
             useEffect(() => {
@@ -328,14 +332,57 @@
                         'Behandelen'
                     ),
 
-                    // Tour button - Start interactive tutorial
-                    h('button', {
-                        className: 'btn btn-tour',
-                        onClick: () => window.startTutorial && window.startTutorial(),
-                        title: 'Start interactieve tour'
-                    },
-                        h('i', { className: 'fas fa-question-circle' }),
-                        'Tour'
+                    // Help dropdown - Replaces tour button
+                    h('div', { className: 'help-dropdown' },
+                        h('button', {
+                            className: 'btn btn-help',
+                            onClick: () => setHelpDropdownOpen(!helpDropdownOpen),
+                            title: 'Hulp en documentatie'
+                        },
+                            h('i', { className: 'fas fa-question-circle' }),
+                            'Help',
+                            h('i', {
+                                className: `fas fa-chevron-${helpDropdownOpen ? 'up' : 'down'}`,
+                                style: { fontSize: '0.8rem', marginLeft: '0.5rem' }
+                            })
+                        ),
+
+                        // Help dropdown menu
+                        helpDropdownOpen && h('div', { className: 'help-dropdown-menu' },
+                            h('button', {
+                                className: 'help-dropdown-item',
+                                onClick: () => {
+                                    window.startTutorial && window.startTutorial();
+                                    setHelpDropdownOpen(false);
+                                }
+                            },
+                                h('i', { className: 'fas fa-route' }),
+                                h('div', { className: 'help-item-content' },
+                                    h('span', { className: 'help-item-title' }, 'Interactieve tour'),
+                                    h('span', { className: 'help-item-description' }, 'Ontdek de belangrijkste functies van het rooster')
+                                )
+                            ),
+                            h('button', {
+                                className: 'help-dropdown-item disabled',
+                                title: 'Binnenkort beschikbaar'
+                            },
+                                h('i', { className: 'fas fa-book' }),
+                                h('div', { className: 'help-item-content' },
+                                    h('span', { className: 'help-item-title' }, 'Handleiding'),
+                                    h('span', { className: 'help-item-description' }, 'Uitgebreide documentatie (binnenkort)')
+                                )
+                            ),
+                            h('button', {
+                                className: 'help-dropdown-item disabled',
+                                title: 'Binnenkort beschikbaar'
+                            },
+                                h('i', { className: 'fas fa-question' }),
+                                h('div', { className: 'help-item-content' },
+                                    h('span', { className: 'help-item-title' }, 'FAQ'),
+                                    h('span', { className: 'help-item-description' }, 'Veelgestelde vragen (binnenkort)')
+                                )
+                            )
+                        )
                     ),
 
                     // User Settings Dropdown - Visible to everyone
