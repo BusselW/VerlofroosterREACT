@@ -352,6 +352,16 @@
                         }, 'Vorige')
                     ),
                     h('div', { className: 'btn-group' },
+                        currentStep === 2 && h('button', {
+                            className: 'btn btn-outline-secondary',
+                            onClick: () => {
+                                // Skip work hours configuration
+                                console.log('Skipping work hours configuration');
+                                window.location.href = '../../verlofRooster.aspx';
+                            },
+                            disabled: isSubmitting,
+                            style: { marginRight: '10px' }
+                        }, 'Overslaan (later instellen)'),
                         currentStep < 3 && h('button', {
                             className: 'btn btn-primary',
                             onClick: handleStepSave,

@@ -9,7 +9,7 @@ import { getSharePointListItems, createSharePointListItem, updateSharePointListI
 
 const { useState, useEffect, createElement: h } = React;
 
-export const SettingsTab = ({ user, data }) => {
+export const SettingsTab = ({ user, data, isRegistration = false, onDataUpdate, stepSaveTrigger, onSaveComplete }) => {
     // State for the three gebruikersInstellingen fields
     const [eigenTeamWeergeven, setEigenTeamWeergeven] = useState(false);
     const [soortWeergave, setSoortWeergave] = useState('licht');
@@ -24,6 +24,17 @@ export const SettingsTab = ({ user, data }) => {
     useEffect(() => {
         loadUserSettings();
     }, []);
+
+    // Handle save trigger from parent (registration wizard)
+    useEffect(() => {
+        if (isRegistration && stepSaveTrigger > 0) {
+            console.log('Save triggered from registration wizard for SettingsTab');
+            // Settings are auto-saved, so just notify completion
+            if (onSaveComplete) {
+                onSaveComplete(true);
+            }
+        }
+    }, [stepSaveTrigger]);
 
     const loadUserSettings = async () => {
         if (!user?.Title) {

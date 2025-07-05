@@ -54,7 +54,7 @@ const { useState, createElement: h } = React;
 // =====================
 // Work Hours Tab Component
 // =====================
-export const WorkHoursTab = ({ user, data }) => {
+export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate, stepSaveTrigger, onSaveComplete }) => {
     // State management
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(true); // New loading state for data fetching
@@ -79,6 +79,14 @@ export const WorkHoursTab = ({ user, data }) => {
     React.useEffect(() => {
         loadUserInfo();
     }, []);
+
+    // Handle save trigger from parent (registration wizard)
+    React.useEffect(() => {
+        if (isRegistration && stepSaveTrigger > 0) {
+            console.log('Save triggered from registration wizard for WorkHoursTab');
+            handleSave();
+        }
+    }, [stepSaveTrigger]);
 
     const loadUserInfo = async () => {
         try {
@@ -314,6 +322,11 @@ export const WorkHoursTab = ({ user, data }) => {
                 console.log('Fixed schedule saved with ID:', result?.ID || result?.Id);
                 
                 setFeedback({ type: 'success', message: 'Werkrooster succesvol opgeslagen!' });
+                
+                // Call onSaveComplete callback if provided (for registration wizard)
+                if (onSaveComplete) {
+                    onSaveComplete(true);
+                }
             }
         } catch (error) {
             console.error('Error saving work hours:', error);
@@ -321,6 +334,11 @@ export const WorkHoursTab = ({ user, data }) => {
                 type: 'error', 
                 message: `Fout bij opslaan van werktijden: ${error.message || 'Onbekende fout'}` 
             });
+            
+            // Call onSaveComplete with error if provided (for registration wizard)
+            if (onSaveComplete) {
+                onSaveComplete(false);
+            }
         } finally {
             setIsLoading(false);
             // Clear feedback after 8 seconds (longer for rotation message)
@@ -896,7 +914,8 @@ export const WorkHoursTab = ({ user, data }) => {
                             feedback.type === 'info' ? '1px solid #bee5eb' : '1px solid #f5c6cb'
                 }
             }, feedback.message),
-            h('button', {
+            // Only show save button in settings mode, not registration
+            !isRegistration && h('button', {
                 className: 'btn btn-primary save-btn',
                 onClick: handleSave,
                 disabled: isLoading || !userInfo,
@@ -904,7 +923,7 @@ export const WorkHoursTab = ({ user, data }) => {
             }, 
                 isLoading ? 'Bezig met opslaan...' : 'Opslaan'
             ),
-            h('p', { 
+            !isRegistration && h('p', { 
                 className: 'text-muted', 
                 style: { 
                     marginTop: '10px', 
