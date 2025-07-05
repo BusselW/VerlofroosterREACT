@@ -83,22 +83,34 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                             console.log('Found current user in Medewerkers:', currentMedewerker);
                             // Store the current user record for updates
                             setCurrentUserRecord(currentMedewerker);
-                            // Pre-fill form data with existing employee data
-                            setFormData(prev => ({
-                                ...prev,
-                                naam: currentMedewerker.Naam || prev.naam || 'Bijv. Jan de Vries',
-                                geboortedatum: currentMedewerker.Geboortedatum ? 
-                                    new Date(currentMedewerker.Geboortedatum).toISOString().split('T')[0] : '',
-                                team: currentMedewerker.Team || '',
-                                functie: currentMedewerker.Functie || ''
-                            }));
+                            
+                            if (isRegistration) {
+                                // In registration mode, don't pre-fill - use placeholders only
+                                setFormData(prev => ({
+                                    ...prev,
+                                    naam: '', // Keep empty so placeholder shows
+                                    geboortedatum: '',
+                                    team: '',
+                                    functie: ''
+                                }));
+                            } else {
+                                // In settings mode, pre-fill form data with existing employee data
+                                setFormData(prev => ({
+                                    ...prev,
+                                    naam: currentMedewerker.Naam || prev.naam,
+                                    geboortedatum: currentMedewerker.Geboortedatum ? 
+                                        new Date(currentMedewerker.Geboortedatum).toISOString().split('T')[0] : '',
+                                    team: currentMedewerker.Team || '',
+                                    functie: currentMedewerker.Functie || ''
+                                }));
+                            }
                         } else {
                             // If user not found in Medewerkers, use placeholder
                             console.log('User not found in Medewerkers list, using placeholder');
                             setCurrentUserRecord(null);
                             setFormData(prev => ({
                                 ...prev,
-                                naam: prev.naam || 'Bijv. Jan de Vries'
+                                naam: isRegistration ? '' : (prev.naam || '') // Empty in registration mode
                             }));
                         }
                     }
@@ -110,7 +122,7 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                 // Set placeholder on error
                 setFormData(prev => ({
                     ...prev,
-                    naam: prev.naam || 'Bijv. Jan de Vries'
+                    naam: isRegistration ? '' : (prev.naam || '') // Empty in registration mode
                 }));
             } finally {
                 setLoading(false);

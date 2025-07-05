@@ -29,10 +29,8 @@ export const SettingsTab = ({ user, data, isRegistration = false, onDataUpdate, 
     useEffect(() => {
         if (isRegistration && stepSaveTrigger > 0) {
             console.log('Save triggered from registration wizard for SettingsTab');
-            // Settings are auto-saved, so just notify completion
-            if (onSaveComplete) {
-                onSaveComplete(true);
-            }
+            // In registration mode, don't auto-complete - let user manually save
+            // Settings can be skipped in registration
         }
     }, [stepSaveTrigger]);
 
@@ -131,8 +129,8 @@ export const SettingsTab = ({ user, data, isRegistration = false, onDataUpdate, 
 
     return h('div', null,
         h('div', { className: 'tab-header' },
-            // Back to roster button
-            h('div', { 
+            // Back to roster button (only in settings mode)
+            !isRegistration && h('div', { 
                 style: { 
                     marginBottom: '1rem',
                     display: 'flex',
@@ -182,7 +180,11 @@ export const SettingsTab = ({ user, data, isRegistration = false, onDataUpdate, 
                 ),
                 'Instellingen'
             ),
-            h('p', { className: 'text-muted mb-4' }, 'Configureer je persoonlijke voorkeuren voor de roosterweergave.')
+            h('p', { className: 'text-muted mb-4' }, 
+                isRegistration ? 
+                    'Je persoonlijke voorkeuren zijn optioneel en kunnen later worden aangepast.' :
+                    'Configureer je persoonlijke voorkeuren voor de roosterweergave.'
+            )
         ),
 
         // Loading state
@@ -198,6 +200,20 @@ export const SettingsTab = ({ user, data, isRegistration = false, onDataUpdate, 
 
         // Settings content (only show when not loading)
         !isLoading && h('div', null,
+            // Registration mode info
+            isRegistration && h('div', { 
+                className: 'card',
+                style: { marginBottom: '20px', background: '#f8f9fa', border: '1px solid #dee2e6' }
+            },
+                h('div', { style: { padding: '15px' } },
+                    h('h4', { style: { margin: '0 0 10px 0', color: '#495057' } }, '📋 Optionele configuratie'),
+                    h('p', { style: { margin: '0', color: '#6c757d' } }, 
+                        'Deze instellingen zijn optioneel tijdens de registratie. ' +
+                        'Je wijzigingen worden automatisch opgeslagen en je kunt ze later altijd aanpassen.'
+                    )
+                )
+            ),
+            
             // Display Settings Card
             h('div', { className: 'card' },
                 h('h3', { className: 'card-title' }, 

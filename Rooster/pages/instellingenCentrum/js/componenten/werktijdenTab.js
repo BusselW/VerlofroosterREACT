@@ -84,7 +84,8 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
     React.useEffect(() => {
         if (isRegistration && stepSaveTrigger > 0) {
             console.log('Save triggered from registration wizard for WorkHoursTab');
-            handleSave();
+            // In registration mode, don't auto-save - let user manually save
+            // Only call handleSave if it's explicitly triggered
         }
     }, [stepSaveTrigger]);
 
@@ -914,14 +915,29 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                             feedback.type === 'info' ? '1px solid #bee5eb' : '1px solid #f5c6cb'
                 }
             }, feedback.message),
-            // Only show save button in settings mode, not registration
-            !isRegistration && h('button', {
+            // Show save button in both modes - settings always, registration optionally
+            h('button', {
                 className: 'btn btn-primary save-btn',
                 onClick: handleSave,
                 disabled: isLoading || !userInfo,
-                style: { fontSize: '16px', padding: '12px 24px' }
+                style: { 
+                    fontSize: '16px', 
+                    padding: '12px 24px',
+                    marginBottom: isRegistration ? '10px' : '0'
+                }
             }, 
-                isLoading ? 'Bezig met opslaan...' : 'Opslaan'
+                isLoading ? 'Bezig met opslaan...' : (isRegistration ? 'Werktijden opslaan' : 'Opslaan')
+            ),
+            isRegistration && h('p', { 
+                className: 'text-muted', 
+                style: { 
+                    fontSize: '13px', 
+                    alignSelf: 'flex-start',
+                    maxWidth: '500px',
+                    marginBottom: '10px'
+                } 
+            },
+                'Je kunt je werktijden nu instellen, of dit later doen via de instellingen.'
             ),
             !isRegistration && h('p', { 
                 className: 'text-muted', 

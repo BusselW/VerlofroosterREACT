@@ -234,8 +234,20 @@
             const [stepSaveTrigger, setStepSaveTrigger] = useState(0);
 
             const handleStepSave = async () => {
-                // Trigger save for the current step
-                setStepSaveTrigger(prev => prev + 1);
+                // For step 1 (profile), trigger save
+                if (currentStep === 1) {
+                    setStepSaveTrigger(prev => prev + 1);
+                } else {
+                    // For steps 2 and 3, just advance to next step without saving
+                    // (User can configure these later via settings)
+                    console.log(`Step ${currentStep}: Advancing without mandatory save`);
+                    if (currentStep < 3) {
+                        setCurrentStep(currentStep + 1);
+                    } else {
+                        // Step 3 - complete registration
+                        handleFinish();
+                    }
+                }
             };
 
             const getCurrentStepData = () => {
@@ -386,11 +398,17 @@
                         }, 'Overslaan (later instellen)'),
                         
                         // Save/Next button for steps 1 and 2, Finish button for step 3
-                        currentStep < 3 && h('button', {
+                        currentStep === 1 && h('button', {
                             className: 'btn btn-primary',
                             onClick: handleStepSave,
                             disabled: isSubmitting
-                        }, currentStep === 1 ? 'Opslaan & Volgende' : 'Opslaan & Volgende'),
+                        }, 'Opslaan & Volgende'),
+                        
+                        currentStep === 2 && h('button', {
+                            className: 'btn btn-primary',
+                            onClick: handleStepSave,
+                            disabled: isSubmitting
+                        }, 'Volgende (werktijden optioneel)'),
                         
                         currentStep === 3 && h('button', {
                             className: 'btn btn-success',

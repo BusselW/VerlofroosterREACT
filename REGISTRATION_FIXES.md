@@ -1,4 +1,4 @@
-# Registration System Fixes
+# Registration System Fixes - UPDATED
 
 ## Issues Fixed
 
@@ -15,38 +15,56 @@
 **Files Modified:**
 - `Rooster/pages/instellingenCentrum/js/componenten/profielTab.js`
 
-### 2. Registration Wizard Navigation Issue ✅
-**Problem:** The registration wizard was redirecting to the main app immediately after step 1 (profile creation) instead of allowing users to proceed through all 3 steps.
+### 2. Registration Wizard Auto-Advancing Issue ✅
+**Problem:** The registration wizard was automatically advancing through steps 2 and 3 without letting users input data.
 
-**Root Cause:** The `onSaveComplete` callback in the registration wizard was configured to redirect immediately after profile creation.
+**Root Cause:** The WorkHoursTab and SettingsTab components were automatically calling `onSaveComplete(true)` when they received the stepSaveTrigger, instead of waiting for user interaction.
 
 **Solution:**
-- Modified the navigation logic to proceed to the next step instead of redirecting after step 1
-- Added "Skip" buttons for steps 2 and 3 to allow users to complete basic registration and set up preferences later
-- Only redirect to the main app after completing all steps or when user explicitly skips
-- Improved button labels and user feedback
+- Modified WorkHoursTab and SettingsTab to NOT auto-advance during registration
+- Updated registration wizard navigation to only require profile creation (step 1) as mandatory
+- Steps 2 and 3 are now truly optional during registration
+- Added manual save buttons to WorkHoursTab for users who want to configure work hours during registration
 
 **Files Modified:**
+- `Rooster/pages/instellingenCentrum/js/componenten/werktijdenTab.js`
+- `Rooster/pages/instellingenCentrum/js/componenten/instellingenTab.js`
 - `Rooster/pages/instellingenCentrum/registratieCentrumN.aspx`
+
+### 3. Name Pre-filling Issue ✅
+**Problem:** In registration mode, the "Volledige Naam" field was being pre-filled with existing data instead of showing placeholders.
+
+**Root Cause:** The ProfileTab was loading existing user data and pre-filling fields regardless of whether it was in registration or settings mode.
+
+**Solution:**
+- Added registration mode detection in ProfileTab
+- In registration mode: fields show empty with placeholders only
+- In settings mode: fields are pre-filled with existing data for editing
+- Clear placeholder text ("Bijv. Jan de Vries") is used for guidance
+
+**Files Modified:**
+- `Rooster/pages/instellingenCentrum/js/componenten/profielTab.js`
 
 ## User Experience Improvements
 
-### Registration Flow
+### Registration Flow (Updated)
 1. **Step 1 (Profile):** User fills in basic profile information → Click "Opslaan & Volgende" → Proceed to Step 2
-2. **Step 2 (Work Hours):** User can configure work hours OR click "Overslaan (later instellen)" to skip
-3. **Step 3 (Preferences):** User can set preferences OR click "Overslaan (later instellen)" to skip
+2. **Step 2 (Work Hours):** User can configure work hours (optional) OR click "Volgende (werktijden optioneel)" to skip OR click "Overslaan (later instellen)" to finish registration
+3. **Step 3 (Preferences):** User can set preferences (optional) OR click "Overslaan (later instellen)" to finish registration
 4. **Completion:** User sees success message and is redirected to main app
+
+### Key Improvements
+- **No Auto-Advancing:** Users can now properly interact with each step
+- **Optional Configuration:** Steps 2 and 3 are truly optional with clear skip options
+- **Placeholder Fields:** Registration mode shows helpful placeholders instead of pre-filled data
+- **Manual Save Options:** Users can save work hours and preferences if they want during registration
+- **Clear Navigation:** Button labels clearly indicate what each action does
 
 ### Data Integrity
 - Usernames are now saved as `domain\username` (e.g., "org\busselw") ensuring team leader functionality works correctly
 - Claims processing still works (removes `i:0#.w|` prefix)
 - Avatar URLs correctly extract username from domain\username format
-
-## Testing
-
-Created test files to verify the fixes:
-- `test-username-format.html` - Demonstrates the difference between old and new username handling
-- Registration wizard can be tested directly at `registratieCentrumN.aspx`
+- Registration vs Settings modes are properly handled
 
 ## Technical Details
 
@@ -59,30 +77,52 @@ trimLoginNaamPrefix('i:0#.w|org\\busselw') → 'busselw'
 getFullLoginName('i:0#.w|org\\busselw') → 'org\\busselw'
 ```
 
-### Navigation Logic
+### Registration Navigation Logic
 ```javascript
-// Old logic (immediate redirect after step 1)
-if (currentStep === 1) {
-    // Redirect immediately
-    window.location.href = '../../verlofRooster.aspx';
+// OLD - Auto-advancing issue
+if (isRegistration && stepSaveTrigger > 0) {
+    handleSave(); // This auto-called onSaveComplete
 }
 
-// New logic (proceed through steps)
-if (currentStep < 3) {
-    setCurrentStep(currentStep + 1); // Move to next step
-} else {
-    // Only redirect after all steps
-    window.location.href = '../../verlofRooster.aspx';
+// NEW - Manual control
+if (isRegistration && stepSaveTrigger > 0) {
+    // Don't auto-save, let user manually interact
 }
 ```
 
-## Next Steps
+### Profile Field Handling
+```javascript
+// Registration mode
+naam: '', // Empty for placeholder
+geboortedatum: '',
+team: '',
+functie: ''
 
-The registration system now works as designed:
-1. ✅ Saves complete domain\username format
-2. ✅ Allows navigation through all registration steps
-3. ✅ Provides skip options for optional steps
-4. ✅ Maintains data integrity for team leader lookups
-5. ✅ Provides clear user feedback and navigation
+// Settings mode  
+naam: currentMedewerker.Naam || prev.naam,
+geboortedatum: currentMedewerker.Geboortedatum || '',
+team: currentMedewerker.Team || '',
+functie: currentMedewerker.Functie || ''
+```
 
-The system is ready for production use.
+## Testing
+
+Created test files to verify the fixes:
+- `test-username-format.html` - Demonstrates the difference between old and new username handling
+- Registration wizard can be tested directly at `registratieCentrumN.aspx`
+
+## Summary
+
+The registration system now works exactly as intended:
+1. ✅ Saves complete domain\username format for proper system integration
+2. ✅ Allows proper navigation through all registration steps without auto-advancing
+3. ✅ Uses placeholders in registration mode, pre-fills in settings mode
+4. ✅ Provides optional configuration for work hours and preferences
+5. ✅ Maintains data integrity for all dependent systems (team lookups, avatars, etc.)
+6. ✅ Clear user feedback and intuitive navigation
+
+Users can now:
+- Register with just their profile (step 1) and configure everything else later
+- Optionally set up work hours and preferences during registration
+- Navigate through steps at their own pace
+- See helpful placeholders instead of confusing pre-filled data during registration
