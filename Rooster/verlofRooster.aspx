@@ -491,10 +491,9 @@
 
                     setIsRegistered(userExists);
 
-                    if (userExists) {
-                        // User is registered, continue to main app
-                        onUserValidated(true);
-                    }
+                    // Always call onUserValidated to allow the app to load
+                    // The overlay will handle the user not being registered
+                    onUserValidated(true);
 
                 } catch (error) {
                     console.error('Error checking user registration:', error);
@@ -1960,51 +1959,52 @@
                     return d >= s && d <= e;
                 }
 
-                // Show user validation check first
-                if (!isUserValidated) {
-                    return h(UserRegistrationCheck, { onUserValidated: setIsUserValidated });
-                }
-
-                // Show loading state while refreshing data
-                if (loading) {
-                    return h('div', {
-                        className: 'flex items-center justify-center min-h-screen bg-gray-50',
-                        style: { fontFamily: 'Inter, sans-serif' }
-                    },
-                        h('div', { className: 'text-center' },
-                            h('div', { className: 'loading-spinner', style: { margin: '0 auto 16px' } }),
-                            h('h2', { className: 'text-xl font-medium text-gray-900' }, 'Rooster wordt geladen...'),
-                            h('p', { className: 'text-gray-600 mt-2' }, 'Even geduld, we laden de roostergegevens.')
-                        )
-                    );
-                }
-
-                // Show error state if there's an error
-                if (error) {
-                    return h('div', {
-                        className: 'flex items-center justify-center min-h-screen bg-gray-50',
-                        style: { fontFamily: 'Inter, sans-serif' }
-                    },
-                        h('div', { className: 'max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center' },
-                            h('div', { className: 'mb-6' },
-                                h('div', {
-                                    className: 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4'
-                                },
-                                    h('i', { className: 'fas fa-exclamation-triangle text-red-600' })
-                                ),
-                                h('h2', { className: 'text-xl font-semibold text-gray-900 mb-2' }, 'Fout bij laden'),
-                                h('p', { className: 'text-gray-600' }, error)
-                            ),
-                            h('button', {
-                                className: 'bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200',
-                                onClick: () => window.location.reload()
+                // Wrap the entire app content with UserRegistrationCheck
+                return h(UserRegistrationCheck, { 
+                    onUserValidated: setIsUserValidated 
+                }, 
+                    // App content - this will be shown dimmed when user is not registered
+                    (() => {
+                        // Show loading state while refreshing data
+                        if (loading) {
+                            return h('div', {
+                                className: 'flex items-center justify-center min-h-screen bg-gray-50',
+                                style: { fontFamily: 'Inter, sans-serif' }
                             },
-                                h('i', { className: 'fas fa-sync-alt mr-2' }),
-                                'Pagina Vernieuwen'
-                            )
-                        )
-                    );
-                }
+                                h('div', { className: 'text-center' },
+                                    h('div', { className: 'loading-spinner', style: { margin: '0 auto 16px' } }),
+                                    h('h2', { className: 'text-xl font-medium text-gray-900' }, 'Rooster wordt geladen...'),
+                                    h('p', { className: 'text-gray-600 mt-2' }, 'Even geduld, we laden de roostergegevens.')
+                                )
+                            );
+                        }
+
+                        // Show error state if there's an error
+                        if (error) {
+                            return h('div', {
+                                className: 'flex items-center justify-center min-h-screen bg-gray-50',
+                                style: { fontFamily: 'Inter, sans-serif' }
+                            },
+                                h('div', { className: 'max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center' },
+                                    h('div', { className: 'mb-6' },
+                                        h('div', {
+                                            className: 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4'
+                                        },
+                                            h('i', { className: 'fas fa-exclamation-triangle text-red-600' })
+                                        ),
+                                        h('h2', { className: 'text-xl font-semibold text-gray-900 mb-2' }, 'Fout bij laden'),
+                                        h('p', { className: 'text-gray-600' }, error)
+                                    ),
+                                    h('button', {
+                                        className: 'bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200',
+                                        onClick: () => window.location.reload()
+                                    },
+                                        h('i', { className: 'fas fa-sync-alt mr-2' }),
+                                        'Pagina Vernieuwen'
+                                    )
+                                )
+                            );
+                        }
 
                 // Render de roosterkop en de medewerkerrijen
                 return h(Fragment, null,
@@ -2355,6 +2355,8 @@
                             initialData: selection && selection.itemData ? selection.itemData : {}
                         }))
                     )
+                );
+                    })() // Close the anonymous function that wraps the app content
                 );
             };
 
