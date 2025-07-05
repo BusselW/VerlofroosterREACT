@@ -38,6 +38,7 @@
         import ZiekteMeldingForm from './js/ui/forms/ZiekteMeldingForm.js';
         import ZittingsvrijForm from './js/ui/forms/ZittingsvrijForm.js';
         import { roosterTutorial } from './js/tutorial/roosterTutorial.js';
+        import { roosterHandleiding, openHandleiding } from './js/tutorial/roosterHandleiding.js';
         import { renderHorenStatus, getHorenStatus, filterMedewerkersByHorenStatus } from './js/ui/horen.js';
         import TooltipManager from './js/ui/tooltipbar.js';
         import ProfielKaarten from './js/ui/profielkaarten.js';
@@ -363,13 +364,17 @@
                                 )
                             ),
                             h('button', {
-                                className: 'help-dropdown-item disabled',
-                                title: 'Binnenkort beschikbaar'
+                                className: 'help-dropdown-item',
+                                onClick: () => {
+                                    setHelpDropdownOpen(false);
+                                    openHandleiding('algemeen');
+                                },
+                                title: 'Open uitgebreide handleiding'
                             },
                                 h('i', { className: 'fas fa-book' }),
                                 h('div', { className: 'help-item-content' },
                                     h('span', { className: 'help-item-title' }, 'Handleiding'),
-                                    h('span', { className: 'help-item-description' }, 'Uitgebreide documentatie (binnenkort)')
+                                    h('span', { className: 'help-item-description' }, 'Uitgebreide documentatie en instructies')
                                 )
                             ),
                             h('button', {
@@ -820,12 +825,21 @@
                         roosterTutorial.start();
                     };
 
+                    window.openHandleiding = (section = 'algemeen') => {
+                        openHandleiding(section);
+                    };
+
                     document.addEventListener('tutorial-completed', () => {
                         console.log('Tutorial completed');
                     }, { once: true });
 
+                    document.addEventListener('handleiding-closed', () => {
+                        console.log('Handleiding closed');
+                    }, { once: true });
+
                     return () => {
                         delete window.startTutorial;
+                        delete window.openHandleiding;
                     };
                 }
             }, [isUserValidated]);
