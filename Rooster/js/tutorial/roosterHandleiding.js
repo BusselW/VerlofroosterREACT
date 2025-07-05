@@ -545,8 +545,16 @@ export class RoosterHandleiding {
         this.isOpen = false;
         
         if (this.modalElement) {
-            document.body.removeChild(this.modalElement);
-            this.modalElement = null;
+            // Add fade out animation
+            this.modalElement.style.opacity = '0';
+            this.modalElement.style.animation = 'backdropFadeOut 0.3s ease forwards';
+            
+            setTimeout(() => {
+                if (this.modalElement && this.modalElement.parentNode) {
+                    document.body.removeChild(this.modalElement);
+                }
+                this.modalElement = null;
+            }, 300);
         }
         
         // Remove escape key listener
@@ -554,6 +562,8 @@ export class RoosterHandleiding {
         
         // Fire custom event
         document.dispatchEvent(new CustomEvent('handleiding-closed'));
+        
+        console.log('Handleiding modal closed');
     }
     
     // Handle keyboard events
@@ -563,22 +573,26 @@ export class RoosterHandleiding {
         }
     }
     
-    // Create the modal structure
+    // Create the modal structure with tabs
     createModal() {
         this.modalElement = document.createElement('div');
-        this.modalElement.className = 'handleiding-modal-overlay';
+        this.modalElement.className = 'handleiding-modal-backdrop';
         
         this.modalElement.innerHTML = `
             <div class="handleiding-modal">
-                <div class="handleiding-header">
-                    <h2>📚 Verlofrooster Handleiding</h2>
-                    <button class="handleiding-close-btn" id="handleiding-close">✕</button>
+                <div class="handleiding-modal-header">
+                    <h2 class="handleiding-modal-title">
+                        📚 Verlofrooster Handleiding
+                    </h2>
+                    <button class="handleiding-close-btn" id="handleiding-close" type="button">
+                        ✕
+                    </button>
                 </div>
-                <div class="handleiding-content">
-                    <div class="handleiding-sidebar">
-                        ${this.createSidebar()}
+                <div class="handleiding-modal-body">
+                    <div class="handleiding-tabs">
+                        ${this.createTabs()}
                     </div>
-                    <div class="handleiding-main" id="handleiding-main">
+                    <div class="handleiding-content" id="handleiding-content">
                         <!-- Content will be loaded here -->
                     </div>
                 </div>
@@ -587,22 +601,25 @@ export class RoosterHandleiding {
         
         document.body.appendChild(this.modalElement);
         
+        // Force reflow to ensure styles are applied
+        this.modalElement.offsetHeight;
+        
         // Add event listeners
         this.addEventListeners();
     }
     
-    // Create sidebar navigation
-    createSidebar() {
+    // Create tab navigation
+    createTabs() {
         const sections = Object.keys(handleidingContent);
         
         return sections.map(key => {
             const section = handleidingContent[key];
             return `
-                <div class="handleiding-nav-item ${key === this.currentSection ? 'active' : ''}" 
-                     data-section="${key}">
-                    <span class="handleiding-nav-icon">${section.icon}</span>
-                    <span class="handleiding-nav-title">${section.title}</span>
-                </div>
+                <button class="handleiding-tab ${key === this.currentSection ? 'active' : ''}" 
+                        data-section="${key}" type="button">
+                    <span class="handleiding-tab-icon">${section.icon}</span>
+                    <span class="handleiding-tab-title">${section.title}</span>
+                </button>
             `;
         }).join('');
     }
@@ -614,18 +631,18 @@ export class RoosterHandleiding {
         
         this.currentSection = sectionKey;
         
-        // Update sidebar active state
-        const navItems = this.modalElement.querySelectorAll('.handleiding-nav-item');
-        navItems.forEach(item => {
-            if (item.dataset.section === sectionKey) {
-                item.classList.add('active');
+        // Update tab active state
+        const tabs = this.modalElement.querySelectorAll('.handleiding-tab');
+        tabs.forEach(tab => {
+            if (tab.dataset.section === sectionKey) {
+                tab.classList.add('active');
             } else {
-                item.classList.remove('active');
+                tab.classList.remove('active');
             }
         });
         
         // Update main content
-        const mainContent = this.modalElement.querySelector('#handleiding-main');
+        const contentArea = this.modalElement.querySelector('#handleiding-content');
         
         let html = `
             <div class="handleiding-section">
@@ -647,10 +664,10 @@ export class RoosterHandleiding {
         
         html += `</div>`;
         
-        mainContent.innerHTML = html;
+        contentArea.innerHTML = html;
         
         // Scroll to top of content
-        mainContent.scrollTop = 0;
+        contentArea.scrollTop = 0;
     }
     
     // Switch to different section
@@ -662,23 +679,39 @@ export class RoosterHandleiding {
     addEventListeners() {
         // Close button
         const closeBtn = this.modalElement.querySelector('#handleiding-close');
-        closeBtn.addEventListener('click', () => this.close());
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.close();
+            });
+        }
         
-        // Sidebar navigation
-        const navItems = this.modalElement.querySelectorAll('.handleiding-nav-item');
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const sectionKey = item.dataset.section;
+        // Tab navigation
+        const tabs = this.modalElement.querySelectorAll('.handleiding-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const sectionKey = tab.dataset.section;
                 this.switchSection(sectionKey);
             });
         });
         
-        // Close when clicking outside modal
+        // Close when clicking backdrop (outside modal)
         this.modalElement.addEventListener('click', (event) => {
             if (event.target === this.modalElement) {
                 this.close();
             }
         });
+        
+        // Prevent modal clicks from closing
+        const modal = this.modalElement.querySelector('.handleiding-modal');
+        if (modal) {
+            modal.addEventListener('click', (event) => {
+                event.stopPropagation();
+            });
+        }
     }
 }
 

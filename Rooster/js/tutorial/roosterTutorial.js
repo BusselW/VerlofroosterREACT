@@ -94,15 +94,38 @@ export const highlightElement = (elementId) => {
         switch(elementId) {
             case 'dag-cel':
                 // Find the first visible day cell
-                element = document.querySelector('.dag-cel:not(.weekend)');
+                element = document.querySelector('.dag-cel:not(.weekend)') || 
+                         document.querySelector('td.dag-kolom:not(.weekend)') ||
+                         document.querySelector('td[class*="dag"]');
                 break;
             case 'fab-container':
                 // Find FAB by class if ID doesn't work
-                element = document.querySelector('.fab-container');
+                element = document.querySelector('.fab-container') ||
+                         document.querySelector('#fab-container') ||
+                         document.querySelector('[class*="fab"]');
                 break;
             case 'medewerker-kolom':
-                // Find first employee column
-                element = document.querySelector('.medewerker-kolom');
+                // Find first employee column - try multiple selectors
+                element = document.querySelector('.medewerker-kolom') ||
+                         document.querySelector('#medewerker-kolom') ||
+                         document.querySelector('th[class*="medewerker"]') ||
+                         document.querySelector('td[class*="medewerker"]') ||
+                         document.querySelector('.employee-column') ||
+                         document.querySelector('[class*="employee"]');
+                // If still not found, try finding the first column header
+                if (!element) {
+                    const table = document.querySelector('table') || document.querySelector('.rooster-table');
+                    if (table) {
+                        element = table.querySelector('th:first-child') || 
+                                 table.querySelector('td:first-child');
+                    }
+                }
+                break;
+            case 'legenda-container':
+                element = document.querySelector('.legenda-container') ||
+                         document.querySelector('#legenda-container') ||
+                         document.querySelector('[class*="legenda"]') ||
+                         document.querySelector('[class*="legend"]');
                 break;
         }
     }
@@ -123,6 +146,13 @@ export const highlightElement = (elementId) => {
         return element;
     } else {
         console.warn(`Tutorial element niet gevonden: ${elementId}`);
+        console.log('Available elements:', {
+            byId: document.getElementById(elementId),
+            byClass: document.querySelector(`.${elementId}`),
+            allTables: document.querySelectorAll('table').length,
+            allThs: document.querySelectorAll('th').length,
+            allTds: document.querySelectorAll('td').length
+        });
         return null;
     }
 };

@@ -860,7 +860,13 @@
 }
 
 @keyframes backdropFadeIn {
+    from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@keyframes backdropFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
 /* Main modal container */
@@ -929,63 +935,68 @@
     transform: scale(1.05);
 }
 
-/* Modal body with sidebar and content */
+/* Modal body with tabs and content */
 .handleiding-modal-body {
     display: flex;
+    flex-direction: column;
     flex: 1;
     overflow: hidden;
 }
 
-/* Sidebar navigation */
-.handleiding-sidebar {
-    width: 280px;
+/* Modal body with tabs and content */
+.handleiding-modal-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Tab navigation */
+.handleiding-tabs {
+    display: flex;
     background: #f8fafc;
-    border-right: 1px solid #e1e5eb;
-    overflow-y: auto;
+    border-bottom: 1px solid #e1e5eb;
+    overflow-x: auto;
     flex-shrink: 0;
 }
 
-.handleiding-nav {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-
-.handleiding-nav li {
-    border-bottom: 1px solid #e1e5eb;
-}
-
-.handleiding-nav li:last-child {
-    border-bottom: none;
-}
-
-.handleiding-nav-link {
-    display: block;
+.handleiding-tab {
+    background: none;
+    border: none;
     padding: 16px 20px;
-    color: #4a5568;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.2s ease;
     cursor: pointer;
-    border-left: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    min-width: 0;
+    flex-shrink: 0;
 }
 
-.handleiding-nav-link:hover {
+.handleiding-tab:hover {
     background: #edf2f7;
     color: #2d3748;
-    border-left-color: #667eea;
 }
 
-.handleiding-nav-link.active {
-    background: #667eea;
-    color: white;
-    border-left-color: #4c51bf;
+.handleiding-tab.active {
+    background: white;
+    color: #667eea;
+    border-bottom-color: #667eea;
 }
 
-.handleiding-nav-link i {
-    margin-right: 10px;
-    width: 16px;
-    text-align: center;
+.handleiding-tab-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.handleiding-tab-title {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Content area */
@@ -1118,47 +1129,18 @@
         font-size: 20px;
     }
     
-    .handleiding-modal-body {
-        flex-direction: column;
-    }
-    
-    .handleiding-sidebar {
-        width: 100%;
-        max-height: 200px;
-        border-right: none;
-        border-bottom: 1px solid #e1e5eb;
-    }
-    
-    .handleiding-nav {
-        display: flex;
+    .handleiding-tabs {
         overflow-x: auto;
+        scrollbar-width: thin;
     }
     
-    .handleiding-nav li {
-        border-bottom: none;
-        border-right: 1px solid #e1e5eb;
-        flex-shrink: 0;
-    }
-    
-    .handleiding-nav li:last-child {
-        border-right: none;
-    }
-    
-    .handleiding-nav-link {
-        white-space: nowrap;
+    .handleiding-tab {
         padding: 12px 16px;
-        border-left: none;
-        border-top: 3px solid transparent;
+        min-width: 120px;
     }
     
-    .handleiding-nav-link:hover {
-        border-left: none;
-        border-top-color: #667eea;
-    }
-    
-    .handleiding-nav-link.active {
-        border-left: none;
-        border-top-color: #4c51bf;
+    .handleiding-tab-title {
+        font-size: 13px;
     }
     
     .handleiding-section {
@@ -1177,6 +1159,15 @@
     
     .handleiding-modal-title {
         font-size: 18px;
+    }
+    
+    .handleiding-tab {
+        padding: 10px 12px;
+        min-width: 100px;
+    }
+    
+    .handleiding-tab-title {
+        font-size: 12px;
     }
     
     .handleiding-section {
