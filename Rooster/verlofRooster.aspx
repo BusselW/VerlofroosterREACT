@@ -504,7 +504,7 @@
             };
 
             const redirectToRegistration = () => {
-                window.location.href = 'pages/instellingenCentrum/registratie.aspx';
+                window.location.href = 'pages/instellingenCentrum/registratieCentrumN.aspx';
             };
 
             // Show registration overlay if user is not registered

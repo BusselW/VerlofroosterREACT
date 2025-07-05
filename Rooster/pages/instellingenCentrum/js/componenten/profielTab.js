@@ -3,14 +3,14 @@
  * @description Profile Tab Component for Settings Page
  */
 
-import { getUserInfo, fetchSharePointList, updateSharePointListItem } from '../../../js/services/sharepointService.js';
+import { getUserInfo, fetchSharePointList, updateSharePointListItem, createSharePointListItem, trimLoginNaamPrefix } from '../../../js/services/sharepointService.js';
 
-const { useState, useEffect, createElement: h } = React;
+const { useState, useEffect, createElement: h, useRef, useImperativeHandle, forwardRef } = React;
 
 // =====================
 // Profile Tab Component
 // =====================
-export const ProfileTab = ({ user, data }) => {
+export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, onSave, stepSaveTrigger, onSaveComplete }) => {
     const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
     const [teams, setTeams] = useState([]);
     const [functies, setFuncties] = useState([]);
@@ -27,14 +27,10 @@ export const ProfileTab = ({ user, data }) => {
         functie: ''
     });
 
-    // Helper function to clean up LoginName (similar to registratie.aspx)
+    // Helper function to clean up LoginName using trimLoginNaamPrefix
     const getCleanLoginName = (loginName) => {
         if (!loginName) return '';
-        // Remove SharePoint claim prefix if present (i:0#.w|)
-        if (loginName.startsWith('i:0#.w|')) {
-            return loginName.replace('i:0#.w|', '');
-        }
-        return loginName;
+        return trimLoginNaamPrefix(loginName);
     };
 
     // Initialize username from user data
@@ -138,6 +134,14 @@ export const ProfileTab = ({ user, data }) => {
         return () => { isMounted = false; };
     }, [user?.LoginName, formData.username]);
 
+    // Handle save trigger from parent (registration wizard)
+    useEffect(() => {
+        if (isRegistration && stepSaveTrigger > 0) {
+            console.log('Save triggered from registration wizard');
+            handleSave();
+        }
+    }, [stepSaveTrigger]);
+
     const getAvatarUrl = () => {
         if (sharePointUser.IsLoading) return '';
         
@@ -208,9 +212,14 @@ export const ProfileTab = ({ user, data }) => {
     };
 
     const handleSave = async () => {
-        if (!currentUserRecord) {
-            console.error('No current user record found to update');
-            setSaveMessage({ type: 'error', text: 'Geen gebruikersrecord gevonden om bij te werken.' });
+        // Validation
+        if (!formData.naam || formData.naam.trim() === '' || formData.naam === 'Bijv. Jan de Vries') {
+            setSaveMessage({ type: 'error', text: 'Naam is verplicht.' });
+            return;
+        }
+
+        if (!formData.username || formData.username.trim() === '') {
+            setSaveMessage({ type: 'error', text: 'Gebruikersnaam is verplicht.' });
             return;
         }
 
@@ -220,26 +229,53 @@ export const ProfileTab = ({ user, data }) => {
         try {
             // Map form data to SharePoint column names based on configLijst.js
             const updateData = {
+                Title: formData.naam, // Title is required for SharePoint
                 Naam: formData.naam,
                 Geboortedatum: formData.geboortedatum ? new Date(formData.geboortedatum).toISOString() : null,
                 E_x002d_mail: formData.email, // SharePoint encodes hyphens as _x002d_
                 Functie: formData.functie,
                 Team: formData.team,
-                Username: formData.username
+                Username: formData.username,
+                Actief: true // Set as active user
             };
 
-            console.log('Updating user record with ID:', currentUserRecord.ID || currentUserRecord.Id);
-            console.log('Update data:', updateData);
+            console.log('Saving user data:', updateData);
 
-            // Use the updateSharePointListItem function
-            await updateSharePointListItem(
-                'Medewerkers', 
-                currentUserRecord.ID || currentUserRecord.Id, 
-                updateData
-            );
-
-            console.log('Profile updated successfully');
-            setSaveMessage({ type: 'success', text: 'Profiel succesvol opgeslagen!' });
+            let result;
+            if (isRegistration || !currentUserRecord) {
+                // Registration mode or no existing record - create new user
+                console.log('Creating new user record in Medewerkers list');
+                result = await createSharePointListItem('Medewerkers', updateData);
+                console.log('User created successfully with ID:', result.ID);
+                setSaveMessage({ type: 'success', text: 'Profiel succesvol aangemaakt!' });
+                
+                // Store the new record for future updates
+                setCurrentUserRecord({ ...updateData, ID: result.ID });
+                
+                // Notify parent component if in registration mode
+                if (isRegistration && onDataUpdate) {
+                    onDataUpdate({ 
+                        profileCreated: true, 
+                        userId: result.ID,
+                        userData: updateData 
+                    });
+                }
+                
+                // Call onSaveComplete callback if provided (for registration wizard)
+                if (onSaveComplete) {
+                    onSaveComplete(true);
+                }
+            } else {
+                // Settings mode - update existing user
+                console.log('Updating existing user record with ID:', currentUserRecord.ID || currentUserRecord.Id);
+                await updateSharePointListItem(
+                    'Medewerkers', 
+                    currentUserRecord.ID || currentUserRecord.Id, 
+                    updateData
+                );
+                console.log('Profile updated successfully');
+                setSaveMessage({ type: 'success', text: 'Profiel succesvol opgeslagen!' });
+            }
 
             // Clear the success message after 3 seconds
             setTimeout(() => {
@@ -248,10 +284,16 @@ export const ProfileTab = ({ user, data }) => {
 
         } catch (error) {
             console.error('Error saving profile:', error);
+            const action = isRegistration || !currentUserRecord ? 'aanmaken' : 'opslaan';
             setSaveMessage({ 
                 type: 'error', 
-                text: 'Fout bij opslaan van profiel. Probeer het opnieuw.' 
+                text: `Fout bij ${action} van profiel. Probeer het opnieuw.` 
             });
+            
+            // Call onSaveComplete with error if provided (for registration wizard)
+            if (onSaveComplete) {
+                onSaveComplete(false);
+            }
         } finally {
             setSaving(false);
         }
@@ -394,8 +436,8 @@ export const ProfileTab = ({ user, data }) => {
                 )
             ),
             
-            // Save button at the bottom
-            h('div', { 
+            // Save button at the bottom (only show in settings mode, not registration)
+            !isRegistration && h('div', { 
                 className: 'form-row', 
                 style: { 
                     marginTop: '24px', 
@@ -422,9 +464,23 @@ export const ProfileTab = ({ user, data }) => {
                 h('button', { 
                     className: 'btn btn-primary',
                     onClick: handleSave,
-                    disabled: saving || !currentUserRecord
+                    disabled: saving
                 }, saving ? 'Opslaan...' : 'Opslaan')
-            )
+            ),
+
+            // Show messages in registration mode (without button)
+            isRegistration && saveMessage && h('div', { 
+                className: `status-message status-${saveMessage.type}`,
+                style: { 
+                    marginTop: '16px',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    backgroundColor: saveMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+                    color: saveMessage.type === 'success' ? '#155724' : '#721c24',
+                    border: saveMessage.type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
+                }
+            }, saveMessage.text)
         )
     );
 };

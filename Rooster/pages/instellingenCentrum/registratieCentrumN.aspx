@@ -223,11 +223,18 @@
                 { id: 3, title: 'Voorkeuren', description: 'App instellingen' }
             ];
 
-            const handleNext = () => {
+            const handleNext = async () => {
                 setErrors({});
                 if (currentStep < 3) {
                     setCurrentStep(currentStep + 1);
                 }
+            };
+
+            const [stepSaveTrigger, setStepSaveTrigger] = useState(0);
+
+            const handleStepSave = async () => {
+                // Trigger save for the current step
+                setStepSaveTrigger(prev => prev + 1);
             };
 
             const getCurrentStepData = () => {
@@ -312,7 +319,14 @@
                     currentStep, 
                     user, 
                     data, 
-                    updateRegistrationData
+                    updateRegistrationData,
+                    onStepSave: handleStepSave,
+                    stepSaveTrigger,
+                    onSaveComplete: (success) => {
+                        if (success && currentStep < 3) {
+                            setCurrentStep(currentStep + 1);
+                        }
+                    }
                 }),
                 
                 // Navigation buttons
@@ -327,7 +341,7 @@
                     h('div', { className: 'btn-group' },
                         currentStep < 3 && h('button', {
                             className: 'btn btn-primary',
-                            onClick: handleNext,
+                            onClick: handleStepSave,
                             disabled: isSubmitting
                         }, 'Opslaan'),
                         currentStep === 3 && h('button', {
@@ -343,7 +357,7 @@
         // =====================
         // Step Content Component
         // =====================
-        const StepContent = ({ currentStep, user, data, updateRegistrationData }) => {
+        const StepContent = ({ currentStep, user, data, updateRegistrationData, onStepSave, stepSaveTrigger, onSaveComplete }) => {
             const handleProfileUpdate = (profileData) => {
                 updateRegistrationData('profile', profileData);
             };
@@ -362,21 +376,30 @@
                         user, 
                         data,
                         isRegistration: true,
-                        onDataUpdate: handleProfileUpdate
+                        onDataUpdate: handleProfileUpdate,
+                        onSave: onStepSave,
+                        stepSaveTrigger,
+                        onSaveComplete
                     });
                 case 2:
                     return h(WorkHoursTab, { 
                         user, 
                         data,
                         isRegistration: true,
-                        onDataUpdate: handleWorkHoursUpdate
+                        onDataUpdate: handleWorkHoursUpdate,
+                        onSave: onStepSave,
+                        stepSaveTrigger,
+                        onSaveComplete
                     });
                 case 3:
                     return h(SettingsTab, { 
                         user, 
                         data,
                         isRegistration: true,
-                        onDataUpdate: handlePreferencesUpdate
+                        onDataUpdate: handlePreferencesUpdate,
+                        onSave: onStepSave,
+                        stepSaveTrigger,
+                        onSaveComplete
                     });
                 default:
                     return h('div', null,
