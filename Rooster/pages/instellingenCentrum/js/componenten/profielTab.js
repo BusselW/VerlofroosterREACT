@@ -3,7 +3,7 @@
  * @description Profile Tab Component for Settings Page
  */
 
-import { getUserInfo, fetchSharePointList, updateSharePointListItem, createSharePointListItem, trimLoginNaamPrefix } from '../../../js/services/sharepointService.js';
+import { getUserInfo, fetchSharePointList, updateSharePointListItem, createSharePointListItem } from '../../../js/services/sharepointService.js';
 
 const { useState, useEffect, createElement: h, useRef, useImperativeHandle, forwardRef } = React;
 
@@ -27,19 +27,27 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
         functie: ''
     });
 
-    // Helper function to clean up LoginName using trimLoginNaamPrefix
-    const getCleanLoginName = (loginName) => {
+    // Helper function to get full domain\username format
+    const getFullLoginName = (loginName) => {
         if (!loginName) return '';
-        return trimLoginNaamPrefix(loginName);
+        
+        // Remove claim prefix if present (i:0#.w|domain\username -> domain\username)
+        let processed = loginName;
+        if (processed.startsWith('i:0#.w|')) {
+            processed = processed.substring(7);
+        }
+        
+        // Return the full domain\username format
+        return processed;
     };
 
     // Initialize username from user data
     useEffect(() => {
         if (user && user.LoginName && !formData.username) {
-            const cleanUsername = getCleanLoginName(user.LoginName);
+            const fullUsername = getFullLoginName(user.LoginName);
             setFormData(prev => ({
                 ...prev,
-                username: cleanUsername
+                username: fullUsername
             }));
         }
     }, [user, formData.username]);
@@ -157,11 +165,10 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                 usernameOnly = loginName.split('\\')[1];
             } else if (loginName.includes('|')) {
                 usernameOnly = loginName.split('|')[1];
-            }
-            
-            // Remove domain prefix if still there
-            if (usernameOnly.includes('\\')) {
-                usernameOnly = usernameOnly.split('\\')[1];
+                // Handle case where it's still domain\username after claim processing
+                if (usernameOnly.includes('\\')) {
+                    usernameOnly = usernameOnly.split('\\')[1];
+                }
             }
             
             // Construct URL to SharePoint profile photo - same as verlofRooster.aspx
@@ -186,11 +193,10 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                 usernameOnly = loginName.split('\\')[1];
             } else if (loginName.includes('|')) {
                 usernameOnly = loginName.split('|')[1];
-            }
-            
-            // Remove domain prefix if still there
-            if (usernameOnly.includes('\\')) {
-                usernameOnly = usernameOnly.split('\\')[1];
+                // Handle case where it's still domain\username after claim processing
+                if (usernameOnly.includes('\\')) {
+                    usernameOnly = usernameOnly.split('\\')[1];
+                }
             }
             
             const siteUrl = window.appConfiguratie?.instellingen?.siteUrl || '';

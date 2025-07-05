@@ -310,9 +310,12 @@
                     stepSaveTrigger,
                     onSaveComplete: (success) => {
                         if (success) {
-                            if (currentStep === 1) {
-                                // After profile creation, redirect immediately to main app
-                                console.log('Profile created successfully, redirecting to main app...');
+                            if (currentStep < 3) {
+                                // Move to next step instead of redirecting immediately
+                                setCurrentStep(currentStep + 1);
+                            } else {
+                                // Only redirect after completing all steps or when user finishes
+                                console.log('All registration steps completed, redirecting to main app...');
                                 
                                 // Show success message briefly before redirect
                                 const successDiv = document.createElement('div');
@@ -335,8 +338,6 @@
                                 setTimeout(() => {
                                     window.location.href = '../../verlofRooster.aspx';
                                 }, 1500);
-                            } else if (currentStep < 3) {
-                                setCurrentStep(currentStep + 1);
                             }
                         }
                     }
@@ -352,21 +353,45 @@
                         }, 'Vorige')
                     ),
                     h('div', { className: 'btn-group' },
-                        currentStep === 2 && h('button', {
+                        // Show skip button for steps 2 and 3
+                        (currentStep === 2 || currentStep === 3) && h('button', {
                             className: 'btn btn-outline-secondary',
                             onClick: () => {
-                                // Skip work hours configuration
-                                console.log('Skipping work hours configuration');
-                                window.location.href = '../../verlofRooster.aspx';
+                                console.log(`Skipping step ${currentStep}, redirecting to main app...`);
+                                
+                                // Show success message briefly before redirect
+                                const successDiv = document.createElement('div');
+                                successDiv.style.cssText = `
+                                    position: fixed;
+                                    top: 20px;
+                                    right: 20px;
+                                    background: #fff3cd;
+                                    color: #856404;
+                                    padding: 16px 20px;
+                                    border-radius: 8px;
+                                    border: 1px solid #ffeaa7;
+                                    z-index: 10000;
+                                    font-family: Inter, sans-serif;
+                                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                `;
+                                successDiv.textContent = 'Basisregistratie voltooid! Je kunt later je instellingen aanpassen.';
+                                document.body.appendChild(successDiv);
+                                
+                                setTimeout(() => {
+                                    window.location.href = '../../verlofRooster.aspx';
+                                }, 1500);
                             },
                             disabled: isSubmitting,
                             style: { marginRight: '10px' }
                         }, 'Overslaan (later instellen)'),
+                        
+                        // Save/Next button for steps 1 and 2, Finish button for step 3
                         currentStep < 3 && h('button', {
                             className: 'btn btn-primary',
                             onClick: handleStepSave,
                             disabled: isSubmitting
-                        }, 'Opslaan'),
+                        }, currentStep === 1 ? 'Opslaan & Volgende' : 'Opslaan & Volgende'),
+                        
                         currentStep === 3 && h('button', {
                             className: 'btn btn-success',
                             onClick: handleFinish,
