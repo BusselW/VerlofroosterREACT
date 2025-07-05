@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registratie - Verlofrooster</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -261,13 +262,15 @@
                     console.log('Registration data:', registrationData);
                     
                     // Simulate API call
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     
-                    setIsCompleted(true);
+                    // Immediately redirect to the main app instead of showing completion screen
+                    console.log('Registration completed, redirecting to main app...');
+                    window.location.href = '../../verlofRooster.aspx';
+                    
                 } catch (error) {
                     console.error('Registration failed:', error);
                     setErrors({ general: 'Registratie mislukt. Probeer het opnieuw.' });
-                } finally {
                     setIsSubmitting(false);
                 }
             };
@@ -279,25 +282,8 @@
                 }));
             };
 
-            if (isCompleted) {
-                return h('div', null,
-                    h('div', { style: { textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' } },
-                        h('div', { style: { fontSize: '4rem', marginBottom: '20px' } }, '✅'),
-                        h('h1', null, '🎉 Registratie voltooid!'),
-                        h('p', null, 'Welkom bij Verlofrooster! Je account is succesvol aangemaakt.'),
-                        h('div', { style: { display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' } },
-                            h('button', {
-                                className: 'btn btn-primary',
-                                onClick: () => window.location.href = '../../verlofRooster.aspx'
-                            }, 'Naar de app'),
-                            h('button', {
-                                className: 'btn btn-secondary',
-                                onClick: () => window.location.href = 'instellingenCentrumN.aspx'
-                            }, 'Instellingen aanpassen')
-                        )
-                    )
-                );
-            }
+            // Since we redirect immediately, no need for completion screen
+            // if (isCompleted) { ... }
 
             return h('div', null,
                 // Progress bar
@@ -323,8 +309,35 @@
                     onStepSave: handleStepSave,
                     stepSaveTrigger,
                     onSaveComplete: (success) => {
-                        if (success && currentStep < 3) {
-                            setCurrentStep(currentStep + 1);
+                        if (success) {
+                            if (currentStep === 1) {
+                                // After profile creation, redirect immediately to main app
+                                console.log('Profile created successfully, redirecting to main app...');
+                                
+                                // Show success message briefly before redirect
+                                const successDiv = document.createElement('div');
+                                successDiv.style.cssText = `
+                                    position: fixed;
+                                    top: 20px;
+                                    right: 20px;
+                                    background: #d4edda;
+                                    color: #155724;
+                                    padding: 16px 20px;
+                                    border-radius: 8px;
+                                    border: 1px solid #c3e6cb;
+                                    z-index: 10000;
+                                    font-family: Inter, sans-serif;
+                                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                `;
+                                successDiv.textContent = 'Registratie voltooid! Doorverwijzen naar de app...';
+                                document.body.appendChild(successDiv);
+                                
+                                setTimeout(() => {
+                                    window.location.href = '../../verlofRooster.aspx';
+                                }, 1500);
+                            } else if (currentStep < 3) {
+                                setCurrentStep(currentStep + 1);
+                            }
                         }
                     }
                 }),
