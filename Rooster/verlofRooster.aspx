@@ -2436,8 +2436,8 @@
                             selection: selection,
                             initialData: selection && selection.itemData ? selection.itemData : {}
                         }))
-                    ); // Close Fragment with all app content
-                })() // Close the anonymous function that wraps the app content
+                    ); // Close Fragment with all app content (table + contextMenu + FAB + 4 modals)
+                })() // Close the anonymous function that wraps the app content  
             ); // Close the UserRegistrationCheck component
         }; // Close the RoosterApp function
 
