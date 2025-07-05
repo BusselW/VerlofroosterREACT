@@ -9,7 +9,6 @@
 const { useState, useEffect, createElement: h } = React;
 import { getUserInfo } from '../services/sharepointService.js';
 import { renderHorenStatus } from './horen.js';
-import * as linkInfo from '../services/linkInfo.js';
 
 const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
 
@@ -22,7 +21,6 @@ function MedewerkerRow({ medewerker }) {
     }
 
     const [sharePointUser, setSharePointUser] = useState({ PictureURL: null, IsLoading: true });
-    const [teamLeaderInfo, setTeamLeaderInfo] = useState({ naam: null, isLoading: true });
 
     useEffect(() => {
         let isMounted = true;
@@ -42,43 +40,6 @@ function MedewerkerRow({ medewerker }) {
         fetchUserData();
         return () => { isMounted = false; };
     }, [medewerker.Username]); // Afhankelijkheid van medewerker.Username
-    
-    // Nieuwe effect voor het ophalen van teamleider informatie
-    useEffect(() => {
-        let isMounted = true;
-        
-        const fetchTeamLeader = async () => {
-            if (medewerker && medewerker.Username) {
-                try {
-                    // Zet loading state aan
-                    if (isMounted) setTeamLeaderInfo({ naam: null, isLoading: true });
-                    
-                    // Haal teamleider op
-                    const teamLeader = await linkInfo.getTeamLeaderForEmployee(medewerker.Username);
-                    
-                    // Update state met teamleider info
-                    if (isMounted) {
-                        if (teamLeader) {
-                            setTeamLeaderInfo({
-                                naam: teamLeader.Title || teamLeader.Naam || teamLeader.Username || 'Onbekend',
-                                isLoading: false
-                            });
-                        } else {
-                            setTeamLeaderInfo({ naam: null, isLoading: false });
-                        }
-                    }
-                } catch (error) {
-                    console.error('Fout bij ophalen teamleider:', error);
-                    if (isMounted) {
-                        setTeamLeaderInfo({ naam: null, isLoading: false, error: true });
-                    }
-                }
-            }
-        };
-        
-        fetchTeamLeader();
-        return () => { isMounted = false; };
-    }, [medewerker.Username]);
 
     const getAvatarUrl = () => {
         if (sharePointUser.IsLoading) return '';
@@ -112,18 +73,7 @@ function MedewerkerRow({ medewerker }) {
                     className: 'medewerker-naam', 
                     'data-username': medewerker.Username // Add data-username attribute for profile cards
                 }, medewerker.Naam || 'Onbekende medewerker'), // Fallback voor naam
-                medewerker.Functie ? h('span', { className: 'medewerker-functie' }, medewerker.Functie) : null,
-                teamLeaderInfo.naam ? 
-                    h('span', { 
-                        className: 'medewerker-teamleader',
-                        style: { 
-                            fontSize: '0.75rem', 
-                            color: '#6c757d', 
-                            display: 'block',
-                            marginTop: '2px'
-                        },
-                        title: `Teamleider: ${teamLeaderInfo.naam}`
-                    }, `TL: ${teamLeaderInfo.naam}`) : null
+                medewerker.Functie ? h('span', { className: 'medewerker-functie' }, medewerker.Functie) : null
             )
         ),
         renderHorenStatus(medewerker)

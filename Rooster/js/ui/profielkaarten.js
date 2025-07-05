@@ -7,6 +7,7 @@
 
 import { fetchSharePointList } from '../services/sharepointService.js';
 import { getUserInfo } from '../services/sharepointService.js';
+import * as linkInfo from '../services/linkInfo.js';
 
 const fallbackAvatar = 'https://placehold.co/96x96/4a90e2/ffffff?text=';
 
@@ -98,6 +99,35 @@ const ProfielKaarten = (() => {
             return filteredItems[0];
         } catch (error) {
             console.error('Error fetching werkrooster data:', error);
+            return null;
+        }
+    };
+
+    /**
+     * Fetch team leader data by username
+     * @param {string} username - The employee's username
+     * @returns {Promise<Object|null>} - Team leader data or null if not found
+     */
+    const fetchTeamLeaderData = async (username) => {
+        try {
+            console.log(`fetchTeamLeaderData: Fetching team leader for username "${username}"`);
+            
+            // Get team leader information using linkInfo service
+            const teamLeader = await linkInfo.getTeamLeaderForEmployee(username);
+            
+            if (teamLeader) {
+                console.log('fetchTeamLeaderData: Found team leader:', {
+                    Username: teamLeader.Username,
+                    Naam: teamLeader.Title || teamLeader.Naam,
+                    Functie: teamLeader.Functie
+                });
+                return teamLeader;
+            }
+            
+            console.log(`fetchTeamLeaderData: No team leader found for "${username}"`);
+            return null;
+        } catch (error) {
+            console.error('Error fetching team leader data:', error);
             return null;
         }
     };
@@ -240,9 +270,10 @@ const ProfielKaarten = (() => {
      * Create the profile card component
      * @param {Object} medewerker - Employee data
      * @param {Object} werkrooster - Working hours data
+     * @param {Object} teamLeader - Team leader data
      * @returns {HTMLElement} - The card element
      */
-    const createProfileCard = (medewerker, werkrooster) => {
+    const createProfileCard = (medewerker, werkrooster, teamLeader) => {
         if (!medewerker) return null;
         
         // Get base URL for icons
@@ -339,6 +370,15 @@ const ProfielKaarten = (() => {
                 },
                     h('div', { className: 'profile-card-name' }, medewerker.Naam || medewerker.Title || 'Onbekend'),
                     h('div', { className: 'profile-card-function' }, medewerker.Functie || '-'),
+                    teamLeader && h('div', { 
+                        className: 'profile-card-team-leader',
+                        style: { 
+                            fontSize: '0.85rem', 
+                            color: '#6c757d', 
+                            fontStyle: 'italic',
+                            marginTop: '4px'
+                        }
+                    }, `TL: ${teamLeader.Title || teamLeader.Naam || teamLeader.Username}`),
                     h('div', { className: 'profile-card-email' }, 
                         h('a', { 
                             href: `mailto:${medewerker.E_x002d_mail || ''}`,
@@ -660,6 +700,10 @@ const ProfielKaarten = (() => {
                             const werkroosterData = await fetchWerkroosterData(medewerkerData.Username);
                             console.log('Werkrooster data received:', werkroosterData);
                             
+                            console.log(`Fetching team leader data for: "${medewerkerData.Username}"`);
+                            const teamLeaderData = await fetchTeamLeaderData(medewerkerData.Username);
+                            console.log('Team leader data received:', teamLeaderData);
+                            
                             // Check if card is still active after async operations
                             if (activeCard !== cardContainer) {
                                 console.log('Card was hidden during data fetch');
@@ -667,7 +711,7 @@ const ProfielKaarten = (() => {
                             }
                             
                             // Create the actual card content
-                            const cardElement = createProfileCard(medewerkerData, werkroosterData);
+                            const cardElement = createProfileCard(medewerkerData, werkroosterData, teamLeaderData);
                             if (!cardElement) {
                                 console.warn(`Failed to create card for "${username}"`);
                                 return hideProfileCard();
