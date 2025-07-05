@@ -164,3 +164,36 @@ body {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
+
+.footer-text {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+#huidig-jaar {
+    font-weight: 500;
+}
+
+/* Behandelcentrum Root Container */
+#behandelcentrum-root {
+    min-height: 200px;
+}
+
+/* Behandelcentrum App Container */
+.behandelcentrum-app {
+    padding: 0;
+    margin: 0;
+}
+
+.behandelcentrum-app h2 {
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-blue);
+}
+
+.behandelcentrum-app h2:first-child {
+    margin-top: 0;
+}
