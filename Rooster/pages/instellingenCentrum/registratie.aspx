@@ -223,45 +223,7 @@
                 { id: 3, title: 'Voorkeuren', description: 'App instellingen' }
             ];
 
-            const validateStep = (step, data) => {
-                const errors = {};
-                
-                switch (step) {
-                    case 1: // Profile validation
-                        if (!data.naam || data.naam.trim() === '') {
-                            errors.naam = 'Volledige naam is verplicht';
-                        }
-                        if (!data.email || data.email.trim() === '') {
-                            errors.email = 'E-mail is verplicht';
-                        } else if (!/\S+@\S+\.\S+/.test(data.email)) {
-                            errors.email = 'Voer een geldig e-mailadres in';
-                        }
-                        break;
-                    case 2: // Work hours validation
-                        if (!data.team || data.team.trim() === '') {
-                            errors.team = 'Team is verplicht';
-                        }
-                        break;
-                    case 3: // Preferences validation
-                        // Preferences are optional, so minimal validation
-                        break;
-                }
-                
-                return {
-                    isValid: Object.keys(errors).length === 0,
-                    errors
-                };
-            };
-
             const handleNext = () => {
-                const stepData = getCurrentStepData();
-                const validation = validateStep(currentStep, stepData);
-                
-                if (!validation.isValid) {
-                    setErrors(validation.errors);
-                    return;
-                }
-                
                 setErrors({});
                 if (currentStep < 3) {
                     setCurrentStep(currentStep + 1);
@@ -287,15 +249,6 @@
                 try {
                     setIsSubmitting(true);
                     setErrors({});
-                    
-                    // Validate final step
-                    const stepData = getCurrentStepData();
-                    const validation = validateStep(currentStep, stepData);
-                    
-                    if (!validation.isValid) {
-                        setErrors(validation.errors);
-                        return;
-                    }
                     
                     // Here you would normally save the registration data to SharePoint
                     console.log('Registration data:', registrationData);
@@ -354,33 +307,12 @@
                     )
                 ),
                 
-                // Validation errors
-                Object.keys(errors).length > 0 && h('div', { 
-                    style: { 
-                        backgroundColor: '#f8d7da', 
-                        borderColor: '#f5c6cb', 
-                        color: '#721c24',
-                        padding: '15px',
-                        borderRadius: '8px',
-                        margin: '20px 0'
-                    } 
-                },
-                    h('h6', { style: { marginBottom: '10px', fontWeight: '600' } }, '⚠️ Corrigeer de volgende fouten:'),
-                    h('ul', { style: { marginBottom: '0', paddingLeft: '20px' } },
-                        ...Object.values(errors).map((error, index) =>
-                            h('li', { key: index }, error)
-                        )
-                    )
-                ),
-                
                 // Step content - using same structure as original tabs
                 h(StepContent, { 
                     currentStep, 
                     user, 
                     data, 
-                    registrationData,
-                    updateRegistrationData,
-                    errors
+                    updateRegistrationData
                 }),
                 
                 // Navigation buttons
@@ -397,7 +329,7 @@
                             className: 'btn btn-primary',
                             onClick: handleNext,
                             disabled: isSubmitting
-                        }, 'Volgende'),
+                        }, 'Opslaan'),
                         currentStep === 3 && h('button', {
                             className: 'btn btn-success',
                             onClick: handleFinish,
@@ -411,7 +343,7 @@
         // =====================
         // Step Content Component
         // =====================
-        const StepContent = ({ currentStep, user, data, registrationData, updateRegistrationData, errors }) => {
+        const StepContent = ({ currentStep, user, data, updateRegistrationData }) => {
             const handleProfileUpdate = (profileData) => {
                 updateRegistrationData('profile', profileData);
             };
@@ -430,27 +362,21 @@
                         user, 
                         data,
                         isRegistration: true,
-                        onDataUpdate: handleProfileUpdate,
-                        registrationData: registrationData.profile,
-                        errors
+                        onDataUpdate: handleProfileUpdate
                     });
                 case 2:
                     return h(WorkHoursTab, { 
                         user, 
                         data,
                         isRegistration: true,
-                        onDataUpdate: handleWorkHoursUpdate,
-                        registrationData: registrationData.workHours,
-                        errors
+                        onDataUpdate: handleWorkHoursUpdate
                     });
                 case 3:
                     return h(SettingsTab, { 
                         user, 
                         data,
                         isRegistration: true,
-                        onDataUpdate: handlePreferencesUpdate,
-                        registrationData: registrationData.preferences,
-                        errors
+                        onDataUpdate: handlePreferencesUpdate
                     });
                 default:
                     return h('div', null,
