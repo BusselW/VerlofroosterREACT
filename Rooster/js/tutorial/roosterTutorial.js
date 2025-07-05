@@ -563,27 +563,27 @@ export class RoosterTutorial {
     getStepTitle(step) {
         // Default titles based on step index
         const defaultTitles = [
-            "Welkom bij het Verlofrooster!",
-            "Hoofdnavigatie",
-            "Melding knop",
-            "Instellingen knop", 
-            "Je Werkbalk",
-            "Door de Tijd Navigeren",
-            "Zoeken en Filteren",
-            "Kleuren Uitgelegd",
-            "Medewerkerskolom",
-            "Het Rooster Zelf",
-            "Dagcellen - Waar Alles Gebeurt",
-            "Verlofblokken",
-            "Ziekmeldingen", 
-            "Compensatie-uren",
-            "Feestdagen",
-            "Weekenden",
-            "Vandaag Markering",
-            "Snelle Acties",
-            "Rechtsklik Menu",
-            "Je Profiel",
-            "Klaar!"
+            "Welkom bij het Verlofrooster!",      // 0
+            "Hoofdnavigatie",                     // 1  
+            "Melding knop",                       // 2
+            "Instellingen knop",                  // 3
+            "Je Werkbalk",                        // 4
+            "Door de Tijd Navigeren",             // 5
+            "Zoeken en Filteren",                 // 6
+            "Kleuren Uitgelegd",                  // 7
+            "Medewerkerskolom",                   // 8
+            "Het Rooster Zelf",                   // 9
+            "Dagcellen - Waar Alles Gebeurt",    // 10
+            "Verlofblokken",                      // 11
+            "Ziekmeldingen",                      // 12
+            "Compensatie-uren",                   // 13
+            "Feestdagen",                         // 14
+            "Weekenden",                          // 15
+            "Vandaag Markering",                  // 16
+            "Snelle Acties",                      // 17
+            "Rechtsklik Menu",                    // 18
+            "Je Profiel",                         // 19
+            "Klaar!"                              // 20
         ];
         
         return step.title || defaultTitles[this.currentStep] || `Stap ${this.currentStep + 1}`;
