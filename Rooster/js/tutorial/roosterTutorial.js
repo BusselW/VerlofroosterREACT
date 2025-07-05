@@ -63,7 +63,7 @@ export const tutorialSteps = [
     },
     {
         targetId: 'compensatie-uur-blok',
-        message: 'Blauwe blokken zijn compensatie-uren. Deze tonen overuren (+) of minuren (-). Het cijfer geeft aan hoeveel uren. Hover voor details over wanneer en waarom.',
+        message: 'Blauwe blokken of CU iconen zijn compensatie-uren. Deze tonen overuren (+) of afgewerkte uren (-). Kijk naar het cijfer voor het aantal uren. Hover voor details.',
     },
     {
         targetId: 'feestdag',
@@ -131,23 +131,61 @@ export const highlightElement = (elementId) => {
                          document.querySelector('td[class*="dag"]');
                 break;
             case 'verlof-blok':
-                // Find verlof block
+                // Find verlof block - try multiple selectors
                 element = document.querySelector('.verlof-blok') ||
                          document.querySelector('[data-afkorting="VER"]') ||
-                         document.querySelector('.blok[style*="green"]');
+                         document.querySelector('.blok[style*="green"]') ||
+                         document.querySelector('[class*="verlof"]');
+                // If still nothing, look for any element with "VER" text or verlof in title
+                if (!element) {
+                    const allElements = document.querySelectorAll('td *');
+                    for (let el of allElements) {
+                        if (el.textContent?.includes('VER') || 
+                            el.title?.toLowerCase().includes('verlof')) {
+                            element = el;
+                            break;
+                        }
+                    }
+                }
                 break;
             case 'ziekte-blok':
-                // Find ziekte block  
+                // Find ziekte block - try multiple selectors
                 element = document.querySelector('.ziekte-blok') ||
                          document.querySelector('[data-afkorting="ZK"]') ||
-                         document.querySelector('.blok[style*="red"]');
+                         document.querySelector('.blok[style*="red"]') ||
+                         document.querySelector('[class*="ziek"]');
+                // If still nothing, look for any element with "ZK" text or ziek in title
+                if (!element) {
+                    const allElements = document.querySelectorAll('td *');
+                    for (let el of allElements) {
+                        if (el.textContent?.includes('ZK') || 
+                            el.title?.toLowerCase().includes('ziek')) {
+                            element = el;
+                            break;
+                        }
+                    }
+                }
                 break;
             case 'compensatie-uur-blok':
-                // Find compensatie block
+                // Find compensatie block - try multiple selectors
                 element = document.querySelector('.compensatie-uur-blok') ||
                          document.querySelector('.compensatie-uur-container') ||
                          document.querySelector('[data-afkorting="CU"]') ||
-                         document.querySelector('.blok[style*="blue"]');
+                         document.querySelector('.blok[style*="blue"]') ||
+                         document.querySelector('[class*="compensatie"]') ||
+                         document.querySelector('td .cu, td [data-type="compensatie"], td [title*="compensatie"], td [title*="uur"]');
+                // If still nothing, look for any element with "CU" text or compensatie in title
+                if (!element) {
+                    const allElements = document.querySelectorAll('td *');
+                    for (let el of allElements) {
+                        if (el.textContent?.includes('CU') || 
+                            el.title?.toLowerCase().includes('compensatie') ||
+                            el.title?.toLowerCase().includes('uur')) {
+                            element = el;
+                            break;
+                        }
+                    }
+                }
                 break;
             case 'feestdag':
                 // Find feestdag column

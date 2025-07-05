@@ -161,14 +161,14 @@ const TooltipManager = {
             let eindDatum = new Date(verlofItem.EindDatum || verlofItem.StartDatum);
             
             return `
-                <div class="custom-tooltip-title">${verlofItem.Titel || 'Verlof'}</div>
+                <div class="custom-tooltip-title">🌴 ${verlofItem.Titel || 'Verlof'}</div>
                 <div class="custom-tooltip-content">
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">Medewerker:</span>
+                        <span class="custom-tooltip-label">👤 Medewerker:</span>
                         <span class="custom-tooltip-value">${verlofItem.MedewerkerNaam || 'Onbekend'}</span>
                     </div>
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">Periode:</span>
+                        <span class="custom-tooltip-label">📅 Periode:</span>
                         <span class="custom-tooltip-value">
                             ${startDatum.toLocaleDateString('nl-NL')} 
                             ${startDatum.getTime() !== eindDatum.getTime() ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ''}
@@ -176,12 +176,12 @@ const TooltipManager = {
                     </div>
                     ${verlofItem.Toelichting ? `
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">Toelichting:</span>
+                        <span class="custom-tooltip-label">💬 Toelichting:</span>
                         <span class="custom-tooltip-value">${verlofItem.Toelichting}</span>
                     </div>
                     ` : ''}
                     <div class="custom-tooltip-info">
-                        <span class="tooltip-status ${statusClass}">${statusText}</span>
+                        <span class="tooltip-status ${statusClass}">📊 ${statusText}</span>
                     </div>
                 </div>
             `;
@@ -228,34 +228,38 @@ const TooltipManager = {
         if (!compensatieItem) return '';
         
         let urenTekst = '';
+        let urenIcon = '';
         if (compensatieItem.AantalUren > 0) {
             urenTekst = `+${compensatieItem.AantalUren} uur`;
+            urenIcon = '⬆️'; // Plus icon
         } else if (compensatieItem.AantalUren < 0) {
             urenTekst = `${compensatieItem.AantalUren} uur`;
+            urenIcon = '⬇️'; // Minus icon
         } else {
             urenTekst = 'Neutraal';
+            urenIcon = '⚖️'; // Balance icon
         }
         
         const datum = new Date(compensatieItem.Datum);
         
         return `
-            <div class="custom-tooltip-title">Compensatie Uren</div>
+            <div class="custom-tooltip-title">⏰ Compensatie Uren</div>
             <div class="custom-tooltip-content">
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Medewerker:</span>
+                    <span class="custom-tooltip-label">👤 Medewerker:</span>
                     <span class="custom-tooltip-value">${compensatieItem.MedewerkerNaam || 'Onbekend'}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Datum:</span>
+                    <span class="custom-tooltip-label">📅 Datum:</span>
                     <span class="custom-tooltip-value">${datum.toLocaleDateString('nl-NL')}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Uren:</span>
+                    <span class="custom-tooltip-label">${urenIcon} Uren:</span>
                     <span class="custom-tooltip-value">${urenTekst}</span>
                 </div>
                 ${compensatieItem.Toelichting ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Toelichting:</span>
+                    <span class="custom-tooltip-label">💬 Toelichting:</span>
                     <span class="custom-tooltip-value">${compensatieItem.Toelichting}</span>
                 </div>
                 ` : ''}
@@ -275,14 +279,14 @@ const TooltipManager = {
         let eindDatum = new Date(zittingsvrijItem.EindDatum || zittingsvrijItem.StartDatum);
         
         return `
-            <div class="custom-tooltip-title">Zittingsvrij</div>
+            <div class="custom-tooltip-title">🏛️ Zittingsvrij</div>
             <div class="custom-tooltip-content">
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Medewerker:</span>
+                    <span class="custom-tooltip-label">👤 Medewerker:</span>
                     <span class="custom-tooltip-value">${zittingsvrijItem.MedewerkerNaam || 'Onbekend'}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Periode:</span>
+                    <span class="custom-tooltip-label">📅 Periode:</span>
                     <span class="custom-tooltip-value">
                         ${startDatum.toLocaleDateString('nl-NL')} 
                         ${startDatum.getTime() !== eindDatum.getTime() ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ''}
@@ -290,7 +294,7 @@ const TooltipManager = {
                 </div>
                 ${zittingsvrijItem.Toelichting ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Toelichting:</span>
+                    <span class="custom-tooltip-label">💬 Toelichting:</span>
                     <span class="custom-tooltip-value">${zittingsvrijItem.Toelichting}</span>
                 </div>
                 ` : ''}
@@ -310,14 +314,14 @@ const TooltipManager = {
         let eindDatum = ziekteMeldingItem.EindDatum ? new Date(ziekteMeldingItem.EindDatum) : null;
         
         return `
-            <div class="custom-tooltip-title">Ziekmelding</div>
+            <div class="custom-tooltip-title">🤒 Ziekmelding</div>
             <div class="custom-tooltip-content">
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Medewerker:</span>
+                    <span class="custom-tooltip-label">👤 Medewerker:</span>
                     <span class="custom-tooltip-value">${ziekteMeldingItem.MedewerkerNaam || 'Onbekend'}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Periode:</span>
+                    <span class="custom-tooltip-label">📅 Periode:</span>
                     <span class="custom-tooltip-value">
                         ${startDatum.toLocaleDateString('nl-NL')} 
                         ${eindDatum ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ' tot nader order'}
@@ -325,7 +329,7 @@ const TooltipManager = {
                 </div>
                 ${ziekteMeldingItem.Toelichting ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">Toelichting:</span>
+                    <span class="custom-tooltip-label">💬 Toelichting:</span>
                     <span class="custom-tooltip-value">${ziekteMeldingItem.Toelichting}</span>
                 </div>
                 ` : ''}
