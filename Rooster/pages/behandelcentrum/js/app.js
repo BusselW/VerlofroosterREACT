@@ -942,6 +942,9 @@ class BehandelcentrumApp {
         });
 
         console.log(`Team mappings built: ${this.teamMappings.size} employee mappings, ${this.teamleiderMappings.size} team mappings`);
+        
+        // Run validation in debug mode
+        this.validateTeamMappings();
     }
 
     getTeamInfoForRequest(request) {
@@ -1168,6 +1171,67 @@ class BehandelcentrumApp {
             'zittingsvrij': 'Zittingsvrije dagen'
         };
         return typeTitles[this.selectedType] || 'Overzicht';
+    }
+
+    debugTeamMapping(request) {
+        const employeeId = request.MedewerkerID || request.Medewerker || request.Gebruikersnaam;
+        console.log('Debug team mapping for request:', {
+            requestId: request.ID || request.Id,
+            requestType: this.selectedType,
+            employeeId: employeeId,
+            availableFields: Object.keys(request),
+            teamMapping: this.teamMappings.get(employeeId),
+            teamMappingsSize: this.teamMappings.size
+        });
+        
+        // Also log first few team mappings for debugging
+        if (this.teamMappings.size > 0) {
+            const sampleMappings = Array.from(this.teamMappings.entries()).slice(0, 3);
+            console.log('Sample team mappings:', sampleMappings);
+        }
+        
+        return this.getTeamInfoForRequest(request);
+    }
+
+    validateTeamMappings() {
+        console.log('=== Team Mapping Validation ===');
+        console.log('Total teams loaded:', this.allTeams.length);
+        console.log('Total employees loaded:', this.allMedewerkers.length);
+        console.log('Team mappings created:', this.teamMappings.size);
+        console.log('Teamleider mappings created:', this.teamleiderMappings.size);
+
+        // Log some sample data for debugging
+        if (this.allTeams.length > 0) {
+            console.log('Sample team:', this.allTeams[0]);
+        }
+        
+        if (this.allMedewerkers.length > 0) {
+            console.log('Sample employee:', this.allMedewerkers[0]);
+        }
+
+        // Check for employees without teams
+        const employeesWithoutTeams = this.allMedewerkers.filter(emp => 
+            emp.Username && (!emp.Team || emp.Team === '')
+        );
+        
+        if (employeesWithoutTeams.length > 0) {
+            console.warn(`${employeesWithoutTeams.length} employees found without team assignment:`, 
+                employeesWithoutTeams.map(emp => ({ Username: emp.Username, Naam: emp.Naam }))
+            );
+        }
+
+        // Check for teams without leaders
+        const teamsWithoutLeaders = this.allTeams.filter(team => 
+            team.Naam && (!team.TeamleiderId || team.TeamleiderId === '')
+        );
+        
+        if (teamsWithoutLeaders.length > 0) {
+            console.warn(`${teamsWithoutLeaders.length} teams found without teamleader:`, 
+                teamsWithoutLeaders.map(team => ({ Naam: team.Naam, Teamleider: team.Teamleider }))
+            );
+        }
+
+        console.log('=== End Team Mapping Validation ===');
     }
 }
 
