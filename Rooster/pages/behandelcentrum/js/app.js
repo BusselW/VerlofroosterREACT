@@ -30,7 +30,7 @@ const h = (tag, props, ...children) => {
 
     children.forEach(child => {
 
-        if (typeof child === 'string') {
+        if (typeof child === 'string' ) {
 
            el.appendChild(document.createTextNode(child));
 
@@ -117,7 +117,10 @@ class BehandelcentrumApp {
         // Feature flags
 
         this.showTeamleider = true; // Default to true, will be checked during init
-
+        
+        // Notification system
+        this.notifications = [];
+        this.notificationId = 0;
     }
 
  
@@ -381,10 +384,6 @@ class BehandelcentrumApp {
                         isLopend ?
                         `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen (${data.length})` :
                         `📁 ${this.getActiveTypeTitle()} - Historisch (${data.length})`
-                    ),
-                    isLopend && data.length > 0 && h('div', { class: 'alert-info' },
-                        h('i', { class: 'fas fa-info-circle' }),
-                        'Wacht op behandeling'
                     )
                 ),
                 this.renderSimpleTable(data, type, actionable)
@@ -872,14 +871,9 @@ class BehandelcentrumApp {
 
         const reactie = textarea.value.trim();
 
-       
-
-        if (!reactie) {
-
-            alert('Voer eerst een reactie in.');
-
+         if (!reactie) {
+            this.showNotification('Voer eerst een reactie in.', 'error');
             return;
-
         }
 
  
@@ -920,14 +914,9 @@ class BehandelcentrumApp {
 
             this.closeReactieModal();
 
-           
-
-        } catch (error) {
-
+             } catch (error) {
             console.error('Fout bij opslaan reactie:', error);
-
-            alert('Er is een fout opgetreden bij het opslaan van de reactie.');
-
+            this.showNotification('Er is een fout opgetreden bij het opslaan van de reactie.', 'error');
         }
 
     }
@@ -957,82 +946,56 @@ class BehandelcentrumApp {
                 'data-username': username,
                 title: 'Teamleider van ' + username
             }, 'Laden...');
-        }
-
- 
-
-        // Format dates
-
+        }        // Format dates
         if (column === 'AanvraagTijdstip') {
-
             try {
-
                 const date = new Date(value);
-
                 if (!isNaN(date.getTime())) {
-
                     return date.toLocaleString('nl-NL', {
-
                         year: 'numeric',
-
                         month: '2-digit',
-
                         day: '2-digit',
-
                         hour: '2-digit',
-
                         minute: '2-digit'
-
                     });
-
                 }
-
             } catch (e) {
-
                 // If date parsing fails, return original value
-
             }
-
-        } else if (column.includes('Datum') || column.includes('Tijd') || column.includes('Start') || column.includes('Eind')) {
-
+        } else if (column === 'StartDatum' || column === 'EindDatum' || column === 'StartCompensatieUren' || column === 'EindeCompensatieUren' || column === 'ZittingsVrijeDagTijdStart' || column === 'ZittingsVrijeDagTijdEind') {
+            // Format start/end dates as dd-mm-yyyy (no time)
             try {
-
                 const date = new Date(value);
-
                 if (!isNaN(date.getTime())) {
-
-                    // Check if it includes time
-
-                    if (column.includes('Tijd') || value.includes('T')) {
-
-                        return date.toLocaleString('nl-NL', {
-
-                            year: 'numeric',
-
-                            month: '2-digit',
-
-                            day: '2-digit',
-
-                            hour: '2-digit',
-
-                            minute: '2-digit'
-
-                        });
-
-                    } else {
-
-                        return date.toLocaleDateString('nl-NL');
-
-                    }
-
+                    return date.toLocaleDateString('nl-NL', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    });
                 }
-
             } catch (e) {
-
                 // If date parsing fails, return original value
-
             }
-
+        } else if (column.includes('Datum') || column.includes('Tijd')) {
+            // Other date fields - show with time if available
+            try {
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                    if (column.includes('Tijd') || value.includes('T')) {
+                        return date.toLocaleString('nl-NL', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } else {
+                        return date.toLocaleDateString('nl-NL');
+                    }
+                }
+            } catch (e) {
+                // If date parsing fails, return original value
+            }
         }
 
  
@@ -1289,12 +1252,86 @@ class BehandelcentrumApp {
             await this.loadData();
             this.closeModal();
             
-            alert(`Aanvraag succesvol ${newStatus.toLowerCase()}!`);
+            this.showNotification(`Aanvraag succesvol ${newStatus.toLowerCase()}!`, 'success');
             
         } catch (error) {
             console.error(`Fout bij ${this.modalAction === 'approve' ? 'goedkeuren' : 'afwijzen'} van aanvraag:`, error);
-            alert(`Er is een fout opgetreden bij het ${this.modalAction === 'approve' ? 'goedkeuren' : 'afwijzen'} van de aanvraag.`);
+            this.showNotification(`Er is een fout opgetreden bij het ${this.modalAction === 'approve' ? 'goedkeuren' : 'afwijzen'} van de aanvraag.`, 'error');
         }
+    }
+
+    // Notification System
+    showNotification(message, type = 'info', duration = 4000) {
+        const id = ++this.notificationId;
+        const notification = {
+            id,
+            message,
+            type, // 'success', 'error', 'warning', 'info'
+            timestamp: Date.now()
+        };
+        
+        this.notifications.push(notification);
+        this.renderNotifications();
+        
+        // Auto remove after duration
+        setTimeout(() => {
+            this.removeNotification(id);
+        }, duration);
+        
+        return id;
+    }
+    
+    removeNotification(id) {
+        this.notifications = this.notifications.filter(n => n.id !== id);
+        this.renderNotifications();
+    }
+    
+    renderNotifications() {
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = h('div', { 
+                id: 'notification-container',
+                class: 'notification-container'
+            });
+            document.body.appendChild(container);
+        }
+        
+        container.innerHTML = '';
+        
+        this.notifications.forEach(notification => {
+            const notificationEl = h('div', {
+                class: `notification notification-${notification.type} notification-enter`,
+                'data-id': notification.id
+            },
+                h('div', { class: 'notification-content' },
+                    h('div', { class: 'notification-icon' },
+                        this.getNotificationIcon(notification.type)
+                    ),
+                    h('div', { class: 'notification-message' }, notification.message),
+                    h('button', {
+                        class: 'notification-close',
+                        onClick: () => this.removeNotification(notification.id)
+                    }, '×')
+                )
+            );
+            
+            container.appendChild(notificationEl);
+            
+            // Trigger animation
+            setTimeout(() => {
+                notificationEl.classList.add('notification-visible');
+            }, 10);
+        });
+    }
+    
+    getNotificationIcon(type) {
+        const icons = {
+            'success': '✓',
+            'error': '✗',
+            'warning': '⚠',
+            'info': 'ℹ'
+        };
+        return icons[type] || icons.info;
     }
 }
  

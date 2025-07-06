@@ -12,10 +12,10 @@
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
     
-    /* Brand Colors */
-    --brand-primary: #3b82f6;
-    --brand-secondary: #1e40af;
-    --brand-accent: #0ea5e9;
+    /* Brand Colors - Updated to match main header */
+    --brand-primary: #1e3a8a;  /* Main header blue */
+    --brand-secondary: #0f172a; /* Header dark blue */
+    --brand-accent: #c2410c;    /* Header orange accent */
     
     /* Status Colors */
     --success: #10b981;
@@ -302,10 +302,10 @@ body {
    MAIN LAYOUT - FULL WIDTH
    ========================================================================== */
 .app-container {
-    width: 100%;
+    width: 98%;
     max-width: none;
-    margin: 0 var(--space-lg);
-    padding: 0;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -414,12 +414,12 @@ body {
 }
 
 .compact-tab:hover {
-    background: rgba(59, 130, 246, 0.05);
+    background: rgba(30, 58, 138, 0.05);
     color: var(--brand-primary);
 }
 
 .compact-tab.active {
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(30, 58, 138, 0.1);
     color: var(--brand-primary);
     font-weight: 600;
 }
@@ -487,24 +487,30 @@ body {
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: auto;
     border: 1px solid #e2e8f0;
     margin-bottom: var(--space-xl);
     width: 100%;
+    max-height: 70vh; /* Allow vertical scrolling */
 }
 
 /* Ensure table headers are visible */
 .data-table {
     width: 100%;
+    min-width: 1000px; /* Ensure minimum width for horizontal scrolling */
     border-collapse: collapse;
     font-size: 0.75rem;
     border: 1px solid #e2e8f0;
-    table-layout: fixed;
+    table-layout: auto; /* Allow columns to size dynamically */
 }
 
 .data-table thead {
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     border-bottom: 2px solid var(--brand-primary);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .data-table thead th {
@@ -532,10 +538,13 @@ body {
 .data-table tbody tr {
     background: var(--bg-secondary);
     border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
 }
 
 .data-table tbody tr:hover {
-    background: rgba(59, 130, 246, 0.02);
+    background: rgba(30, 58, 138, 0.02);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
 }
 
 .data-table tbody td {
@@ -546,13 +555,19 @@ body {
 
 /* Specific column styles */
 td[data-column="Medewerker"],
-th[data-column="Medewerker"] {
-    font-weight: 500;
+th[data-column="Medewerker"],
+td[data-column="Gebruikersnaam"],
+th[data-column="Gebruikersnaam"] {
+    min-width: 150px;
+    white-space: nowrap;
 }
 
-/* Date columns */
-td[data-column="AanvraagTijdstip"],
-th[data-column="AanvraagTijdstip"],
+td[data-column="Teamleider"],
+th[data-column="Teamleider"] {
+    min-width: 140px;
+    white-space: nowrap;
+}
+
 td[data-column="StartDatum"],
 th[data-column="StartDatum"],
 td[data-column="EindDatum"],
@@ -560,23 +575,57 @@ th[data-column="EindDatum"],
 td[data-column="StartCompensatieUren"],
 th[data-column="StartCompensatieUren"],
 td[data-column="EindeCompensatieUren"],
-th[data-column="EindeCompensatieUren"] {
+th[data-column="EindeCompensatieUren"],
+td[data-column="ZittingsVrijeDagTijdStart"],
+th[data-column="ZittingsVrijeDagTijdStart"],
+td[data-column="ZittingsVrijeDagTijdEind"],
+th[data-column="ZittingsVrijeDagTijdEind"] {
+    min-width: 110px;
     white-space: nowrap;
-    min-width: 100px;
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-/* Teamleider column styling */
-td[data-column="Teamleider"],
-th[data-column="Teamleider"] {
+td[data-column="AanvraagTijdstip"],
+th[data-column="AanvraagTijdstip"] {
+    min-width: 130px;
     white-space: nowrap;
-    min-width: 120px;
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
+
+td[data-column="Status"],
+th[data-column="Status"] {
+    min-width: 100px;
+}
+
+td[data-column="Acties"],
+th[data-column="Acties"] {
+    min-width: 180px;
+    white-space: nowrap;
+}
+
+td[data-column="Behandelaar Reactie"],
+th[data-column="Behandelaar Reactie"] {
+    min-width: 200px;
+    max-width: 300px;
+}
+
+td[data-column="Reden"],
+th[data-column="Reden"],
+td[data-column="Omschrijving"],
+th[data-column="Omschrijving"],
+td[data-column="Opmerking"],
+th[data-column="Opmerking"] {
+    min-width: 200px;
+    max-width: 250px;
+}
+
+td[data-column="UrenTotaal"],
+th[data-column="UrenTotaal"] {
+    min-width: 80px;
+    text-align: center;
+}
+
+/* ==========================================================================
+   TABLE HOVER AND INTERACTION IMPROVEMENTS
+   ========================================================================== */
 
 /* ==========================================================================
    TEAMLEIDER COLUMN STYLES
@@ -945,12 +994,12 @@ body.dark-theme .teamleider-unavailable {
 }
 
 .toggle-btn:hover {
-    background: rgba(59, 130, 246, 0.05);
+    background: rgba(30, 58, 138, 0.05);
     color: var(--text-primary);
 }
 
 .toggle-btn.active {
-    background: var(--brand-primary);
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
     color: white;
     box-shadow: var(--shadow-sm);
 }
@@ -989,7 +1038,7 @@ body.dark-theme .teamleider-unavailable {
 }
 
 .type-btn:hover {
-    background: rgba(59, 130, 246, 0.05);
+    background: rgba(30, 58, 138, 0.05);
     border-color: var(--brand-primary);
     color: var(--text-primary);
 }
@@ -1040,6 +1089,125 @@ body.dark-theme .teamleider-unavailable {
     font-size: 0.85rem;
     color: var(--info);
 }
+
+/* ==========================================================================
+   NOTIFICATION SYSTEM
+   Stylized notifications with animations to replace alerts
+   ========================================================================== */
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    pointer-events: none;
+}
+
+.notification {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border-left: 4px solid var(--brand-primary);
+    min-width: 300px;
+    max-width: 400px;
+    pointer-events: all;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification.notification-visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+}
+
+.notification-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+}
+
+.notification-message {
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Notification types */
+.notification-success {
+    border-left-color: var(--success);
+}
+
+.notification-success .notification-icon {
+    background: var(--success);
+}
+
+.notification-error {
+    border-left-color: var(--danger);
+}
+
+.notification-error .notification-icon {
+    background: var(--danger);
+}
+
+.notification-warning {
+    border-left-color: var(--warning);
+}
+
+.notification-warning .notification-icon {
+    background: var(--warning);
+}
+
+.notification-info {
+    border-left-color: var(--info);
+}
+
+.notification-info .notification-icon {
+    background: var(--info);
+}
+
+/* ==========================================================================
+   UPDATED COLOR SCHEME TO MATCH MAIN HEADER
+   ========================================================================== */
 
 /* ==========================================================================
    RESPONSIVE DESIGN - FULL WIDTH MAINTAINED
@@ -1171,3 +1339,31 @@ body.dark-theme .data-table tbody tr:hover {
     text-align: center;
     border-top: 1px solid var(--color-border);
 }
+
+/* Custom scrollbar styling for table container */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--brand-primary);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--brand-secondary);
+}
+
+.table-container::-webkit-scrollbar-corner {
+    background: #f1f5f9;
+}
+
+/* ==========================================================================
+   EXTENDED TABLE IMPROVEMENTS
+   ========================================================================== */
