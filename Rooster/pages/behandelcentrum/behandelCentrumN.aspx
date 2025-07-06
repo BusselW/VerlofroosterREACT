@@ -24,6 +24,14 @@
                 <h1>Verlofaanvragen Behandelcentrum</h1>
             </div>
             <div class="header-acties">
+                <!-- Emulation dropdown for super user -->
+                <div id="header-emulation-container" class="header-emulation" style="display: none;">
+                    <span class="header-emulation-label">Bekijk als teamleider:</span>
+                    <select id="header-emulation-select" class="header-emulation-select">
+                        <option value="">Alle teams (standaard)</option>
+                    </select>
+                </div>
+                
                 <div class="navigation-buttons">
                     <div class="nav-buttons-right">
                         <a href="../../verlofRooster.aspx" class="btn btn-functional">

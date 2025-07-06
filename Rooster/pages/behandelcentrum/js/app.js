@@ -258,6 +258,11 @@ class BehandelcentrumApp {
 
         // Load teamleider data after React has rendered
         setTimeout(() => this.loadTeamleiderData(), 0);
+        
+        // Setup header emulation dropdown for super user
+        if (this.isSuperUser) {
+            this.setupHeaderEmulationDropdown();
+        }
     }
     renderTabs() {
         return h('div', { className: 'navigation-container' },
@@ -274,28 +279,6 @@ class BehandelcentrumApp {
                                 onChange: (e) => this.handleTeamFilterToggle(e)
                             }),
                             h('span', { className: 'toggle-slider' })
-                        )
-                    )
-                )
-            ),
-
-            // Super user emulation controls
-            this.isSuperUser && h('div', { className: 'emulation-container' },
-                h('div', { className: 'emulation-controls' },
-                    h('label', { className: 'emulation-label' },
-                        h('span', { className: 'emulation-text' }, 'Bekijk als teamleider:'),
-                        h('select', {
-                            className: 'emulation-select',
-                            value: this.emulatingTeamLeader ? this.emulatingTeamLeader.username : '',
-                            onChange: (e) => this.handleEmulationChange(e)
-                        },
-                            h('option', { value: '' }, 'Alle teams (standaard)'),
-                            this.allTeamLeaders.map(leader =>
-                                h('option', {
-                                    key: leader.username,
-                                    value: leader.username
-                                }, `${leader.naam} (${leader.teamNaam})`)
-                            )
                         )
                     )
                 )
@@ -1729,6 +1712,63 @@ class BehandelcentrumApp {
             }, 300);
         }, 3000);
     }
+
+    setupHeaderEmulationDropdown() {
+        const emulationContainer = document.getElementById('header-emulation-container');
+        const emulationSelect = document.getElementById('header-emulation-select');
+        
+        if (!emulationContainer || !emulationSelect) return;
+
+        // Show the emulation container for super user
+        if (this.isSuperUser) {
+            emulationContainer.style.display = 'flex';
+            
+            // Clear existing options
+            emulationSelect.innerHTML = '<option value="">Alle teams (standaard)</option>';
+            
+            // Add team leader options
+            this.allTeamLeaders.forEach(leader => {
+                const option = document.createElement('option');
+                option.value = leader.username;
+                option.textContent = `${leader.naam} (${leader.teamNaam})`;
+                emulationSelect.appendChild(option);
+            });
+            
+            // Set current value
+            emulationSelect.value = this.emulatingTeamLeader ? this.emulatingTeamLeader.username : '';
+            
+            // Add event listener
+            emulationSelect.removeEventListener('change', this.boundHandleHeaderEmulationChange);
+            this.boundHandleHeaderEmulationChange = (e) => this.handleHeaderEmulationChange(e);
+            emulationSelect.addEventListener('change', this.boundHandleHeaderEmulationChange);
+        } else {
+            emulationContainer.style.display = 'none';
+        }
+    }
+
+    handleHeaderEmulationChange(e) {
+        const selectedUsername = e.target.value;
+        
+        if (!selectedUsername) {
+            // Reset to default view (all teams)
+            this.emulatingTeamLeader = null;
+            this.showOnlyOwnTeam = false;
+        } else {
+            // Find the selected team leader
+            const selectedLeader = this.allTeamLeaders.find(leader => leader.username === selectedUsername);
+            if (selectedLeader) {
+                this.emulatingTeamLeader = selectedLeader;
+                this.showOnlyOwnTeam = true; // Auto-enable team filtering when emulating
+            }
+        }
+
+        // Reload data with new filtering
+        this.loadData().then(() => {
+            this.render();
+        });
+    }
+
+    // ...existing code...
 }
 
 
