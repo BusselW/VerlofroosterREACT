@@ -8,6 +8,7 @@
 class BehandelcentrumApp {
     constructor() {
         this.root = document.getElementById('behandelcentrum-root');
+        this.reactRoot = null; // For React 18+ createRoot API
 
         // Lopende aanvragen (nieuwe/in behandeling)
         this.verlofLopend = [];
@@ -197,7 +198,18 @@ class BehandelcentrumApp {
         );
 
         console.log('Rendering to DOM...');
-        ReactDOM.render(app, this.root);
+        
+        // Use React 18 createRoot if available, otherwise fallback to ReactDOM.render
+        if (typeof ReactDOM.createRoot === 'function') {
+            // React 18+
+            if (!this.reactRoot) {
+                this.reactRoot = ReactDOM.createRoot(this.root);
+            }
+            this.reactRoot.render(app);
+        } else {
+            // React 17 and below
+            ReactDOM.render(app, this.root);
+        }
 
         // Load teamleider data after React has rendered
         setTimeout(() => this.loadTeamleiderData(), 0);
@@ -1266,18 +1278,84 @@ class BehandelcentrumApp {
             )
         );
     }
+
+    handleTeamFilterToggle(e) {
+        const newValue = e.target.checked;
+        this.showOnlyOwnTeam = newValue;
+        this.render();
+    }
+
+    handleModeToggle(e) {
+        const mode = e.target.dataset.mode;
+        if (mode && mode !== this.viewMode) {
+            this.viewMode = mode;
+
+            // Reset type selection if switching to lopende and current type is not available
+            if (mode === 'lopend' && (this.selectedType === 'ziekte' || this.selectedType === 'zittingsvrij')) {
+                this.selectedType = 'verlof';
+            }
+
+            this.render();
+        }
+    }
+
+    handleTypeSelection(e) {
+        const type = e.target.dataset.type;
+        if (type && type !== this.selectedType) {
+            this.selectedType = type;
+            this.render();
+        }
+    }
+
+    handleApprove(e) {
+        const itemId = e.target.dataset.itemId;
+        const itemType = e.target.dataset.itemType;
+
+        if (!itemId || !itemType) return;
+
+        // Find the item in our data
+        const item = this.findItemById(itemId);
+        if (!item) {
+            console.error('Item not found:', itemId);
+            return;
+        }
+
+        this.selectedItem = item;
+        this.modalAction = 'approve';
+        this.isApproveModalOpen = true;
+        this.render();
+    }
+
+    handleReject(e) {
+        const itemId = e.target.dataset.itemId;
+        const itemType = e.target.dataset.itemType;
+
+        if (!itemId || !itemType) return;
+
+        // Find the item in our data
+        const item = this.findItemById(itemId);
+        if (!item) {
+            console.error('Item not found:', itemId);
+            return;
+        }
+
+        this.selectedItem = item;
+        this.modalAction = 'reject';
+        this.isRejectModalOpen = true;
+        this.render();
+    }
 }
 
 // Create a fallback appConfiguratie if it doesn't exist
-    if (typeof window.appConfiguratie === "undefined") {
-        console.warn("Creating fallback appConfiguratie object in app.js because it was not found");
-        window.appConfiguratie = {
-            instellingen: {
-                debounceTimer: 300,
-                siteUrl: ""
-            }
-        };
-    }
+if (typeof window.appConfiguratie === "undefined") {
+    console.warn("Creating fallback appConfiguratie object in app.js because it was not found");
+    window.appConfiguratie = {
+        instellingen: {
+            debounceTimer: 300,
+            siteUrl: ""
+        }
+    };
+}
 
-    const app = new BehandelcentrumApp();
-    app.init();
+const app = new BehandelcentrumApp();
+app.init();
