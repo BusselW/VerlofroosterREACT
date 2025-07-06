@@ -137,6 +137,15 @@ class BehandelcentrumApp {
                 compensatieLopend: this.compensatieLopend.length,
                 compensatieArchief: this.compensatieArchief.length
             });
+            
+            // Debug: log sample data to see structure
+            if (this.verlofLopend.length > 0) {
+                console.log('Sample verlof lopend item:', this.verlofLopend[0]);
+            }
+            if (this.compensatieLopend.length > 0) {
+                console.log('Sample compensatie lopend item:', this.compensatieLopend[0]);
+            }
+            
             console.log('Data loaded successfully');
         } catch (error) {
             console.error('Error loading data:', error);
