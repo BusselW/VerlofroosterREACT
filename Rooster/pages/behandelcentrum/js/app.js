@@ -165,6 +165,9 @@ class BehandelcentrumApp {
             }
             
             console.log('Data loaded successfully');
+            
+            // Update table scrolling after data loads
+            setTimeout(() => this.updateTableScrolling(), 100);
         } catch (error) {
             console.error('Error loading data:', error);
         }
@@ -212,7 +215,10 @@ class BehandelcentrumApp {
         }
 
         // Load teamleider data after React has rendered
-        setTimeout(() => this.loadTeamleiderData(), 0);
+        setTimeout(() => {
+            this.loadTeamleiderData();
+            this.setupTableScrolling(); // Setup table scrolling detection
+        }, 0);
         
         // Setup header emulation dropdown for super user
         if (this.isSuperUser) {
@@ -347,42 +353,7 @@ class BehandelcentrumApp {
         console.log('=== renderSimpleTable called ===');
         console.log('Data:', data?.length || 0, 'items, type:', type, 'actionable:', actionable);
         
-        // Apply filtering when in simple table mode
-        const filteredData = this.filterDataForCurrentUser(data);
-        console.log('Filtered data for simple table:', { originalLength: data?.length || 0, filteredLength: filteredData.length });
-        
-        if (!filteredData || filteredData.length === 0) {
-            console.log('Rendering empty state');
-            return h('div', { className: 'empty-state' },
-                h('div', { className: 'empty-icon' }, actionable ? '📋' : '📁'),
-                h('h3', null, actionable ? 'Geen lopende aanvragen' : 'Geen gegevens'),
-                h('p', null, actionable ?
-                    'Er zijn momenteel geen aanvragen die wachten op behandeling.' :
-                    'Er zijn geen gegevens beschikbaar voor deze categorie.'
-                )
-            );
-        }
-
-        const columns = this.getColumnsForType(type, actionable);
-        console.log('Table columns:', columns);
-        console.log('First data item:', filteredData[0]);
-
-        return h('div', { className: 'table-container' },
-            h('table', { className: 'data-table' },
-                h('thead', null,
-                    h('tr', null,
-                        ...columns.map(col =>
-                            h('th', { 'data-column': col }, this.getColumnDisplayName(col))
-                        )
-                    )
-                ),
-                h('tbody', null,
-                    ...filteredData.map(item =>
-                        this.renderTableRow(item, columns, actionable)
-                    )
-                )
-            )
-        );
+        return this.renderTableWithScrollSupport(data, type, actionable, 'table-container');
     }
 
     renderGroupedTables(data, type, actionable) {
@@ -1035,6 +1006,16 @@ class BehandelcentrumApp {
             }));
     }
 
+    getActiveTypeTitle() {
+        const typeTitles = {
+            'verlof': 'Verlofaanvragen',
+            'compensatie': 'Compensatie-uren',
+            'ziekte': 'Ziektemeldingen',
+            'zittingsvrij': 'Zittingsvrije dagen'
+        };
+        return typeTitles[this.selectedType] || 'Overzicht';
+    }
+
     shouldShowGroupedView() {
         // Show grouped view when not filtering by own team, or when super user is not emulating
         return !this.showOnlyOwnTeam && (!this.isSuperUser || !this.emulatingTeamLeader);
@@ -1057,134 +1038,6 @@ class BehandelcentrumApp {
         }
         
         return data; // Show all data
-    }
-
-    async confirmAction() {
-        if (!this.selectedItem || !this.modalAction) return;
-
-        try {
-            const itemId = this.selectedItem.ID || this.selectedItem.Id;
-            const listType = this.getListTypeForActiveTab();
-            const textarea = document.getElementById('reactie-text');
-            const reactie = textarea ? textarea.value.trim() : '';
-
-            // Determine the correct fields based on the action and list type
-            const updateData = {};
-
-            if (this.modalAction === 'approve') {
-                updateData.Status = 'Goedgekeurd';
-            } else if (this.modalAction === 'reject') {
-                updateData.Status = 'Afgekeurd';
-            }
-
-            // Add handler comment if provided
-            if (reactie) {
-                let reactieField;
-                switch (listType) {
-                    case 'CompensatieUren':
-                        reactieField = 'ReactieBehandelaar';
-                        break;
-                    case 'Verlof':
-                        reactieField = 'OpmerkingBehandelaar';
-                        break;
-                    case 'IncidenteelZittingVrij':
-                        reactieField = 'Opmerking';
-                        break;
-                    default:
-                        reactieField = 'ReactieBehandelaar';
-                }
-                updateData[reactieField] = reactie;
-            }
-
-            await window.SharePointService.updateListItem(listType, itemId, updateData);
-
-            // Show success notification
-            this.showNotification(
-                `Aanvraag ${this.modalAction === 'approve' ? 'goedgekeurd' : 'afgekeurd'}.`,
-                'success'
-            );
-
-            // Reload data and close modal
-            await this.loadData();
-            this.closeModal();
-
-        } catch (error) {
-            console.error('Error confirming action:', error);
-            this.showNotification('Er is een fout opgetreden.', 'error');
-        }
-    }
-
-    findItemById(itemId) {
-        // Search in all current data arrays
-        const allItems = [
-            ...this.verlofLopend,
-            ...this.verlofArchief,
-            ...this.compensatieLopend,
-            ...this.compensatieArchief,
-            ...this.ziekteLopend,
-            ...this.ziekteArchief,
-            ...this.zittingsvrijLopend,
-            ...this.zittingsvrijArchief
-        ];
-
-        return allItems.find(item => (item.ID || item.Id) == itemId);
-    }
-
-    showNotification(message, type = 'info') {
-        // Simple notification system
-        const notificationContainer = document.createElement('div');
-        notificationContainer.className = `notification notification-${type}`;
-        notificationContainer.textContent = message;
-        notificationContainer.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            border-radius: 4px;
-            color: white;
-            font-weight: 500;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        `;
-
-        if (type === 'success') {
-            notificationContainer.style.backgroundColor = '#10b981';
-        } else if (type === 'error') {
-            notificationContainer.style.backgroundColor = '#ef4444';
-        } else {
-            notificationContainer.style.backgroundColor = '#3b82f6';
-        }
-
-        document.body.appendChild(notificationContainer);
-
-        // Animate in
-        setTimeout(() => {
-            notificationContainer.style.opacity = '1';
-        }, 100);
-
-        // Remove after 3 seconds
-        setTimeout(() => {
-            notificationContainer.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(notificationContainer);
-            }, 300);
-        }, 3000);
-    }
-
-    setupHeaderEmulationDropdown() {
-        // Implementation for header emulation dropdown for super users
-        // This would be called if needed
-    }
-
-    getActiveTypeTitle() {
-        const typeTitles = {
-            'verlof': 'Verlofaanvragen',
-            'compensatie': 'Compensatie-uren',
-            'ziekte': 'Ziektemeldingen',
-            'zittingsvrij': 'Zittingsvrije dagen'
-        };
-        return typeTitles[this.selectedType] || 'Overzicht';
     }
 
     debugTeamMapping(request) {
@@ -1343,6 +1196,69 @@ class BehandelcentrumApp {
         this.modalAction = 'reject';
         this.isRejectModalOpen = true;
         this.render();
+    }
+
+    // Update table scrolling after data changes
+    updateTableScrolling() {
+        // Update scroll detection when data changes
+        this.setupTableScrolling();
+    }
+
+    // Enhanced table rendering with scroll support
+    renderTableWithScrollSupport(data, type, actionable, containerClass = 'table-container') {
+        const filteredData = this.filterDataForCurrentUser(data);
+        console.log('Filtered data for enhanced table:', { originalLength: data?.length || 0, filteredLength: filteredData.length });
+        
+        if (!filteredData || filteredData.length === 0) {
+            console.log('Rendering empty state');
+            return h('div', { className: 'empty-state' },
+                h('div', { className: 'empty-icon' }, actionable ? '📋' : '📁'),
+                h('h3', null, actionable ? 'Geen lopende aanvragen' : 'Geen gegevens'),
+                h('p', null, actionable ?
+                    'Er zijn momenteel geen aanvragen die wachten op behandeling.' :
+                    'Er zijn geen gegevens beschikbaar voor deze categorie.'
+                )
+            );
+        }
+
+        const columns = this.getColumnsForType(type, actionable);
+        console.log('Table columns:', columns);
+        console.log('First data item:', filteredData[0]);
+
+        return h('div', { 
+            className: containerClass,
+            'data-record-count': filteredData.length
+        },
+            h('table', { className: 'data-table' },
+                h('thead', null,
+                    h('tr', null,
+                        ...columns.map(col =>
+                            h('th', { 'data-column': col }, this.getColumnDisplayName(col))
+                        )
+                    )
+                ),
+                h('tbody', null,
+                    ...filteredData.map(item =>
+                        this.renderTableRow(item, columns, actionable)
+                    )
+                )
+            )
+        );
+    }
+
+    // Add scroll detection for table containers
+    setupTableScrolling() {
+        // Add scroll detection after render
+        setTimeout(() => {
+            const tableContainers = document.querySelectorAll('.table-container, .team-table-container');
+            tableContainers.forEach(container => {
+                if (container.scrollHeight > container.clientHeight) {
+                    container.classList.add('scrollable');
+                } else {
+                    container.classList.remove('scrollable');
+                }
+            });
+        }, 100);
     }
 }
 
