@@ -87,6 +87,11 @@ class BehandelcentrumApp {
         this.isTeamLeader = false;
         this.showOnlyOwnTeam = false; // Personal setting from gebruikersInstellingen
         this.userSettings = null;
+        
+        // Special handling for org\busselw
+        this.isSuperUser = false; // org\busselw can see all data and emulate other team leaders
+        this.emulatingTeamLeader = null; // When emulating, this holds the teamleader info
+        this.allTeamLeaders = []; // All available team leaders for emulation
     }
 
  
@@ -274,6 +279,28 @@ class BehandelcentrumApp {
                 )
             ),
             
+            // Super user emulation controls
+            this.isSuperUser && h('div', { className: 'emulation-container' },
+                h('div', { className: 'emulation-controls' },
+                    h('label', { className: 'emulation-label' },
+                        h('span', { className: 'emulation-text' }, 'Bekijk als teamleider:'),
+                        h('select', {
+                            className: 'emulation-select',
+                            value: this.emulatingTeamLeader ? this.emulatingTeamLeader.username : '',
+                            onChange: (e) => this.handleEmulationChange(e)
+                        },
+                            h('option', { value: '' }, 'Alle teams (standaard)'),
+                            this.allTeamLeaders.map(leader =>
+                                h('option', { 
+                                    key: leader.username,
+                                    value: leader.username 
+                                }, `${leader.naam} (${leader.teamNaam})`)
+                            )
+                        )
+                    )
+                )
+            ),
+            
             // Main toggle between Lopende and Historische aanvragen
             h('div', { className: 'main-toggle' },
                 h('button', {
@@ -350,11 +377,11 @@ class BehandelcentrumApp {
                 window.SharePointService.fetchSharePointList('Teams')
             ]);
             
-            // Create maps for quick lookup
-            const employeeMap = {};
+            // Create maps for quick lookup and store for filtering
+            this.employeeMap = {};
             employees.forEach(emp => {
                 if (emp.Username) {
-                    employeeMap[emp.Username.toLowerCase()] = {
+                    this.employeeMap[emp.Username.toLowerCase()] = {
                         team: emp.Team,
                         name: emp.Naam || emp.Title
                     };
@@ -371,12 +398,15 @@ class BehandelcentrumApp {
                 }
             });
             
-            // Group data by team
+            // Apply team filtering
+            const filteredData = this.filterDataByTeam(data);
+            
+            // Group filtered data by team
             const grouped = {};
             
-            data.forEach(item => {
+            filteredData.forEach(item => {
                 const username = (item.MedewerkerID || item.Medewerker || item.Gebruikersnaam || '').toLowerCase();
-                const employeeInfo = employeeMap[username];
+                const employeeInfo = this.employeeMap[username];
                 
                 if (employeeInfo && employeeInfo.team) {
                     const teamName = employeeInfo.team;
@@ -450,18 +480,21 @@ class BehandelcentrumApp {
         const { data, type, actionable } = getTabData();
         const isLopend = this.viewMode === 'lopend';
         
+        // Apply team filtering if needed
+        const filteredData = this.showOnlyOwnTeam ? this.filterDataByTeam(data) : data;
+        
         // If showing only own team or no data, use single table
-        if (this.showOnlyOwnTeam || !data || data.length === 0) {
+        if (this.showOnlyOwnTeam || !filteredData || filteredData.length === 0) {
             return h('div', { className: 'tab-content-container' },
                 h('div', { className: 'tab-content active' },
                     h('div', { className: 'content-header' },
                         h('h3', null,
                             isLopend ?
-                            `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen (${data.length})` :
-                            `📁 ${this.getActiveTypeTitle()} - Historisch (${data.length})`
+                            `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen (${filteredData.length})` :
+                            `📁 ${this.getActiveTypeTitle()} - Historisch (${filteredData.length})`
                         )
                     ),
-                    this.renderSimpleTable(data, type, actionable)
+                    this.renderSimpleTable(filteredData, type, actionable)
                 )
             );
         } else {
@@ -475,7 +508,7 @@ class BehandelcentrumApp {
                             `📁 ${this.getActiveTypeTitle()} - Historisch`
                         )
                     ),
-                    this.renderGroupedTables(data, type, actionable)
+                    this.renderGroupedTables(filteredData, type, actionable)
                 )
             );
         }
@@ -508,34 +541,32 @@ class BehandelcentrumApp {
             const groupKeys = Object.keys(groupedData);
             
             if (groupKeys.length === 0) {
-                container.innerHTML = '';
                 const emptyState = h('div', { className: 'empty-state' },
                     h('div', { className: 'empty-icon' }, '📋'),
                     h('h3', null, 'Geen gegevens'),
                     h('p', null, 'Er zijn geen gegevens beschikbaar voor deze categorie.')
                 );
-                container.appendChild(emptyState);
+                ReactDOM.render(emptyState, container);
                 return;
             }
 
-            // Clear loading message
-            container.innerHTML = '';
+            // Render all team sections in a single React component
+            const allTeamSections = h('div', { className: 'team-sections-container' },
+                groupKeys.map(teamKey => {
+                    const group = groupedData[teamKey];
+                    return this.renderTeamSection(group, type, actionable);
+                })
+            );
             
-            // Render each team group
-            groupKeys.forEach(teamKey => {
-                const group = groupedData[teamKey];
-                const teamSection = this.renderTeamSection(group, type, actionable);
-                container.appendChild(teamSection);
-            });
+            ReactDOM.render(allTeamSections, container);
             
         } catch (error) {
             console.error('Error loading grouped tables:', error);
-            container.innerHTML = '';
             const errorState = h('div', { className: 'error-state' },
                 h('h3', null, 'Fout bij laden'),
                 h('p', null, 'Er is een fout opgetreden bij het groeperen van gegevens.')
             );
-            container.appendChild(errorState);
+            ReactDOM.render(errorState, container);
         }
     }
 
@@ -1328,6 +1359,9 @@ class BehandelcentrumApp {
         if (!this.currentUser || !this.currentUser.Title) return;
         
         try {
+            // Check if this is the super user
+            this.isSuperUser = this.currentUser.Title && this.currentUser.Title.toLowerCase() === 'busselw';
+            
             // Load user settings from gebruikersInstellingen list
             const userSettings = await window.SharePointService.fetchSharePointList('gebruikersInstellingen');
             
@@ -1347,9 +1381,16 @@ class BehandelcentrumApp {
                 this.showOnlyOwnTeam = false;
             }
             
+            // If super user, always start with all data visible (but can emulate)
+            if (this.isSuperUser) {
+                this.showOnlyOwnTeam = false;
+                await this.loadAllTeamLeaders();
+            }
+            
             console.log('User settings loaded:', {
                 showOnlyOwnTeam: this.showOnlyOwnTeam,
-                userSettings: this.userSettings
+                userSettings: this.userSettings,
+                isSuperUser: this.isSuperUser
             });
             
         } catch (error) {
@@ -1396,6 +1437,41 @@ class BehandelcentrumApp {
         }
     }
     
+    async loadAllTeamLeaders() {
+        try {
+            // Load all teams to get team leaders
+            const teams = await window.SharePointService.fetchSharePointList('Teams');
+            const medewerkers = await window.SharePointService.fetchSharePointList('Medewerkers');
+            
+            this.allTeamLeaders = [];
+            
+            for (const team of teams) {
+                if (team.TeamleiderId) {
+                    const teamLeader = medewerkers.find(m => m.ID === team.TeamleiderId);
+                    if (teamLeader) {
+                        this.allTeamLeaders.push({
+                            id: teamLeader.ID,
+                            username: teamLeader.Username,
+                            naam: teamLeader.Naam || teamLeader.Title,
+                            teamNaam: team.Naam,
+                            teamId: team.ID
+                        });
+                    }
+                }
+            }
+            
+            // Remove duplicates (same person leading multiple teams)
+            this.allTeamLeaders = this.allTeamLeaders.filter((leader, index, self) => 
+                index === self.findIndex(l => l.username === leader.username)
+            );
+            
+            console.log('All team leaders loaded:', this.allTeamLeaders);
+            
+        } catch (error) {
+            console.error('Error loading team leaders for emulation:', error);
+        }
+    }
+
     async filterByTeams(items) {
         // If not a team leader or showing all teams, return all items
         if (!this.isTeamLeader || !this.showOnlyOwnTeam) {
@@ -1432,6 +1508,51 @@ class BehandelcentrumApp {
         } catch (error) {
             console.warn('Error filtering by teams:', error);
             return items; // Return all items if filtering fails
+        }
+    }
+
+    filterDataByTeam(data) {
+        // If super user not emulating, or not team leader, or not filtering by team
+        if (this.isSuperUser && !this.emulatingTeamLeader) {
+            return data; // Super user sees all data by default
+        }
+        
+        if (!this.isTeamLeader || !this.showOnlyOwnTeam) {
+            return data; // Show all data if not filtering
+        }
+        
+        try {
+            // Determine which teams to show
+            let teamsToShow = [];
+            
+            if (this.emulatingTeamLeader) {
+                // When emulating, show only that team leader's teams
+                teamsToShow = this.emulatingTeamLeader.teamNaam ? [this.emulatingTeamLeader.teamNaam] : [];
+            } else {
+                // Show current user's teams
+                teamsToShow = this.currentUserTeams.map(team => team.Naam);
+            }
+            
+            if (teamsToShow.length === 0) {
+                return data; // Fallback: show all if no teams found
+            }
+            
+            // Filter data to only include requests from team members
+            return data.filter(item => {
+                const username = (item.MedewerkerID || item.Medewerker || item.Gebruikersnaam || '').toLowerCase();
+                
+                // Find employee's team
+                const employeeInfo = this.employeeMap ? this.employeeMap[username] : null;
+                if (!employeeInfo || !employeeInfo.team) {
+                    return false; // Exclude if no team info
+                }
+                
+                return teamsToShow.includes(employeeInfo.team);
+            });
+            
+        } catch (error) {
+            console.warn('Error filtering data by team:', error);
+            return data; // Fallback: return all data
         }
     }
 
