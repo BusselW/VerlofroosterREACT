@@ -146,8 +146,15 @@ class BehandelcentrumApp {
             console.log('Zittingsvrij data loaded:', zittingsvrijData.length, 'items');
 
             // Separate data into lopend vs archief based on status
-            this.verlofLopend = verlofData.filter(item => this.isInBehandeling(item.Status));
-            this.verlofArchief = verlofData.filter(item => !this.isInBehandeling(item.Status));
+            // For verlof: only show items with Reden = 'Verlof' or 'vakantie'
+            this.verlofLopend = verlofData.filter(item => 
+                this.isInBehandeling(item.Status) && 
+                this.isVerlofReason(item.Reden)
+            );
+            this.verlofArchief = verlofData.filter(item => 
+                !this.isInBehandeling(item.Status) && 
+                this.isVerlofReason(item.Reden)
+            );
             
             this.compensatieLopend = compensatieData.filter(item => this.isInBehandeling(item.Status));
             this.compensatieArchief = compensatieData.filter(item => !this.isInBehandeling(item.Status));
@@ -187,6 +194,15 @@ class BehandelcentrumApp {
             statusLower === 'in behandeling' ||
             statusLower === 'pending' ||
             statusLower === '';
+    }
+
+    isVerlofReason(reden) {
+        if (!reden) return false;
+        const redenLower = reden.toLowerCase();
+        return redenLower === 'verlof' || 
+               redenLower === 'vakantie' || 
+               redenLower.includes('verlof') || 
+               redenLower.includes('vakantie');
     }
 
     render() {
