@@ -261,21 +261,19 @@ class BehandelcentrumApp {
                statusLower === '';
 
     }
-
- 
-
     render() {
-
         this.root.innerHTML = '';
-
         const app = h('div', { class: 'behandelcentrum-app' },
-
             this.renderTabs(),
-
             this.renderTabContent()
-
-        );        this.root.appendChild(app);
-
+        );
+        
+        // Add modal if one should be shown
+        if (this.isApproveModalOpen || this.isRejectModalOpen || this.isReactieModalOpen) {
+            app.appendChild(this.renderModal());
+        }
+        
+        this.root.appendChild(app);
     }
     renderTabs() {
         return h('div', { class: 'navigation-container' },
@@ -774,17 +772,14 @@ class BehandelcentrumApp {
         );
 
     }
-
- 
-
     closeModal() {
-
-        if (this.isReactieModalOpen) this.closeReactieModal();
-
-        if (this.isApproveModalOpen) this.closeApproveModal();
-
-        if (this.isRejectModalOpen) this.closeRejectModal();
-
+        this.selectedItem = null;
+        this.modalAction = null;
+        this.isReactieModalOpen = false;
+        this.isApproveModalOpen = false;
+        this.isRejectModalOpen = false;
+        this.render();
+        this.bindEvents();
     }
 
  
@@ -1093,11 +1088,29 @@ class BehandelcentrumApp {
 
         // Action button events
         document.querySelectorAll('.btn-approve').forEach(button => {
-            button.addEventListener('click', (e) => this.handleApprove(e));
+            button.removeEventListener('click', this.handleApprove);
+            button.addEventListener('click', this.handleApprove.bind(this));
         });
 
         document.querySelectorAll('.btn-reject').forEach(button => {
-            button.addEventListener('click', (e) => this.handleReject(e));
+            button.removeEventListener('click', this.handleReject);
+            button.addEventListener('click', this.handleReject.bind(this));
+        });
+
+        // Modal button events
+        document.querySelectorAll('.btn-approve-confirm').forEach(button => {
+            button.removeEventListener('click', this.confirmAction);
+            button.addEventListener('click', this.confirmAction.bind(this));
+        });
+
+        document.querySelectorAll('.btn-reject-confirm').forEach(button => {
+            button.removeEventListener('click', this.confirmAction);
+            button.addEventListener('click', this.confirmAction.bind(this));
+        });
+
+        document.querySelectorAll('.btn-comment-save').forEach(button => {
+            button.removeEventListener('click', this.saveReactie);
+            button.addEventListener('click', this.saveReactie.bind(this));
         });
 
         // Load teamleider data asynchronously
@@ -1194,8 +1207,13 @@ class BehandelcentrumApp {
         const itemId = button.dataset.itemId;
         const itemType = button.dataset.itemType;
         
-        if (confirm('Weet je zeker dat je deze aanvraag wilt goedkeuren?')) {
-            this.updateItemStatus(itemId, itemType, 'Goedgekeurd');
+        // Find the item in our data to show in modal
+        this.selectedItem = this.findItemById(itemId, itemType);
+        if (this.selectedItem) {
+            this.modalAction = 'approve';
+            this.isApproveModalOpen = true;
+            this.render();
+            this.bindEvents();
         }
     }
 
@@ -1204,27 +1222,78 @@ class BehandelcentrumApp {
         const itemId = button.dataset.itemId;
         const itemType = button.dataset.itemType;
         
-        if (confirm('Weet je zeker dat je deze aanvraag wilt afwijzen?')) {
-            this.updateItemStatus(itemId, itemType, 'Afgekeurd');
+        // Find the item in our data to show in modal
+        this.selectedItem = this.findItemById(itemId, itemType);
+        if (this.selectedItem) {
+            this.modalAction = 'reject';
+            this.isRejectModalOpen = true;
+            this.render();
+            this.bindEvents();
         }
     }
 
-    async updateItemStatus(itemId, itemType, newStatus) {
+    findItemById(itemId, itemType) {
+        const allItems = [];
+        
+        // Collect all items based on type
+        if (itemType === 'Verlof') {
+            allItems.push(...this.alleVerlofAanvragen, ...this.alleZiekteAanvragen);
+        } else if (itemType === 'CompensatieUren') {
+            allItems.push(...this.alleCompensatieAanvragen);
+        } else if (itemType === 'IncidenteelZittingVrij') {
+            allItems.push(...this.alleZittingsvrijAanvragen);
+        }
+        
+        // Find item by ID (handle both ID and Id properties)
+        return allItems.find(item => (item.ID || item.Id) == itemId);
+    }
+
+    async confirmAction() {
+        const textarea = document.getElementById('reactie-text');
+        const reactie = textarea ? textarea.value.trim() : '';
+        
         try {
-            await window.SharePointService.updateListItem(itemType, itemId, {
-                Status: newStatus
-            });
+            const itemId = this.selectedItem.ID || this.selectedItem.Id;
+            const listType = this.getListTypeForActiveTab();
+            const newStatus = this.modalAction === 'approve' ? 'Goedgekeurd' : 'Afgekeurd';
             
-            // Reload data and refresh display
+            // Determine the correct field name for the handler comment
+            let reactieField;
+            switch (listType) {
+                case 'CompensatieUren':
+                    reactieField = 'ReactieBehandelaar';
+                    break;
+                case 'Verlof':
+                    reactieField = 'OpmerkingBehandelaar';
+                    break;
+                case 'IncidenteelZittingVrij':
+                    reactieField = 'Opmerking';
+                    break;
+                default:
+                    reactieField = 'ReactieBehandelaar';
+            }
+            
+            // Prepare update data
+            const updateData = {
+                Status: newStatus
+            };
+            
+            // Add reaction if provided
+            if (reactie) {
+                updateData[reactieField] = reactie;
+            }
+            
+            await window.SharePointService.updateListItem(listType, itemId, updateData);
+            
+            // Reload data and close modal
             await this.loadData();
-            this.render();
-            this.bindEvents();
+            this.closeModal();
             
             alert(`Aanvraag succesvol ${newStatus.toLowerCase()}!`);
             
         } catch (error) {
-            console.error(`Fout bij updaten van status:`, error);
-            alert(`Er is een fout opgetreden bij het updaten van de aanvraag.`);
+            console.error(`Fout bij ${this.modalAction === 'approve' ? 'goedkeuren' : 'afwijzen'} van aanvraag:`, error);
+            alert(`Er is een fout opgetreden bij het ${this.modalAction === 'approve' ? 'goedkeuren' : 'afwijzen'} van de aanvraag.`);
         }
     }
 }

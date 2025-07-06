@@ -680,40 +680,87 @@ body.dark-theme .teamleider-unavailable {
 }
 
 /* ==========================================================================
-   COMPACT STATUS BADGES
+   MODAL ACTION BUTTONS
    ========================================================================== */
-.status-badge {
-    padding: 2px 6px;
-    border-radius: var(--radius-md);
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.2px;
-    display: inline-block;
+
+.btn-approve-confirm {
+    background: var(--success) !important;
+    border-color: var(--success) !important;
+    color: white !important;
 }
 
-.status-badge.status-goedgekeurd {
-    background: var(--success-light);
-    color: var(--success);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+.btn-approve-confirm:hover {
+    background: #059669 !important;
+    border-color: #059669 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
 }
 
-.status-badge.status-afgekeurd {
-    background: var(--danger-light);
-    color: var(--danger);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+.btn-reject-confirm {
+    background: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: white !important;
 }
 
-.status-badge.status-nieuw {
-    background: var(--info-light);
-    color: var(--info);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+.btn-reject-confirm:hover {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
 
-.status-badge.status-in-behandeling {
+.btn-comment-save {
+    background: var(--info) !important;
+    border-color: var(--info) !important;
+    color: white !important;
+}
+
+.btn-comment-save:hover {
+    background: #4f46e5 !important;
+    border-color: #4f46e5 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+}
+
+.action-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-lg);
+    padding: var(--space-xl);
     background: var(--warning-light);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-xl);
+}
+
+.warning-icon {
+    flex-shrink: 0;
+    font-size: 1.2rem;
     color: var(--warning);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.action-warning p {
+    margin: 0;
+    color: #92400e;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Action modal specific styling */
+.action-modal .modal-content {
+    max-width: 500px;
+}
+
+.action-modal .reactie-textarea {
+    min-height: 80px;
+}
+
+.reactie-modal .modal-content {
+    max-width: 600px;
+}
+
+.reactie-modal .reactie-textarea {
+    min-height: 120px;
 }
 
 /* ==========================================================================
