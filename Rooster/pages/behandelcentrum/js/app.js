@@ -93,6 +93,10 @@ class BehandelcentrumApp {
        
 
         this.activeTab = 'verlof-lopend';
+        
+        // New navigation state
+        this.viewMode = 'lopend'; // 'lopend' or 'historisch'
+        this.selectedType = 'verlof'; // 'verlof', 'compensatie', 'ziekte', 'zittingsvrij'
 
        
 
@@ -273,177 +277,114 @@ class BehandelcentrumApp {
         );        this.root.appendChild(app);
 
     }
-
- 
-
     renderTabs() {
-
-        return h('div', { class: 'tab-container-compact' },
-
-            h('div', { class: 'tab-sections-wrapper' },
-
-                // LOPENDE AANVRAGEN - Only Verlof and Compensatie (Very compact)
-
-                h('div', { class: 'tab-section lopende-section' },
-
-                    h('div', { class: 'section-header' },
-
-                        h('i', { class: 'fas fa-clock' }),
-
-                        'Lopend'
-
-                    ),
-
-                    h('div', { class: 'compact-buttons' },
-
-                        h('button', {
-
-                            class: `compact-tab ${this.activeTab === 'verlof-lopend' ? 'active' : ''}`,
-
-                            'data-tab': 'verlof-lopend'
-
-                        },
-
-                            'Verlof',
-
-                            h('span', { class: 'mini-badge urgent' }, this.verlofLopend.length)
-
-                        ),
-
-                        h('button', {
-
-                            class: `compact-tab ${this.activeTab === 'compensatie-lopend' ? 'active' : ''}`,
-
-                            'data-tab': 'compensatie-lopend'
-
-                        },
-
-                            'Compensatie',
-
-                            h('span', { class: 'mini-badge urgent' }, this.compensatieLopend.length)
-
-                        )
-
-                    )
-
+        return h('div', { class: 'navigation-container' },
+            // Main toggle between Lopende and Historische aanvragen
+            h('div', { class: 'main-toggle' },
+                h('button', {
+                    class: `toggle-btn ${this.viewMode === 'lopend' ? 'active' : ''}`,
+                    'data-mode': 'lopend'
+                },
+                    h('i', { class: 'fas fa-clock' }),
+                    'Lopende aanvragen'
                 ),
-
-               
-
-                // ARCHIEF - All four types (Compact grid)
-
-                h('div', { class: 'tab-section archief-section' },
-
-                    h('div', { class: 'section-header' },
-
-                        h('i', { class: 'fas fa-archive' }),
-
-                        'Archief'
-
-                    ),
-
-                    h('div', { class: 'compact-grid' },
-
-                        h('button', {
-
-                            class: `compact-tab ${this.activeTab === 'verlof-archief' ? 'active' : ''}`,
-
-                            'data-tab': 'verlof-archief'
-
-                        },
-
-                            'Verlof',
-
-                            h('span', { class: 'mini-badge' }, this.verlofArchief.length)
-
-                        ),
-
-                        h('button', {
-
-                            class: `compact-tab ${this.activeTab === 'compensatie-archief' ? 'active' : ''}`,
-
-                            'data-tab': 'compensatie-archief'
-
-                        },
-
-                            'Compensatie',
-
-                            h('span', { class: 'mini-badge' }, this.compensatieArchief.length)
-
-                        ),
-
-                        h('button', {
-
-                            class: `compact-tab ${this.activeTab === 'ziekte-archief' ? 'active' : ''}`,
-
-                            'data-tab': 'ziekte-archief'
-
-                        },
-
-                            'Ziekte',
-
-                            h('span', { class: 'mini-badge' }, this.ziekteArchief.length)
-
-                        ),
-
-                        h('button', {
-
-                            class: `compact-tab ${this.activeTab === 'zittingsvrij-archief' ? 'active' : ''}`,
-
-                            'data-tab': 'zittingsvrij-archief'
-
-                        },
-
-                            'Zittingsvrij',
-
-                            h('span', { class: 'mini-badge' }, this.zittingsvrijArchief.length)
-
-                        )
-
-                    )
-
+                h('button', {
+                    class: `toggle-btn ${this.viewMode === 'historisch' ? 'active' : ''}`,
+                    'data-mode': 'historisch'
+                },
+                    h('i', { class: 'fas fa-archive' }),
+                    'Historische aanvragen'
                 )
-
+            ),
+            
+            // Type selection buttons
+            h('div', { class: 'type-selection' },
+                h('div', { class: 'type-buttons' },
+                    // Verlof button
+                    h('button', {
+                        class: `type-btn ${this.selectedType === 'verlof' ? 'active' : ''}`,
+                        'data-type': 'verlof'
+                    },
+                        'Verlof',
+                        h('span', { class: 'count-badge' }, 
+                            this.viewMode === 'lopend' ? this.verlofLopend.length : this.verlofArchief.length
+                        )
+                    ),
+                    
+                    // Compensatie button
+                    h('button', {
+                        class: `type-btn ${this.selectedType === 'compensatie' ? 'active' : ''}`,
+                        'data-type': 'compensatie'
+                    },
+                        'Compensatie',
+                        h('span', { class: 'count-badge' }, 
+                            this.viewMode === 'lopend' ? this.compensatieLopend.length : this.compensatieArchief.length
+                        )
+                    ),
+                    
+                    // Show Ziekte and Zittingsvrij only in historical mode
+                    this.viewMode === 'historisch' && h('button', {
+                        class: `type-btn ${this.selectedType === 'ziekte' ? 'active' : ''}`,
+                        'data-type': 'ziekte'
+                    },
+                        'Ziekte',
+                        h('span', { class: 'count-badge' }, this.ziekteArchief.length)
+                    ),
+                    
+                    this.viewMode === 'historisch' && h('button', {
+                        class: `type-btn ${this.selectedType === 'zittingsvrij' ? 'active' : ''}`,
+                        'data-type': 'zittingsvrij'
+                    },
+                        'Zittingsvrij',
+                        h('span', { class: 'count-badge' }, this.zittingsvrijArchief.length)
+                    )
+                )
             )
-
         );
-
     }
 
  
 
     renderTabContent() {
         const getTabData = () => {
-            switch (this.activeTab) {
-                case 'verlof-lopend':
-                    return { data: this.verlofLopend, type: 'verlof', actionable: true };
-                case 'compensatie-lopend':
-                    return { data: this.compensatieLopend, type: 'compensatie', actionable: true };
-                case 'verlof-archief':
-                    return { data: this.verlofArchief, type: 'verlof', actionable: false };
-                case 'compensatie-archief':
-                    return { data: this.compensatieArchief, type: 'compensatie', actionable: false };
-                case 'ziekte-archief':
-                    return { data: this.ziekteArchief, type: 'verlof', actionable: false };
-                case 'zittingsvrij-archief':
-                    return { data: this.zittingsvrijArchief, type: 'zittingsvrij', actionable: false };
-                default:
-                    return { data: this.verlofLopend, type: 'verlof', actionable: true };
+            // Determine the data based on viewMode and selectedType
+            if (this.viewMode === 'lopend') {
+                switch (this.selectedType) {
+                    case 'verlof':
+                        return { data: this.verlofLopend, type: 'verlof', actionable: true };
+                    case 'compensatie':
+                        return { data: this.compensatieLopend, type: 'compensatie', actionable: true };
+                    default:
+                        return { data: this.verlofLopend, type: 'verlof', actionable: true };
+                }
+            } else { // historisch
+                switch (this.selectedType) {
+                    case 'verlof':
+                        return { data: this.verlofArchief, type: 'verlof', actionable: false };
+                    case 'compensatie':
+                        return { data: this.compensatieArchief, type: 'compensatie', actionable: false };
+                    case 'ziekte':
+                        return { data: this.ziekteArchief, type: 'verlof', actionable: false };
+                    case 'zittingsvrij':
+                        return { data: this.zittingsvrijArchief, type: 'zittingsvrij', actionable: false };
+                    default:
+                        return { data: this.verlofArchief, type: 'verlof', actionable: false };
+                }
             }
         };
 
         const { data, type, actionable } = getTabData();
-        const isLopend = this.activeTab.includes('-lopend');
+        const isLopend = this.viewMode === 'lopend';
         
         return h('div', { class: 'tab-content-container' },
             h('div', { class: 'tab-content active' },
-                h('div', { class: 'tab-header-compact' },
+                h('div', { class: 'content-header' },
                     h('h3', null,
                         isLopend ?
-                        `🔄 ${this.getTabTitle()} - Lopende Aanvragen (${data.length})` :
-                        `📁 ${this.getTabTitle()} - Archief (${data.length})`
+                        `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen (${data.length})` :
+                        `📁 ${this.getActiveTypeTitle()} - Historisch (${data.length})`
                     ),
-                    isLopend && data.length > 0 && h('div', { class: 'compact-alert' },
+                    isLopend && data.length > 0 && h('div', { class: 'alert-info' },
                         h('i', { class: 'fas fa-info-circle' }),
                         'Wacht op behandeling'
                     )
@@ -455,16 +396,19 @@ class BehandelcentrumApp {
 
  
 
-    getTabTitle() {
-        const tabTitles = {
-            'verlof-lopend': 'Verlofaanvragen',
-            'compensatie-lopend': 'Compensatie-uren',
-            'verlof-archief': 'Verlofaanvragen',
-            'compensatie-archief': 'Compensatie-uren',
-            'ziekte-archief': 'Ziektemeldingen',
-            'zittingsvrij-archief': 'Zittingsvrije dagen'
+    getActiveTypeTitle() {
+        const typeTitles = {
+            'verlof': 'Verlofaanvragen',
+            'compensatie': 'Compensatie-uren',
+            'ziekte': 'Ziektemeldingen',
+            'zittingsvrij': 'Zittingsvrije dagen'
         };
-        return tabTitles[this.activeTab] || 'Overzicht';
+        return typeTitles[this.selectedType] || 'Overzicht';
+    }
+
+    getTabTitle() {
+        // Legacy method for backward compatibility
+        return this.getActiveTypeTitle();
     }
 
     renderSimpleTable(data, type, actionable) {
@@ -558,11 +502,11 @@ class BehandelcentrumApp {
                     );
                 } else if (col === 'Behandelaar Reactie') {
                     let reactie = '';
-                    if (this.activeTab.includes('compensatie')) {
+                    if (this.selectedType === 'compensatie') {
                         reactie = item.ReactieBehandelaar || '';
-                    } else if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
+                    } else if (this.selectedType === 'verlof' || this.selectedType === 'ziekte') {
                         reactie = item.OpmerkingBehandelaar || '';
-                    } else if (this.activeTab.includes('zittingsvrij')) {
+                    } else if (this.selectedType === 'zittingsvrij') {
                         reactie = item.Opmerking || '';
                     }
                     
@@ -691,24 +635,14 @@ class BehandelcentrumApp {
 
         }
 
-       
-
-        // Get the current handler comment based on the active tab
-
+         // Get the current handler comment based on the selected type
         let currentReactie = '';
-
-        if (this.activeTab.includes('compensatie')) {
-
+        if (this.selectedType === 'compensatie') {
             currentReactie = item.ReactieBehandelaar || '';
-
-        } else if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
-
+        } else if (this.selectedType === 'verlof' || this.selectedType === 'ziekte') {
             currentReactie = item.OpmerkingBehandelaar || '';
-
-        } else if (this.activeTab.includes('zittingsvrij')) {
-
+        } else if (this.selectedType === 'zittingsvrij') {
             currentReactie = item.Opmerking || '';
-
         }
 
  
@@ -961,40 +895,22 @@ class BehandelcentrumApp {
 
             const listType = this.getListTypeForActiveTab();
 
-            
-
-            // Determine the correct field name for the handler comment based on configLijst.js
-
+              // Determine the correct field name for the handler comment based on configLijst.js
             let reactieField;
-
             switch (listType) {
-
                 case 'CompensatieUren':
-
                     reactieField = 'ReactieBehandelaar'; // From configLijst.js
-
                     break;
-
                 case 'Verlof':
-
                     reactieField = 'OpmerkingBehandelaar'; // From configLijst.js
-
                     break;
-
                 case 'IncidenteelZittingVrij':
-
                     // IncidenteelZittingVrij doesn't have a specific handler comment field in configLijst.js
-
                     // We'll use Opmerking field for now
-
                     reactieField = 'Opmerking';
-
                     break;
-
                 default:
-
                     reactieField = 'ReactieBehandelaar';
-
             }
 
              await window.SharePointService.updateListItem(listType, itemId, {
@@ -1020,27 +936,15 @@ class BehandelcentrumApp {
         }
 
     }
-
- 
-
     getListTypeForActiveTab() {
-
-        if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
-
+        if (this.selectedType === 'verlof' || this.selectedType === 'ziekte') {
             return 'Verlof';
-
-        } else if (this.activeTab.includes('compensatie')) {
-
+        } else if (this.selectedType === 'compensatie') {
             return 'CompensatieUren';
-
-        } else if (this.activeTab.includes('zittingsvrij')) {
-
+        } else if (this.selectedType === 'zittingsvrij') {
             return 'IncidenteelZittingVrij';
-
         }
-
         return 'Verlof'; // default
-
     }
 
  
@@ -1052,18 +956,6 @@ class BehandelcentrumApp {
             // Create a placeholder with data attributes for async loading
             // Use MedewerkerID for Verlof items, Medewerker for CompensatieUren, Gebruikersnaam for Zittingsvrij
             const username = item.MedewerkerID || item.Medewerker || item.Gebruikersnaam || '';
-            
-            // Debug logging to verify which fields are available
-            if (!username) {
-                console.warn('🚨 No username found for teamleider lookup. Available fields:', Object.keys(item));
-                console.warn('🚨 Item data:', { 
-                    MedewerkerID: item.MedewerkerID, 
-                    Medewerker: item.Medewerker, 
-                    Gebruikersnaam: item.Gebruikersnaam 
-                });
-            } else {
-                console.log('✅ Username found for teamleider lookup:', username);
-            }
             
             return h('span', {
                 class: 'teamleider-placeholder',
@@ -1187,10 +1079,16 @@ class BehandelcentrumApp {
     }
 
     bindEvents() {
-        // Tab switching
-        document.querySelectorAll('.compact-tab').forEach(button => {
-            button.removeEventListener('click', this.handleTabClick);
-            button.addEventListener('click', this.handleTabClick.bind(this));
+        // Main toggle buttons (Lopende vs Historische)
+        document.querySelectorAll('.toggle-btn').forEach(button => {
+            button.removeEventListener('click', this.handleModeToggle);
+            button.addEventListener('click', this.handleModeToggle.bind(this));
+        });
+
+        // Type selection buttons (Verlof, Compensatie, etc.)
+        document.querySelectorAll('.type-btn').forEach(button => {
+            button.removeEventListener('click', this.handleTypeSelection);
+            button.addEventListener('click', this.handleTypeSelection.bind(this));
         });
 
         // Action button events
@@ -1239,10 +1137,53 @@ class BehandelcentrumApp {
         }
     }
 
+    handleModeToggle(e) {
+        const mode = e.currentTarget.getAttribute('data-mode');
+        if (mode && mode !== this.viewMode) {
+            this.viewMode = mode;
+            
+            // Reset to valid type for the new mode
+            if (mode === 'lopend' && (this.selectedType === 'ziekte' || this.selectedType === 'zittingsvrij')) {
+                this.selectedType = 'verlof'; // Default to verlof for lopende aanvragen
+            }
+            
+            this.render();
+            this.bindEvents();
+        }
+    }
+
+    handleTypeSelection(e) {
+        const type = e.currentTarget.getAttribute('data-type');
+        if (type && type !== this.selectedType) {
+            this.selectedType = type;
+            this.render();
+            this.bindEvents();
+        }
+    }
+
     handleTabClick(e) {
+        // Legacy method for backward compatibility
         const tabId = e.currentTarget.getAttribute('data-tab');
         if (tabId && tabId !== this.activeTab) {
             this.activeTab = tabId;
+            
+            // Convert legacy tab format to new navigation state
+            if (tabId.includes('-lopend')) {
+                this.viewMode = 'lopend';
+            } else {
+                this.viewMode = 'historisch';
+            }
+            
+            if (tabId.includes('verlof')) {
+                this.selectedType = 'verlof';
+            } else if (tabId.includes('compensatie')) {
+                this.selectedType = 'compensatie';
+            } else if (tabId.includes('ziekte')) {
+                this.selectedType = 'ziekte';
+            } else if (tabId.includes('zittingsvrij')) {
+                this.selectedType = 'zittingsvrij';
+            }
+            
             this.render();
             this.bindEvents();
         }

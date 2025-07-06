@@ -30,12 +30,8 @@
                             <i class="fas fa-arrow-left"></i>
                             <span>Terug naar rooster</span>
                         </a>
-                        <div class="user-dropdown">
-                            <button class="user-settings-btn">
-                                <img src="../../icons/profilecards/favicon.svg" alt="Avatar" class="user-avatar-small">
-                                <span class="user-name" id="huidige-gebruiker">Gebruiker wordt geladen...</span>
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
+                        <div class="user-info">
+                            <span class="user-name" id="huidige-gebruiker">Gebruiker wordt geladen...</span>
                         </div>
                     </div>
                 </div>
