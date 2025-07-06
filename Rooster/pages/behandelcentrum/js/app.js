@@ -59,7 +59,13 @@ class BehandelcentrumApp {
         if (currentUser) {
             document.getElementById('huidige-gebruiker').textContent = currentUser.Title;
         }
-        document.getElementById('verbinding-status').textContent = 'Verbonden';
+        
+        // Status element is optional in new design
+        const statusElement = document.getElementById('verbinding-status');
+        if (statusElement) {
+            statusElement.textContent = 'Verbonden';
+        }
+        
         document.getElementById('huidig-jaar').textContent = new Date().getFullYear();
 
         await this.loadData();

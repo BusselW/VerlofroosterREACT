@@ -16,30 +16,26 @@
     <link rel="stylesheet" href="css/behandelCentrumN.css">
 </head>
 <body class="light-theme">
-    <!-- Hoofd Banner -->
-    <div id="page-banner" class="page-banner">
-        <div class="banner-content">
-            <div class="banner-left">
-                <h1 class="banner-title">
-                    Verlofaanvragen Behandelcentrum
-                </h1>
-                <p class="banner-subtitle">
-                    Goedkeuring en behandeling van verlofaanvragen
-                </p>
+    <!-- Hoofd Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1>Verlofaanvragen Behandelcentrum</h1>
             </div>
-            <div class="banner-right">
-                <a href="../../verlofRooster.aspx" class="btn-back">
-                    <svg class="icon-small" fill="currentColor" viewBox="0 0 20 20" width="16" height="16">
-                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
-                    </svg>
-                    <span>Terug naar rooster</span>
-                </a>
-                <div class="user-details">
-                    <div class="user-info">
-                        <span id="huidige-gebruiker">Gebruiker wordt geladen...</span>
-                    </div>
-                    <div class="connection-status">
-                        <span id="verbinding-status">Verbinden...</span>
+            <div class="header-acties">
+                <div class="navigation-buttons">
+                    <div class="nav-buttons-right">
+                        <a href="../../verlofRooster.aspx" class="btn btn-functional">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Terug naar rooster</span>
+                        </a>
+                        <div class="user-dropdown">
+                            <button class="user-settings-btn">
+                                <img src="../../icons/profilecards/favicon.svg" alt="Avatar" class="user-avatar-small">
+                                <span class="user-name" id="huidige-gebruiker">Gebruiker wordt geladen...</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

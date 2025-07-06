@@ -62,6 +62,36 @@ body.dark-theme {
     --info-light: #312e81;
 }
 
+/* Light Theme Variables */
+body.light-theme {
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    
+    --color-primary: #2196f3;
+    --color-primary-dark: #1976d2;
+    --color-secondary: #757575;
+    --color-success: #4caf50;
+    --color-warning: #ff9800;
+    --color-danger: #f44336;
+    --color-info: #2196f3;
+    
+    --color-text-primary: #333;
+    --color-text-secondary: #757575;
+    --color-background: #f4f7fa;
+    --color-border: #e0e0e0;
+    
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+}
+
 /* ==========================================================================
    BASE STYLES & RESET
    ========================================================================== */
@@ -79,6 +109,10 @@ body {
     font-size: 13px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f4f7fa;
 }
 
 /* ==========================================================================
@@ -96,7 +130,8 @@ body {
     border: none;
     position: relative;
     overflow: visible;
-    margin-bottom: var(--space-lg);
+    margin: var(--space-lg);
+    margin-bottom: var(--space-md);
 }
 
 .header::before {
@@ -265,8 +300,11 @@ body {
 .app-container {
     width: 100%;
     max-width: none;
-    margin: 0;
-    padding: 0 var(--space-lg);
+    margin: 0 var(--space-lg);
+    padding: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .content-container {
@@ -284,6 +322,7 @@ body {
 .tab-container-compact {
     border-bottom: 1px solid #e2e8f0;
     background: var(--bg-secondary);
+    margin-top: 0;
 }
 
 .tab-sections-wrapper {
@@ -810,4 +849,16 @@ body.dark-theme .modal-footer {
 body.dark-theme .reactie-textarea {
     border-color: #334155;
     background: var(--bg-primary);
+}
+
+/* ==========================================================================
+   PAGE FOOTER
+   ========================================================================== */
+.page-footer {
+    margin-top: auto;
+    padding: var(--space-md) var(--space-lg);
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+    border-top: 1px solid var(--color-border);
 }
