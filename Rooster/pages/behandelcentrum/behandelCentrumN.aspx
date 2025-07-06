@@ -58,6 +58,7 @@
     </div>
     
     <!-- JS files -->
+    <script src="../../js/services/linkInfo-global.js"></script>
     <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -486,17 +486,21 @@ body {
     overflow: hidden;
     border: 1px solid #e2e8f0;
     margin-bottom: var(--space-xl);
+    width: 100%;
 }
 
+/* Ensure table headers are visible */
 .data-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.75rem;
     border: 1px solid #e2e8f0;
+    table-layout: fixed;
 }
 
 .data-table thead {
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    display: table-header-group;
 }
 
 .data-table th {
@@ -509,6 +513,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     position: relative;
+    height: 40px;
 }
 
 .data-table td {
@@ -553,6 +558,27 @@ th[data-column="EindeCompensatieUren"] {
     max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Teamleider column styling */
+td[data-column="Teamleider"],
+th[data-column="Teamleider"] {
+    white-space: nowrap;
+    min-width: 120px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.teamleider-placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.teamleider-loaded {
+    color: var(--text-primary);
+    font-style: normal;
 }
 
 /* ==========================================================================

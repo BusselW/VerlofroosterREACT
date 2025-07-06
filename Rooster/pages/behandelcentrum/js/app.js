@@ -1,4 +1,5 @@
 import { sharepointService } from './sharepoint-service.js';
+import * as linkInfo from '../../js/services/linkInfo.js';
 
 const h = (tag, props, ...children) => {
     const el = document.createElement(tag);
@@ -179,6 +180,9 @@ class BehandelcentrumApp {
             this.renderTabContent()
         );
         this.root.appendChild(app);
+        
+        // Update team leader information after rendering
+        this.updateTeamLeaderInfo();
     }
 
     renderTabs() {
@@ -303,9 +307,9 @@ class BehandelcentrumApp {
 
     getColumnsForType(type, includeActions = false) {
         const baseColumns = {
-            'verlof': ['Medewerker', 'Reden', 'StartDatum', 'EindDatum', 'AanvraagTijdstip', 'Status'],
-            'compensatie': ['Medewerker', 'Omschrijving', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'AanvraagTijdstip', 'Status'],
-            'zittingsvrij': ['Gebruikersnaam', 'Opmerking', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'AanvraagTijdstip', 'Status']
+            'verlof': ['Medewerker', 'Teamleider', 'Reden', 'StartDatum', 'EindDatum', 'AanvraagTijdstip', 'Status'],
+            'compensatie': ['Medewerker', 'Teamleider', 'Omschrijving', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'AanvraagTijdstip', 'Status'],
+            'zittingsvrij': ['Gebruikersnaam', 'Teamleider', 'Opmerking', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'AanvraagTijdstip', 'Status']
         };
 
         let columns = [...(baseColumns[type] || baseColumns['verlof'])];
@@ -709,7 +713,7 @@ class BehandelcentrumApp {
                         )
                     );
                 } else {
-                    return h('td', { 'data-column': col }, this.formatCellValue(item[col], col));
+                    return h('td', { 'data-column': col }, this.formatCellValue(item[col], col, item));
                 }
             })
         );
@@ -735,7 +739,7 @@ class BehandelcentrumApp {
                         ) : h('span', { class: 'no-reactie' }, '-')
                     );
                 } else {
-                    return h('td', { 'data-column': col }, this.formatCellValue(item[col], col));
+                    return h('td', { 'data-column': col }, this.formatCellValue(item[col], col, item));
                 }
             })
         );
@@ -745,6 +749,7 @@ class BehandelcentrumApp {
         const displayNames = {
             'Medewerker': 'Medewerker',
             'Gebruikersnaam': 'Medewerker',
+            'Teamleider': 'Teamleider',
             'AanvraagTijdstip': 'Aangemaakt op',
             'StartDatum': 'Vanaf',
             'EindDatum': 'Tot',
@@ -763,8 +768,16 @@ class BehandelcentrumApp {
         return displayNames[column] || column;
     }
 
-    formatCellValue(value, column) {
-        if (!value) return '-';
+    formatCellValue(value, column, item) {
+        if (!value && column !== 'Teamleider') return '-';
+
+        // For Teamleider column
+        if (column === 'Teamleider') {
+            // This gets populated asynchronously, return a placeholder
+            return h('span', { class: 'teamleider-placeholder', 'data-username': item.Medewerker || item.Gebruikersnaam || '' }, 
+                'Laden...'
+            );
+        }
 
         // Format dates
         if (column === 'AanvraagTijdstip') {
@@ -862,6 +875,35 @@ class BehandelcentrumApp {
         } catch (error) {
             console.error(`Fout bij ${isApprove ? 'goedkeuren' : 'afwijzen'}:`, error);
             alert(`Er is een fout opgetreden bij het ${isApprove ? 'goedkeuren' : 'afwijzen'} van de aanvraag. Probeer het opnieuw.`);
+        }
+    }
+
+    async updateTeamLeaderInfo() {
+        // Find all teamleader placeholders
+        const teamleaderElements = document.querySelectorAll('.teamleider-placeholder');
+        
+        // Process each placeholder
+        for (const element of teamleaderElements) {
+            const username = element.getAttribute('data-username');
+            if (!username) {
+                element.textContent = '-';
+                continue;
+            }
+            
+            try {
+                // Get team leader information using linkInfo service
+                const teamLeader = await linkInfo.getTeamLeaderForEmployee(username);
+                
+                if (teamLeader && teamLeader.Title) {
+                    element.textContent = teamLeader.Title;
+                    element.classList.add('teamleider-loaded');
+                } else {
+                    element.textContent = '-';
+                }
+            } catch (error) {
+                console.error(`Error getting team leader for ${username}:`, error);
+                element.textContent = 'Niet gevonden';
+            }
         }
     }
 }
