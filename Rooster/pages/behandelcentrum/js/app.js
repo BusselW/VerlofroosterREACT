@@ -919,7 +919,15 @@ class BehandelcentrumApp {
             }
             
             // Check if SharePoint configuration is available
-            if (!window.appConfiguratie || !window.appConfiguratie.instellingen || !window.appConfiguratie.instellingen.siteUrl === "") {
+            // Use ConfigHelper if available, otherwise fall back to direct check
+            let siteUrlAvailable = false;
+            if (window.ConfigHelper) {
+                siteUrlAvailable = !!window.ConfigHelper.getSiteUrl();
+            } else {
+                siteUrlAvailable = !!(window.appConfiguratie?.instellingen?.siteUrl);
+            }
+            
+            if (!siteUrlAvailable) {
                 console.warn('SharePoint configuration is not available. Team leader information cannot be loaded.');
                 markUnavailable();
                 return;

@@ -30,8 +30,8 @@
                 
                 // Fetch teams and employees data in parallel
                 const [teamsData, medewerkersData] = await Promise.all([
-                    fetchSharePointList('Teams'),
-                    fetchSharePointList('Medewerkers')
+                    window.SharePointService.fetchSharePointList('Teams'),
+                    window.SharePointService.fetchSharePointList('Medewerkers')
                 ]);
                 
                 // Filter out inactive teams
