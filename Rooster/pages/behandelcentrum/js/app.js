@@ -1047,26 +1047,29 @@ class BehandelcentrumApp {
 
     formatCellValue(value, column, item) {
 
-        if (!value && column !== 'Teamleider') return '-';
-
-        // For Teamleider column
-
+        if (!value && column !== 'Teamleider') return '-';        // For Teamleider column
         if (column === 'Teamleider') {
-
             // Create a placeholder with data attributes for async loading
-
-            const username = item.Medewerker || item.Gebruikersnaam || '';
-
+            // Use MedewerkerID for Verlof items, Medewerker for CompensatieUren, Gebruikersnaam for Zittingsvrij
+            const username = item.MedewerkerID || item.Medewerker || item.Gebruikersnaam || '';
+            
+            // Debug logging to verify which fields are available
+            if (!username) {
+                console.warn('🚨 No username found for teamleider lookup. Available fields:', Object.keys(item));
+                console.warn('🚨 Item data:', { 
+                    MedewerkerID: item.MedewerkerID, 
+                    Medewerker: item.Medewerker, 
+                    Gebruikersnaam: item.Gebruikersnaam 
+                });
+            } else {
+                console.log('✅ Username found for teamleider lookup:', username);
+            }
+            
             return h('span', {
-
                 class: 'teamleider-placeholder',
-
                 'data-username': username,
-
                 title: 'Teamleider van ' + username
-
             }, 'Laden...');
-
         }
 
  

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Following coding instructions from .github/copilot-instructions.md -->
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
