@@ -221,11 +221,46 @@ if (typeof window.appConfiguratie === "undefined") {
             return null;
         }
     }
+
+    /**
+     * Gets information about the current SharePoint user.
+     * @returns {Promise<object|null>} A Promise that resolves to current user data or null on error.
+     */
+    async function getCurrentUser() {
+        try {
+            const siteUrl = window.ConfigHelper ? window.ConfigHelper.getSiteUrl() : (window.appConfiguratie?.instellingen?.siteUrl || "");
+            if (!siteUrl) {
+                console.warn("SiteUrl configuratie is niet beschikbaar voor getCurrentUser.");
+                return null;
+            }
+            
+            const apiUrl = `${siteUrl.replace(/\/$/, "")}/_api/web/currentuser`;
+            
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json;odata=nometadata' },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                console.warn(`Fout bij ophalen van huidige gebruiker: ${response.statusText}`);
+                return null;
+            }
+            
+            const currentUser = await response.json();
+            console.log('Huidige gebruiker opgehaald:', currentUser);
+            return currentUser;
+        } catch (error) {
+            console.error('Fout bij ophalen van huidige gebruiker:', error);
+            return null;
+        }
+    }
     
     // Expose functions to global scope
     window.SharePointService = {
         fetchSharePointList,
         getUserInfo,
+        getCurrentUser,
         updateListItem
     };
 })();

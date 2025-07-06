@@ -129,7 +129,7 @@ class BehandelcentrumApp {
 
         // Get current user information
         try {
-            const currentUser = await window.SharePointService.getUserInfo();
+            const currentUser = await window.SharePointService.getCurrentUser();
             if (currentUser && currentUser.Title) {
                 const userElement = document.getElementById('huidige-gebruiker');
                 if (userElement) {
@@ -270,15 +270,7 @@ class BehandelcentrumApp {
 
             this.renderTabContent()
 
-        );
-
-        this.root.appendChild(app);
-
-       
-
-        // Update team leader information after rendering
-
-        this.updateTeamLeaderInfo();
+        );        this.root.appendChild(app);
 
     }
 
@@ -1005,12 +997,8 @@ class BehandelcentrumApp {
 
             }
 
-           
-
-            await sharepointService.updateListItem(listType, itemId, {
-
+             await window.SharePointService.updateListItem(listType, itemId, {
                 [reactieField]: reactie
-
             });
 
            
