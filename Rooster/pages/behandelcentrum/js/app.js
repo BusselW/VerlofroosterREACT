@@ -609,13 +609,17 @@ class BehandelcentrumApp {
         const isActionModal = this.modalAction === 'approve' || this.modalAction === 'reject';
 
         return h('div', {
-            className: 'modal-overlay', onClick: (e) => {
+            className: 'modal-overlay', 
+            onClick: (e) => {
                 if (e.target.classList.contains('modal-overlay')) {
                     this.closeModal();
                 }
             }
         },
-            h('div', { className: `modal-content ${isActionModal ? 'action-modal' : 'reactie-modal'}` },
+            h('div', { 
+                className: `modal-content ${isActionModal ? 'action-modal' : 'reactie-modal'}`,
+                'data-action': this.modalAction || 'comment'
+            },
                 h('div', { className: 'modal-header' },
                     h('h3', null, modalTitle),
                     h('div', { className: 'modal-subtitle' }, modalSubtitle),
