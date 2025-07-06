@@ -27,6 +27,12 @@ class BehandelcentrumApp {
         this.alleZiekteAanvragen = [];
         this.alleZittingsvrijAanvragen = [];
 
+        // Data voor team grouping
+        this.allTeams = [];
+        this.allMedewerkers = [];
+        this.teamMappings = new Map(); // MedewerkerID -> Team info
+        this.teamleiderMappings = new Map(); // TeamID -> Teamleider info
+
         this.activeTab = 'verlof-lopend';
         // New navigation state
         this.viewMode = 'lopend'; // 'lopend' or 'historisch'
@@ -107,6 +113,17 @@ class BehandelcentrumApp {
     async loadData() {
         try {
             console.log('Starting data load...');
+            
+            // Load teams and medewerkers data first for mapping
+            console.log('Loading teams and medewerkers for mapping...');
+            this.allTeams = await window.SharePointService.fetchSharePointList('Teams');
+            this.allMedewerkers = await window.SharePointService.fetchSharePointList('Medewerkers');
+            console.log('Teams loaded:', this.allTeams.length, 'items');
+            console.log('Medewerkers loaded:', this.allMedewerkers.length, 'items');
+            
+            // Build mappings
+            this.buildTeamMappings();
+            
             // Load all data from SharePoint lists
             const verlofData = await window.SharePointService.fetchSharePointList('Verlof');
             console.log('Verlof data loaded:', verlofData.length, 'items');
@@ -301,19 +318,16 @@ class BehandelcentrumApp {
         const { data, type, actionable } = getTabData();
         console.log('Tab data:', { dataLength: data.length, type, actionable });
 
-        // Apply team filtering if needed
-        const filteredData = this.showOnlyOwnTeam ? this.filterDataByTeam(data) : data;
-        console.log('Filtered data:', { originalLength: data.length, filteredLength: filteredData.length, showOnlyOwnTeam: this.showOnlyOwnTeam });
+        // Check if we should show grouped tables or simple table
+        const shouldShowGrouped = this.shouldShowGroupedView() && data.length > 0;
+        console.log('Should show grouped:', shouldShowGrouped, 'showOnlyOwnTeam:', this.showOnlyOwnTeam);
 
-        // If showing only own team or no data, use single table
-        if (this.showOnlyOwnTeam || !filteredData || filteredData.length === 0) {
-            console.log('Rendering simple table with', filteredData?.length || 0, 'items');
-            return this.renderSimpleTable(filteredData, type, actionable);
+        if (shouldShowGrouped) {
+            console.log('Rendering grouped tables with', data.length, 'items');
+            return this.renderGroupedTables(data, type, actionable);
         } else {
-            console.log('Rendering grouped tables with', filteredData.length, 'items');
-            // TEMP FIX: Always use simple table until grouped tables are implemented
-            console.log('FIXED: Forcing simple table instead of grouped tables');
-            return this.renderSimpleTable(filteredData, type, actionable);
+            console.log('Rendering simple table with', data.length, 'items');
+            return this.renderSimpleTable(data, type, actionable);
         }
     }
 
@@ -321,7 +335,11 @@ class BehandelcentrumApp {
         console.log('=== renderSimpleTable called ===');
         console.log('Data:', data?.length || 0, 'items, type:', type, 'actionable:', actionable);
         
-        if (!data || data.length === 0) {
+        // Apply filtering when in simple table mode
+        const filteredData = this.filterDataForCurrentUser(data);
+        console.log('Filtered data for simple table:', { originalLength: data?.length || 0, filteredLength: filteredData.length });
+        
+        if (!filteredData || filteredData.length === 0) {
             console.log('Rendering empty state');
             return h('div', { className: 'empty-state' },
                 h('div', { className: 'empty-icon' }, actionable ? '📋' : '📁'),
@@ -335,25 +353,81 @@ class BehandelcentrumApp {
 
         const columns = this.getColumnsForType(type, actionable);
         console.log('Table columns:', columns);
-        console.log('First data item:', data[0]);
+        console.log('First data item:', filteredData[0]);
 
         return h('div', { className: 'table-container' },
             h('table', { className: 'data-table' },
                 h('thead', null,
                     h('tr', null,
-                        ...columns.map(col => h('th', { 'data-column': col }, this.getColumnDisplayName(col)))
+                        ...columns.map(col =>
+                            h('th', { 'data-column': col }, this.getColumnDisplayName(col))
+                        )
                     )
                 ),
                 h('tbody', null,
-                    ...data.map(item => this.renderTableRow(item, columns, actionable))
+                    ...filteredData.map(item =>
+                        this.renderTableRow(item, columns, actionable)
+                    )
                 )
             )
         );
     }
 
     renderGroupedTables(data, type, actionable) {
+        // Filter data based on current user permissions
+        const filteredData = this.filterDataForCurrentUser(data);
+        
+        // Group the filtered data by team
+        const groupedData = this.groupDataByTeam(filteredData);
+
+        if (groupedData.length === 0) {
+            return h('div', { className: 'no-data' },
+                h('p', null, `Geen ${type}aanvragen gevonden.`)
+            );
+        }
+
         return h('div', { className: 'grouped-tables' },
-            h('div', { className: 'loading-groups' }, 'Groeperen op teams...')
+            ...groupedData.map(teamGroup => 
+                this.renderTeamGroup(teamGroup, type, actionable)
+            )
+        );
+    }
+
+    renderTeamGroup(teamGroup, type, actionable) {
+        const { teamName, teamInfo, requests } = teamGroup;
+        const columns = this.getColumnsForType(type, actionable);
+
+        return h('div', { 
+            className: 'team-group',
+            style: { borderLeft: `4px solid ${teamInfo.teamKleur}` }
+        },
+            h('div', { className: 'team-header' },
+                h('h3', { className: 'team-name' },
+                    h('span', { className: 'team-indicator' }, '👥'),
+                    teamName,
+                    h('span', { className: 'request-count' }, `(${requests.length})`)
+                ),
+                h('div', { className: 'team-leader' },
+                    h('span', { className: 'leader-label' }, 'Teamleider:'),
+                    h('span', { className: 'leader-name' }, teamInfo.teamleider || 'Onbekend')
+                )
+            ),
+            h('div', { className: 'team-table-container' },
+                h('table', { className: 'data-table team-table' },
+                    h('thead', null,
+                        h('tr', null,
+                            ...columns.map(col =>
+                                h('th', { 'data-column': col }, this.getColumnDisplayName(col))
+                            )
+                        )
+                    ),
+                    h('tbody', null,
+                        ...requests.map(item =>
+                            this.renderTableRow(item, columns, actionable)
+                        )
+                    )
+                )
+            )
         );
     }
 
@@ -707,12 +781,18 @@ class BehandelcentrumApp {
     }
 
     async loadTeamleiderData() {
-        // Only load if showTeamleider is enabled and LinkInfo is available
-        if (!this.showTeamleider || !window.LinkInfo) {
-            return;
+        // This method is called after render to load any additional team leader data
+        // Main team/teamleider loading is now done in buildTeamMappings() during loadData()
+        console.log('Team leader data loading (post-render)...');
+        
+        if (this.allTeams.length > 0 && this.allMedewerkers.length > 0) {
+            console.log('Team mappings already built:', {
+                teamMappings: this.teamMappings.size,
+                teamleiderMappings: this.teamleiderMappings.size
+            });
+        } else {
+            console.log('Team data not yet loaded, will be available after data refresh');
         }
-        // This method would load team leader information
-        // Implementation would depend on the specific requirements
     }
 
     async loadUserTeamInfo() {
@@ -821,106 +901,145 @@ class BehandelcentrumApp {
         }
     }
 
-    filterDataByTeam(data) {
-        // If super user not emulating, or not team leader, or not filtering by team
-        if (this.isSuperUser && !this.emulatingTeamLeader) {
-            return data; // Super user sees all data by default
+    buildTeamMappings() {
+        console.log('Building team mappings...');
+        
+        // Clear existing mappings
+        this.teamMappings.clear();
+        this.teamleiderMappings.clear();
+
+        // Build team mappings: MedewerkerID -> Team info
+        this.allMedewerkers.forEach(medewerker => {
+            if (medewerker.Username && medewerker.Team) {
+                // Find the team details
+                const teamDetails = this.allTeams.find(team => 
+                    team.Naam && team.Naam.toLowerCase() === medewerker.Team.toLowerCase()
+                );
+                
+                if (teamDetails) {
+                    this.teamMappings.set(medewerker.Username, {
+                        medewerker: medewerker,
+                        team: teamDetails,
+                        teamNaam: teamDetails.Naam,
+                        teamleider: teamDetails.Teamleider,
+                        teamleiderId: teamDetails.TeamleiderId
+                    });
+                }
+            }
+        });
+
+        // Build teamleider mappings: TeamID -> Teamleider info
+        this.allTeams.forEach(team => {
+            if (team.ID && team.Teamleider) {
+                this.teamleiderMappings.set(team.ID, {
+                    teamId: team.ID,
+                    teamNaam: team.Naam,
+                    teamleider: team.Teamleider,
+                    teamleiderId: team.TeamleiderId,
+                    teamKleur: team.Kleur
+                });
+            }
+        });
+
+        console.log(`Team mappings built: ${this.teamMappings.size} employee mappings, ${this.teamleiderMappings.size} team mappings`);
+    }
+
+    getTeamInfoForRequest(request) {
+        // Try different fields that might contain the employee identifier
+        const employeeId = request.MedewerkerID || request.Medewerker || request.Gebruikersnaam;
+        
+        if (!employeeId) {
+            return {
+                teamNaam: 'Onbekend team',
+                teamleider: 'Onbekende teamleider',
+                teamleiderId: null,
+                teamKleur: '#cccccc'
+            };
         }
 
-        if (!this.isTeamLeader || !this.showOnlyOwnTeam) {
-            return data; // Show all data if not filtering
+        // Look up in team mappings
+        const mapping = this.teamMappings.get(employeeId);
+        if (mapping) {
+            return {
+                teamNaam: mapping.teamNaam,
+                teamleider: mapping.teamleider,
+                teamleiderId: mapping.teamleiderId,
+                teamKleur: mapping.team.Kleur || '#cccccc'
+            };
         }
 
-        try {
-            // Determine which teams to show
-            let teamsToShow = [];
+        // Fallback: try to find by partial match
+        for (const [key, mapping] of this.teamMappings.entries()) {
+            if (key.toLowerCase().includes(employeeId.toLowerCase()) || 
+                employeeId.toLowerCase().includes(key.toLowerCase())) {
+                return {
+                    teamNaam: mapping.teamNaam,
+                    teamleider: mapping.teamleider,
+                    teamleiderId: mapping.teamleiderId,
+                    teamKleur: mapping.team.Kleur || '#cccccc'
+                };
+            }
+        }
 
-            if (this.emulatingTeamLeader) {
-                teamsToShow = this.emulatingTeamLeader.teams;
-            } else {
-                teamsToShow = this.currentUserTeams.map(team => team.Naam);
+        return {
+            teamNaam: 'Onbekend team',
+            teamleider: 'Onbekende teamleider',
+            teamleiderId: null,
+            teamKleur: '#cccccc'
+        };
+    }
+
+    groupDataByTeam(data) {
+        const grouped = new Map();
+
+        data.forEach(item => {
+            const teamInfo = this.getTeamInfoForRequest(item);
+            const teamKey = teamInfo.teamNaam;
+
+            if (!grouped.has(teamKey)) {
+                grouped.set(teamKey, {
+                    teamInfo: teamInfo,
+                    requests: []
+                });
             }
 
-            if (teamsToShow.length === 0) {
-                return data;
-            }
-
-            // Filter data to only include requests from team members
-            return data.filter(item => {
-                // Implementation depends on how team membership is stored
-                return true; // Placeholder
+            grouped.get(teamKey).requests.push({
+                ...item,
+                _teamInfo: teamInfo
             });
+        });
 
-        } catch (error) {
-            console.warn('Error filtering data by team:', error);
-            return data; // Fallback: return all data
-        }
+        // Convert to array and sort by team name
+        return Array.from(grouped.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([teamName, teamData]) => ({
+                teamName,
+                ...teamData
+            }));
     }
 
-    handleTeamFilterToggle(e) {
-        const newValue = e.target.checked;
-        this.showOnlyOwnTeam = newValue;
-        this.render();
+    shouldShowGroupedView() {
+        // Show grouped view when not filtering by own team, or when super user is not emulating
+        return !this.showOnlyOwnTeam && (!this.isSuperUser || !this.emulatingTeamLeader);
     }
 
-    handleModeToggle(e) {
-        const mode = e.target.dataset.mode;
-        if (mode && mode !== this.viewMode) {
-            this.viewMode = mode;
-
-            // Reset type selection if switching to lopende and current type is not available
-            if (mode === 'lopend' && (this.selectedType === 'ziekte' || this.selectedType === 'zittingsvrij')) {
-                this.selectedType = 'verlof';
-            }
-
-            this.render();
+    filterDataForCurrentUser(data) {
+        if (this.isSuperUser && this.emulatingTeamLeader) {
+            // Filter by emulated team leader's teams
+            return data.filter(item => {
+                const teamInfo = this.getTeamInfoForRequest(item);
+                return teamInfo.teamleiderId === this.emulatingTeamLeader.teamleiderId;
+            });
+        } else if (this.showOnlyOwnTeam && this.isTeamLeader) {
+            // Filter by current user's teams
+            const userTeamNames = this.currentUserTeams.map(t => t.Naam.toLowerCase());
+            return data.filter(item => {
+                const teamInfo = this.getTeamInfoForRequest(item);
+                return userTeamNames.includes(teamInfo.teamNaam.toLowerCase());
+            });
         }
-    }
-
-    handleTypeSelection(e) {
-        const type = e.target.dataset.type;
-        if (type && type !== this.selectedType) {
-            this.selectedType = type;
-            this.render();
-        }
-    }
-
-    handleApprove(e) {
-        const itemId = e.target.dataset.itemId;
-        const itemType = e.target.dataset.itemType;
-
-        if (!itemId || !itemType) return;
-
-        // Find the item in our data
-        const item = this.findItemById(itemId);
-        if (!item) {
-            console.error('Item not found:', itemId);
-            return;
-        }
-
-        this.selectedItem = item;
-        this.modalAction = 'approve';
-        this.isApproveModalOpen = true;
-        this.render();
-    }
-
-    handleReject(e) {
-        const itemId = e.target.dataset.itemId;
-        const itemType = e.target.dataset.itemType;
-
-        if (!itemId || !itemType) return;
-
-        // Find the item in our data
-        const item = this.findItemById(itemId);
-        if (!item) {
-            console.error('Item not found:', itemId);
-            return;
-        }
-
-        this.selectedItem = item;
-        this.modalAction = 'reject';
-        this.isRejectModalOpen = true;
-        this.render();
+        
+        return data; // Show all data
     }
 
     async confirmAction() {
