@@ -1216,7 +1216,7 @@ class BehandelcentrumApp {
             if (!username) continue;
 
             try {
-                const teamleider = await window.LinkInfo.getTeamleider(username);
+                const teamleider = await window.LinkInfo.getTeamLeaderForEmployee(username);
                 
                 if (teamleider && teamleider !== username) {
                     placeholder.textContent = teamleider;
