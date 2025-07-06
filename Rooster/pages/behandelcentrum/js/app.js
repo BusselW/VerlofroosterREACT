@@ -3,54 +3,7 @@
 // window.LinkInfo (from linkInfo-global.js)
 // window.appConfiguratie (from configLijst.js)
 // window.ConfigHelper (from configHelper.js)
-
-/**
- * Custom createElement function for DOM manipulation
- * Creates DOM elements with props and children, similar to React.createElement but for vanilla DOM
- */
-const createElement = (tag, props, ...children) => {
-    const el = document.createElement(tag);
-    
-    if (props) {
-        for (const key in props) {
-            if (key.startsWith('on') && typeof props[key] === 'function') {
-                // Handle event listeners
-                el.addEventListener(key.substring(2).toLowerCase(), props[key]);
-            } else if (key === 'className') {
-                // Handle className
-                el.className = props[key];
-            } else if (key === 'class') {
-                // Handle class attribute
-                el.className = props[key];
-            } else if (key === 'checked' && typeof props[key] === 'boolean') {
-                // Handle boolean attributes like checked
-                el.checked = props[key];
-            } else if (key === 'value') {
-                // Handle value attribute
-                el.value = props[key];
-            } else {
-                // Handle other attributes
-                el.setAttribute(key, props[key]);
-            }
-        }
-    }
-    
-    children.forEach(child => {
-        if (child === null || child === undefined || child === false) {
-            // Skip falsy children (allows conditional rendering)
-            return;
-        } else if (typeof child === 'string' || typeof child === 'number') {
-            el.appendChild(document.createTextNode(child));
-        } else if (child instanceof HTMLElement) {
-            el.appendChild(child);
-        }
-    });
-    
-    return el;
-};
-
-// Create alias for shorter syntax
-const h = createElement;
+// h = React.createElement (from React CDN, declared in HTML)
 
  
 
@@ -173,7 +126,6 @@ class BehandelcentrumApp {
         // Load data and render
         await this.loadData();
         this.render();
-        this.bindEvents();
     }
 
  
@@ -287,100 +239,99 @@ class BehandelcentrumApp {
 
     }
     render() {
-        this.root.innerHTML = '';
-        const app = h('div', { class: 'behandelcentrum-app' },
+        const app = h('div', { className: 'behandelcentrum-app' },
             this.renderTabs(),
-            this.renderTabContent()
+            this.renderTabContent(),
+            
+            // Add modal if one should be shown
+            (this.isApproveModalOpen || this.isRejectModalOpen || this.isReactieModalOpen) 
+                ? this.renderModal() 
+                : null
         );
         
-        // Add modal if one should be shown
-        if (this.isApproveModalOpen || this.isRejectModalOpen || this.isReactieModalOpen) {
-            app.appendChild(this.renderModal());
-        }
+        ReactDOM.render(app, this.root);
         
-        this.root.appendChild(app);
-        
-        // Load teamleider data after DOM is updated
+        // Load teamleider data after React has rendered
         setTimeout(() => this.loadTeamleiderData(), 0);
     }
     renderTabs() {
-        return h('div', { class: 'navigation-container' },
+        return h('div', { className: 'navigation-container' },
             // Team filter toggle (only show for team leaders)
-            this.isTeamLeader && h('div', { class: 'team-filter-container' },
-                h('div', { class: 'filter-toggle' },
-                    h('label', { class: 'toggle-label' },
-                        h('span', { class: 'toggle-text' }, 'Alleen eigen team:'),
-                        h('div', { class: 'toggle-switch' },
+            this.isTeamLeader && h('div', { className: 'team-filter-container' },
+                h('div', { className: 'filter-toggle' },
+                    h('label', { className: 'toggle-label' },
+                        h('span', { className: 'toggle-text' }, 'Alleen eigen team:'),
+                        h('div', { className: 'toggle-switch' },
                             h('input', {
                                 type: 'checkbox',
                                 id: 'team-filter-toggle',
                                 checked: this.showOnlyOwnTeam,
                                 onChange: (e) => this.handleTeamFilterToggle(e)
                             }),
-                            h('span', { class: 'toggle-slider' })
+                            h('span', { className: 'toggle-slider' })
                         )
                     )
                 )
             ),
             
             // Main toggle between Lopende and Historische aanvragen
-            h('div', { class: 'main-toggle' },
+            h('div', { className: 'main-toggle' },
                 h('button', {
-                    class: `toggle-btn ${this.viewMode === 'lopend' ? 'active' : ''}`,
-                    'data-mode': 'lopend'
+                    className: `toggle-btn ${this.viewMode === 'lopend' ? 'active' : ''}`,
+                    onClick: () => this.handleModeToggle({ target: { dataset: { mode: 'lopend' } } })
                 },
-                    h('i', { class: 'fas fa-clock' }),
+                    h('i', { className: 'fas fa-clock' }),
                     'Lopende aanvragen'
                 ),
                 h('button', {
-                    class: `toggle-btn ${this.viewMode === 'historisch' ? 'active' : ''}`,
-                    'data-mode': 'historisch'
+                    className: `toggle-btn ${this.viewMode === 'historisch' ? 'active' : ''}`,
+                    onClick: () => this.handleModeToggle({ target: { dataset: { mode: 'historisch' } } })
                 },
-                    h('i', { class: 'fas fa-archive' }),
+                    h('i', { className: 'fas fa-archive' }),
                     'Historische aanvragen'
                 )
             ),
             
             // Type selection buttons
-            h('div', { class: 'type-selection' },
-                h('div', { class: 'type-buttons' },
+            h('div', { className: 'type-selection' },
+                h('div', { className: 'type-buttons' },
                     // Verlof button
                     h('button', {
-                        class: `type-btn ${this.selectedType === 'verlof' ? 'active' : ''}`,
-                        'data-type': 'verlof'
+                        className: `type-btn ${this.selectedType === 'verlof' ? 'active' : ''}`,
+                        onClick: () => this.handleTypeSelection({ target: { dataset: { type: 'verlof' } } })
                     },
                         'Verlof',
-                        h('span', { class: 'count-badge' }, 
+                        h('span', { className: 'count-badge' }, 
                             this.viewMode === 'lopend' ? this.verlofLopend.length : this.verlofArchief.length
                         )
                     ),
                     
                     // Compensatie button
                     h('button', {
-                        class: `type-btn ${this.selectedType === 'compensatie' ? 'active' : ''}`,
-                        'data-type': 'compensatie'
+                        className: `type-btn ${this.selectedType === 'compensatie' ? 'active' : ''}`,
+                        onClick: () => this.handleTypeSelection({ target: { dataset: { type: 'compensatie' } } })
                     },
                         'Compensatie',
-                        h('span', { class: 'count-badge' }, 
+                        h('span', { className: 'count-badge' }, 
                             this.viewMode === 'lopend' ? this.compensatieLopend.length : this.compensatieArchief.length
                         )
                     ),
                     
                     // Show Ziekte and Zittingsvrij only in historical mode
                     this.viewMode === 'historisch' && h('button', {
-                        class: `type-btn ${this.selectedType === 'ziekte' ? 'active' : ''}`,
-                        'data-type': 'ziekte'
+                        className: `type-btn ${this.selectedType === 'ziekte' ? 'active' : ''}`,
+                        onClick: () => this.handleTypeSelection({ target: { dataset: { type: 'ziekte' } } })
                     },
                         'Ziekte',
-                        h('span', { class: 'count-badge' }, this.ziekteArchief.length)
+                        h('span', { className: 'count-badge' }, this.ziekteArchief.length)
                     ),
                     
                     this.viewMode === 'historisch' && h('button', {
-                        class: `type-btn ${this.selectedType === 'zittingsvrij' ? 'active' : ''}`,
-                        'data-type': 'zittingsvrij'
+                        className: `type-btn ${this.selectedType === 'zittingsvrij' ? 'active' : ''}`,
+                        onClick: () => this.handleTypeSelection({ target: { dataset: { type: 'zittingsvrij' } } })
                     },
                         'Zittingsvrij',
-                        h('span', { class: 'count-badge' }, this.zittingsvrijArchief.length)
+                        h('span', { className: 'count-badge' }, this.zittingsvrijArchief.length)
                     )
                 )
             )
@@ -420,9 +371,9 @@ class BehandelcentrumApp {
         const { data, type, actionable } = getTabData();
         const isLopend = this.viewMode === 'lopend';
         
-        return h('div', { class: 'tab-content-container' },
-            h('div', { class: 'tab-content active' },
-                h('div', { class: 'content-header' },
+        return h('div', { className: 'tab-content-container' },
+            h('div', { className: 'tab-content active' },
+                h('div', { className: 'content-header' },
                     h('h3', null,
                         isLopend ?
                         `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen (${data.length})` :
@@ -453,8 +404,8 @@ class BehandelcentrumApp {
 
     renderSimpleTable(data, type, actionable) {
         if (!data || data.length === 0) {
-            return h('div', { class: 'empty-state' },
-                h('div', { class: 'empty-icon' }, actionable ? '📋' : '📁'),
+            return h('div', { className: 'empty-state' },
+                h('div', { className: 'empty-icon' }, actionable ? '📋' : '📁'),
                 h('h3', null, actionable ? 'Geen lopende aanvragen' : 'Geen gegevens'),
                 h('p', null, actionable ? 
                     'Er zijn momenteel geen aanvragen die wachten op behandeling.' :
@@ -465,8 +416,8 @@ class BehandelcentrumApp {
 
         const columns = this.getColumnsForType(type, actionable);
         
-        return h('div', { class: 'table-container' },
-            h('table', { class: 'data-table' },
+        return h('div', { className: 'table-container' },
+            h('table', { className: 'data-table' },
                 h('thead', null,
                     h('tr', null,
                         ...columns.map(col => h('th', { 'data-column': col }, this.getColumnDisplayName(col)))
@@ -521,21 +472,33 @@ class BehandelcentrumApp {
     }
 
     renderTableRow(item, columns, actionable) {
-        return h('tr', { class: actionable ? 'actionable-row' : 'archive-row' },
+        return h('tr', { className: actionable ? 'actionable-row' : 'archive-row' },
             ...columns.map(col => {
                 if (col === 'Acties' && actionable) {
-                    return h('td', { class: 'action-cell', 'data-column': col },
-                        h('div', { class: 'action-buttons' },
+                    return h('td', { className: 'action-cell', 'data-column': col },
+                        h('div', { className: 'action-buttons' },
                             h('button', {
-                                class: 'btn btn-sm btn-approve',
-                                'data-item-id': item.ID || item.Id,
-                                'data-item-type': this.getListTypeForActiveTab(),
+                                className: 'btn btn-sm btn-approve',
+                                onClick: () => this.handleApprove({ 
+                                    target: { 
+                                        dataset: { 
+                                            itemId: item.ID || item.Id, 
+                                            itemType: this.getListTypeForActiveTab() 
+                                        } 
+                                    } 
+                                }),
                                 title: 'Aanvraag goedkeuren'
                             }, '✓ Goedkeuren'),
                             h('button', {
-                                class: 'btn btn-sm btn-reject',
-                                'data-item-id': item.ID || item.Id,
-                                'data-item-type': this.getListTypeForActiveTab(),
+                                className: 'btn btn-sm btn-reject',
+                                onClick: () => this.handleReject({ 
+                                    target: { 
+                                        dataset: { 
+                                            itemId: item.ID || item.Id, 
+                                            itemType: this.getListTypeForActiveTab() 
+                                        } 
+                                    } 
+                                }),
                                 title: 'Aanvraag afwijzen'
                             }, '✗ Afwijzen')
                         )
@@ -550,10 +513,10 @@ class BehandelcentrumApp {
                         reactie = item.Opmerking || '';
                     }
                     
-                    return h('td', { class: 'reactie-cell', 'data-column': col },
-                        reactie ? h('div', { class: 'reactie-content', title: reactie },
+                    return h('td', { className: 'reactie-cell', 'data-column': col },
+                        reactie ? h('div', { className: 'reactie-content', title: reactie },
                             reactie.length > 50 ? reactie.substring(0, 50) + '...' : reactie
-                        ) : h('span', { class: 'no-reactie' }, '-')
+                        ) : h('span', { className: 'no-reactie' }, '-')
                     );
                 } else {
                     return h('td', { 'data-column': col }, this.formatCellValue(item[col], col, item));
@@ -571,8 +534,6 @@ class BehandelcentrumApp {
 
         this.render();
 
-        this.bindEvents();
-
     }
 
  
@@ -587,8 +548,6 @@ class BehandelcentrumApp {
 
         this.render();
 
-        this.bindEvents();
-
     }
 
  
@@ -602,8 +561,6 @@ class BehandelcentrumApp {
         this.modalAction = null;
 
         this.render();
-
-        this.bindEvents();
 
     }
 
@@ -691,7 +648,7 @@ class BehandelcentrumApp {
 
  
 
-        return h('div', { class: 'modal-overlay', onClick: (e) => {
+        return h('div', { className: 'modal-overlay', onClick: (e) => {
 
             if (e.target.classList.contains('modal-overlay')) {
 
@@ -701,17 +658,17 @@ class BehandelcentrumApp {
 
         }},
 
-            h('div', { class: `modal-content ${isActionModal ? 'action-modal' : 'reactie-modal'}` },
+            h('div', { className: `modal-content ${isActionModal ? 'action-modal' : 'reactie-modal'}` },
 
-                h('div', { class: 'modal-header' },
+                h('div', { className: 'modal-header' },
 
                     h('h3', null, modalTitle),
 
-                    h('div', { class: 'modal-subtitle' }, modalSubtitle),
+                    h('div', { className: 'modal-subtitle' }, modalSubtitle),
 
                     h('button', {
 
-                        class: 'modal-close',
+                        className: 'modal-close',
 
                         onClick: () => this.closeModal()
 
@@ -719,9 +676,9 @@ class BehandelcentrumApp {
 
                 ),
 
-                h('div', { class: 'modal-body' },
+                h('div', { className: 'modal-body' },
 
-                    h('div', { class: 'aanvraag-details' },
+                    h('div', { className: 'aanvraag-details' },
 
                         h('h4', null, 'Aanvraag Details:'),
 
@@ -729,11 +686,11 @@ class BehandelcentrumApp {
 
                     ),
 
-                    isActionModal && h('div', { class: 'action-warning' },
+                    isActionModal && h('div', { className: 'action-warning' },
 
-                        h('div', { class: 'warning-icon' },
+                        h('div', { className: 'warning-icon' },
 
-                            h('i', { class: this.modalAction === 'approve' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle' })
+                            h('i', { className: this.modalAction === 'approve' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle' })
 
                         ),
 
@@ -749,9 +706,9 @@ class BehandelcentrumApp {
 
                     ),
 
-                    h('div', { class: 'reactie-form' },
+                    h('div', { className: 'reactie-form' },
 
-                        h('label', { for: 'reactie-text' },
+                        h('label', { htmlFor: 'reactie-text' },
 
                             isActionModal
 
@@ -765,7 +722,7 @@ class BehandelcentrumApp {
 
                             id: 'reactie-text',
 
-                            class: 'reactie-textarea',
+                            className: 'reactie-textarea',
 
                             placeholder: isActionModal
 
@@ -773,7 +730,7 @@ class BehandelcentrumApp {
 
                                 : 'Typ hier uw reactie voor de medewerker...',
 
-                            value: currentReactie,
+                            defaultValue: currentReactie,
 
                             rows: isActionModal ? 3 : 4
 
@@ -783,11 +740,11 @@ class BehandelcentrumApp {
 
                 ),
 
-                h('div', { class: 'modal-footer' },
+                h('div', { className: 'modal-footer' },
 
                     h('button', {
 
-                        class: 'btn btn-secondary',
+                        className: 'btn btn-secondary',
 
                         onClick: () => this.closeModal()
 
@@ -795,13 +752,13 @@ class BehandelcentrumApp {
 
                     h('button', {
 
-                        class: `btn ${actionButtonClass}`,
+                        className: `btn ${actionButtonClass}`,
 
                         onClick: () => isActionModal ? this.confirmAction() : this.saveReactie()
 
                     },
 
-                        h('i', { class: actionButtonIcon }),
+                        h('i', { className: actionButtonIcon }),
 
                         ` ${actionButtonText}`
 
@@ -821,7 +778,6 @@ class BehandelcentrumApp {
         this.isApproveModalOpen = false;
         this.isRejectModalOpen = false;
         this.render();
-        this.bindEvents();
     }
 
  
@@ -1098,47 +1054,6 @@ class BehandelcentrumApp {
 
     }
 
-    bindEvents() {
-        // Main toggle buttons (Lopende vs Historische)
-        document.querySelectorAll('.toggle-btn').forEach(button => {
-            button.removeEventListener('click', this.handleModeToggle);
-            button.addEventListener('click', this.handleModeToggle.bind(this));
-        });
-
-        // Type selection buttons (Verlof, Compensatie, etc.)
-        document.querySelectorAll('.type-btn').forEach(button => {
-            button.removeEventListener('click', this.handleTypeSelection);
-            button.addEventListener('click', this.handleTypeSelection.bind(this));
-        });
-
-        // Action button events
-        document.querySelectorAll('.btn-approve').forEach(button => {
-            button.removeEventListener('click', this.handleApprove);
-            button.addEventListener('click', this.handleApprove.bind(this));
-        });
-
-        document.querySelectorAll('.btn-reject').forEach(button => {
-            button.removeEventListener('click', this.handleReject);
-            button.addEventListener('click', this.handleReject.bind(this));
-        });
-
-        // Modal button events
-        document.querySelectorAll('.btn-approve-confirm').forEach(button => {
-            button.removeEventListener('click', this.confirmAction);
-            button.addEventListener('click', this.confirmAction.bind(this));
-        });
-
-        document.querySelectorAll('.btn-reject-confirm').forEach(button => {
-            button.removeEventListener('click', this.confirmAction);
-            button.addEventListener('click', this.confirmAction.bind(this));
-        });
-
-        document.querySelectorAll('.btn-comment-save').forEach(button => {
-            button.removeEventListener('click', this.saveReactie);
-            button.addEventListener('click', this.saveReactie.bind(this));
-        });
-    }
-
     async loadTeamleiderData() {
         // Only load if showTeamleider is enabled and LinkInfo is available
         if (!this.showTeamleider || !window.LinkInfo) {
@@ -1266,7 +1181,6 @@ class BehandelcentrumApp {
                 // Reload data with new filter
                 await this.loadData();
                 this.render();
-                this.bindEvents();
             }
             
         } catch (error) {
@@ -1317,6 +1231,173 @@ class BehandelcentrumApp {
     handleTeamFilterToggle(e) {
         const newValue = e.target.checked;
         this.updateUserSetting('BHCAlleenEigen', newValue);
+    }
+
+    handleModeToggle(e) {
+        const mode = e.target.dataset.mode;
+        if (mode && mode !== this.viewMode) {
+            this.viewMode = mode;
+            
+            // Reset type selection if switching to lopende and current type is not available
+            if (mode === 'lopend' && (this.selectedType === 'ziekte' || this.selectedType === 'zittingsvrij')) {
+                this.selectedType = 'verlof';
+            }
+            
+            this.render();
+        }
+    }
+
+    handleTypeSelection(e) {
+        const type = e.target.dataset.type;
+        if (type && type !== this.selectedType) {
+            this.selectedType = type;
+            this.render();
+        }
+    }
+
+    handleApprove(e) {
+        const itemId = e.target.dataset.itemId;
+        const itemType = e.target.dataset.itemType;
+        
+        if (!itemId || !itemType) return;
+        
+        // Find the item in our data
+        const item = this.findItemById(itemId);
+        if (!item) {
+            console.error('Item not found:', itemId);
+            return;
+        }
+        
+        this.selectedItem = item;
+        this.modalAction = 'approve';
+        this.isApproveModalOpen = true;
+        this.render();
+    }
+
+    handleReject(e) {
+        const itemId = e.target.dataset.itemId;
+        const itemType = e.target.dataset.itemType;
+        
+        if (!itemId || !itemType) return;
+        
+        // Find the item in our data
+        const item = this.findItemById(itemId);
+        if (!item) {
+            console.error('Item not found:', itemId);
+            return;
+        }
+        
+        this.selectedItem = item;
+        this.modalAction = 'reject';
+        this.isRejectModalOpen = true;
+        this.render();
+    }
+
+    async confirmAction() {
+        if (!this.selectedItem || !this.modalAction) return;
+        
+        try {
+            const itemId = this.selectedItem.ID || this.selectedItem.Id;
+            const listType = this.getListTypeForActiveTab();
+            const textarea = document.getElementById('reactie-text');
+            const reactie = textarea ? textarea.value.trim() : '';
+            
+            // Determine the correct fields based on the action and list type
+            const updateData = {};
+            
+            if (this.modalAction === 'approve') {
+                updateData.Status = 'Goedgekeurd';
+            } else if (this.modalAction === 'reject') {
+                updateData.Status = 'Afgekeurd';
+            }
+            
+            // Add handler comment if provided
+            if (reactie) {
+                if (listType === 'CompensatieUren') {
+                    updateData.ReactieBehandelaar = reactie;
+                } else if (listType === 'Verlof') {
+                    updateData.OpmerkingBehandelaar = reactie;
+                } else if (listType === 'IncidenteelZittingVrij') {
+                    updateData.Opmerking = reactie;
+                }
+            }
+            
+            await window.SharePointService.updateListItem(listType, itemId, updateData);
+            
+            // Show success notification
+            this.showNotification(
+                `Aanvraag ${this.modalAction === 'approve' ? 'goedgekeurd' : 'afgekeurd'}.`,
+                'success'
+            );
+            
+            // Reload data and close modal
+            await this.loadData();
+            this.closeModal();
+            
+        } catch (error) {
+            console.error('Error confirming action:', error);
+            this.showNotification('Er is een fout opgetreden.', 'error');
+        }
+    }
+
+    findItemById(itemId) {
+        // Search in all current data arrays
+        const allItems = [
+            ...this.verlofLopend,
+            ...this.verlofArchief,
+            ...this.compensatieLopend,
+            ...this.compensatieArchief,
+            ...this.ziekteLopend,
+            ...this.ziekteArchief,
+            ...this.zittingsvrijLopend,
+            ...this.zittingsvrijArchief
+        ];
+        
+        return allItems.find(item => (item.ID || item.Id) == itemId);
+    }
+
+    showNotification(message, type = 'info') {
+        // Simple notification system - you can enhance this
+        const notificationContainer = document.createElement('div');
+        notificationContainer.className = `notification notification-${type}`;
+        notificationContainer.textContent = message;
+        notificationContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+        
+        if (type === 'success') {
+            notificationContainer.style.backgroundColor = '#10b981';
+        } else if (type === 'error') {
+            notificationContainer.style.backgroundColor = '#ef4444';
+        } else {
+            notificationContainer.style.backgroundColor = '#3b82f6';
+        }
+        
+        document.body.appendChild(notificationContainer);
+        
+        // Animate in
+        setTimeout(() => {
+            notificationContainer.style.opacity = '1';
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notificationContainer.style.opacity = '0';
+            setTimeout(() => {
+                if (notificationContainer.parentNode) {
+                    notificationContainer.parentNode.removeChild(notificationContainer);
+                }
+            }, 300);
+        }, 3000);
     }
 }
  
