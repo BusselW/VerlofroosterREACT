@@ -482,56 +482,74 @@ body {
 .table-container {
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
     border: 1px solid #e2e8f0;
+    margin-bottom: var(--space-xl);
 }
 
 .data-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.75rem;
+    border: 1px solid #e2e8f0;
 }
 
 .data-table thead {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
 }
 
 .data-table th {
     padding: var(--space-sm) var(--space-md);
     text-align: left;
     font-weight: 600;
-    color: var(--text-primary);
-    border-bottom: 1px solid #e2e8f0;
-    font-size: 0.65rem;
+    color: white;
+    border-bottom: 1px solid #475569;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
+    position: relative;
 }
 
 .data-table td {
     padding: var(--space-sm) var(--space-md);
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
 }
 
 .data-table tbody tr {
-    transition: background-color 0.1s ease;
+    transition: background-color 0.2s ease;
 }
 
 .data-table tbody tr:hover {
-    background: rgba(59, 130, 246, 0.02);
+    background: rgba(59, 130, 246, 0.05);
 }
 
 .data-table tbody tr:last-child td {
     border-bottom: none;
 }
 
+/* Specific column styles */
+td[data-column="Medewerker"],
+th[data-column="Medewerker"] {
+    font-weight: 500;
+}
+
 /* Date columns */
 td[data-column="AanvraagTijdstip"],
-th[data-column="AanvraagTijdstip"] {
+th[data-column="AanvraagTijdstip"],
+td[data-column="StartDatum"],
+th[data-column="StartDatum"],
+td[data-column="EindDatum"],
+th[data-column="EindDatum"],
+td[data-column="StartCompensatieUren"],
+th[data-column="StartCompensatieUren"],
+td[data-column="EindeCompensatieUren"],
+th[data-column="EindeCompensatieUren"] {
     white-space: nowrap;
-    min-width: 120px;
+    min-width: 100px;
     max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -541,30 +559,31 @@ th[data-column="AanvraagTijdstip"] {
    ULTRA-COMPACT ACTION BUTTONS
    ========================================================================== */
 .action-cell {
-    width: 120px;
+    width: 140px;
     padding: var(--space-xs) var(--space-sm);
 }
 
 .action-buttons {
     display: flex;
-    gap: 2px;
+    gap: 4px;
     justify-content: flex-end;
 }
 
 .btn-sm {
-    padding: 2px 6px;
-    font-size: 0.6rem;
+    padding: 3px 6px;
+    font-size: 0.65rem;
     font-weight: 500;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.1s ease;
+    transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
     min-width: 0;
     text-align: center;
-    height: 18px;
+    height: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .btn-approve {
@@ -574,6 +593,8 @@ th[data-column="AanvraagTijdstip"] {
 
 .btn-approve:hover {
     background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .btn-reject {
@@ -583,6 +604,8 @@ th[data-column="AanvraagTijdstip"] {
 
 .btn-reject:hover {
     background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .btn-comment {
@@ -592,33 +615,45 @@ th[data-column="AanvraagTijdstip"] {
 
 .btn-comment:hover {
     background: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 /* ==========================================================================
    COMPACT STATUS BADGES
    ========================================================================== */
 .status-badge {
-    padding: 2px 4px;
-    border-radius: var(--radius-sm);
-    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: var(--radius-md);
+    font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.2px;
+    display: inline-block;
 }
 
 .status-badge.status-goedgekeurd {
     background: var(--success-light);
     color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .status-badge.status-afgekeurd {
     background: var(--danger-light);
     color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .status-badge.status-nieuw {
     background: var(--info-light);
     color: var(--info);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.status-badge.status-in-behandeling {
+    background: var(--warning-light);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 /* ==========================================================================
@@ -787,7 +822,7 @@ th[data-column="AanvraagTijdstip"] {
     
     .action-buttons {
         flex-direction: column;
-        gap: 1px;
+        gap: 3px;
     }
     
     .data-table {
@@ -797,6 +832,15 @@ th[data-column="AanvraagTijdstip"] {
     .data-table th,
     .data-table td {
         padding: var(--space-xs) var(--space-sm);
+    }
+    
+    /* Make table scroll horizontally on mobile */
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        min-width: 600px;
     }
 }
 
@@ -831,11 +875,11 @@ th[data-column="AanvraagTijdstip"] {
    DARK THEME SUPPORT
    ========================================================================== */
 body.dark-theme .data-table thead {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 body.dark-theme .data-table th {
-    color: var(--text-primary);
+    color: #f8fafc;
     border-bottom-color: #334155;
 }
 
@@ -859,6 +903,15 @@ body.dark-theme .modal-footer {
 body.dark-theme .reactie-textarea {
     border-color: #334155;
     background: var(--bg-primary);
+}
+
+body.dark-theme .table-container {
+    border-color: #334155;
+    background: #1e293b;
+}
+
+body.dark-theme .data-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.1);
 }
 
 /* ==========================================================================

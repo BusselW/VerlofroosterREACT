@@ -303,9 +303,9 @@ class BehandelcentrumApp {
 
     getColumnsForType(type, includeActions = false) {
         const baseColumns = {
-            'verlof': ['Medewerker', 'AanvraagTijdstip', 'StartDatum', 'EindDatum', 'Reden', 'Status'],
-            'compensatie': ['Medewerker', 'AanvraagTijdstip', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'Omschrijving', 'Status'],
-            'zittingsvrij': ['Gebruikersnaam', 'AanvraagTijdstip', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'Opmerking', 'Status']
+            'verlof': ['Medewerker', 'Reden', 'StartDatum', 'EindDatum', 'AanvraagTijdstip', 'Status'],
+            'compensatie': ['Medewerker', 'Omschrijving', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'AanvraagTijdstip', 'Status'],
+            'zittingsvrij': ['Gebruikersnaam', 'Opmerking', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'AanvraagTijdstip', 'Status']
         };
 
         let columns = [...(baseColumns[type] || baseColumns['verlof'])];
@@ -746,12 +746,12 @@ class BehandelcentrumApp {
             'Medewerker': 'Medewerker',
             'Gebruikersnaam': 'Medewerker',
             'AanvraagTijdstip': 'Aangemaakt op',
-            'StartDatum': 'Startdatum',
-            'EindDatum': 'Einddatum',
-            'StartCompensatieUren': 'Start',
-            'EindeCompensatieUren': 'Einde',
-            'ZittingsVrijeDagTijdStart': 'Start',
-            'ZittingsVrijeDagTijdEind': 'Einde',
+            'StartDatum': 'Vanaf',
+            'EindDatum': 'Tot',
+            'StartCompensatieUren': 'Vanaf',
+            'EindeCompensatieUren': 'Tot',
+            'ZittingsVrijeDagTijdStart': 'Vanaf',
+            'ZittingsVrijeDagTijdEind': 'Tot',
             'UrenTotaal': 'Uren',
             'Reden': 'Reden',
             'Omschrijving': 'Omschrijving',
