@@ -199,191 +199,450 @@ body {
 }
 
 /* ==========================================================================
-   Data Tabellen - Premium Professionele Styling
+   Data Tables - Professional Styling
    ========================================================================== */
-.data-tabel {
+.table-container {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-top: 1.5rem;
+}
+
+.data-table {
     width: 100%;
     border-collapse: collapse;
-    background: #ffffff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 
-        0 1px 3px rgba(0, 0, 0, 0.08),
-        0 4px 20px rgba(0, 0, 0, 0.06),
-        0 0 0 1px rgba(0, 0, 0, 0.04);
-    margin: 2rem 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    position: relative;
-}
-
-/* Tabel header styling */
-.data-tabel thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    position: relative;
-}
-
-.data-tabel thead::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
-}
-
-.data-tabel th {
-    padding: 20px 18px;
-    text-align: left;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    color: #ffffff;
-    position: relative;
-    border: none;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.data-tabel th:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 30%;
-    bottom: 30%;
-    width: 1px;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.data-tabel th:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Tabel body styling */
-.data-tabel td {
-    padding: 18px;
-    border-bottom: 1px solid #e8eef5;
     font-size: 0.9rem;
-    color: #2c3e50;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.data-table thead {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.data-table th {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
     vertical-align: middle;
-    line-height: 1.6;
 }
 
-.data-tabel td:not(.action-buttons) {
-    position: relative;
-    cursor: default;
+.data-table tbody tr {
+    transition: all 0.2s ease;
 }
 
-.data-tabel td:not(.action-buttons):hover {
-    background: linear-gradient(135deg, 
-        rgba(102, 126, 234, 0.03) 0%, 
-        rgba(118, 75, 162, 0.03) 100%);
-}
-
-.data-tabel tbody tr {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-left: 4px solid transparent;
-    position: relative;
-}
-
-.data-tabel tbody tr::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 0;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    transition: width 0.3s ease;
-}
-
-.data-tabel tbody tr:nth-child(even) {
+.data-table tbody tr:hover {
     background-color: #f8fafc;
 }
 
-.data-tabel tbody tr:hover {
-    background: linear-gradient(135deg, 
-        rgba(102, 126, 234, 0.04) 0%, 
-        rgba(118, 75, 162, 0.04) 100%);
-    box-shadow: 
-        0 2px 8px rgba(102, 126, 234, 0.1),
-        inset 0 0 0 1px rgba(102, 126, 234, 0.1);
+.actionable-table tbody tr:hover {
+    background-color: #fef3c7;
+    transform: translateX(2px);
 }
 
-.data-tabel tbody tr:hover {
-    background: linear-gradient(135deg, 
-        rgba(102, 126, 234, 0.02) 0%, 
-        rgba(118, 75, 162, 0.02) 100%);
-    border-left-color: #667eea;
-    transform: translateX(4px) scale(1.001);
-    box-shadow: 
-        0 4px 20px rgba(102, 126, 234, 0.08),
-        0 1px 3px rgba(0, 0, 0, 0.1);
+.archive-table tbody tr.status-goedgekeurd {
+    background-color: #f0fdf4;
 }
 
-.data-tabel tbody tr:hover::before {
-    width: 4px;
+.archive-table tbody tr.status-afgekeurd {
+    background-color: #fef2f2;
 }
 
-.data-tabel tbody tr:hover td {
-    color: #1a202c;
+/* Action buttons in tables */
+.action-cell {
+    width: 280px;
+    padding: 0.75rem 1.25rem;
 }
 
-.data-tabel tbody tr:last-child td {
-    border-bottom: none;
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
 }
 
-/* Dark theme styling */
-body.dark-theme .data-tabel {
-    background: #1e293b;
-    box-shadow: 
-        0 1px 3px rgba(0, 0, 0, 0.3),
-        0 4px 20px rgba(0, 0, 0, 0.25),
-        0 0 0 1px rgba(255, 255, 255, 0.05);
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
-body.dark-theme .data-tabel thead {
-    background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+.btn-approve {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
 }
 
-body.dark-theme .data-tabel th {
-    color: #f1f5f9;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+.btn-approve:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-body.dark-theme .data-tabel td {
-    color: #e2e8f0;
-    border-bottom-color: #334155;
+.btn-reject {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
 }
 
-body.dark-theme .data-tabel tbody tr:nth-child(even) {
-    background-color: #0f172a;
+.btn-reject:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
-body.dark-theme .data-tabel tbody tr:hover {
-    background: linear-gradient(135deg, 
-        rgba(30, 64, 175, 0.1) 0%, 
-        rgba(124, 58, 237, 0.1) 100%);
-    border-left-color: #3b82f6;
-    box-shadow: 
-        0 4px 20px rgba(59, 130, 246, 0.15),
-        0 1px 3px rgba(0, 0, 0, 0.3);
+.btn-comment {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
 }
 
-body.dark-theme .data-tabel tbody tr:hover td {
-    color: #f8fafc;
+.btn-comment:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
-/* Responsive styling */
+.btn-approved {
+    background: #059669;
+    cursor: not-allowed;
+}
+
+.btn-rejected {
+    background: #dc2626;
+    cursor: not-allowed;
+}
+
+.btn.loading {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-nieuw, .status-new {
+    background: #fbbf24;
+    color: #92400e;
+}
+
+.status-goedgekeurd, .status-approved {
+    background: #10b981;
+    color: white;
+}
+
+.status-afgekeurd, .status-rejected {
+    background: #ef4444;
+    color: white;
+}
+
+.status-in-behandeling, .status-pending {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Handler comment cells */
+.reactie-cell {
+    max-width: 200px;
+}
+
+.reactie-content {
+    background: #f3f4f6;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #4b5563;
+    border-left: 3px solid #9ca3af;
+}
+
+.no-reactie {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6b7280;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Loading states */
+.success-flash {
+    animation: successFlash 0.8s ease;
+}
+
+.error-flash {
+    animation: errorFlash 0.8s ease;
+}
+
+@keyframes successFlash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: #d1fae5; }
+}
+
+@keyframes errorFlash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: #fee2e2; }
+}
+
+/* ==========================================================================
+   Modal Styling - Professional Design
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    animation: modalFadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease;
+}
+
+.reactie-modal {
+    max-width: 700px;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    position: relative;
+}
+
+.modal-header h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 2rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.aanvraag-details {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.aanvraag-details h4 {
+    margin: 0 0 1rem 0;
+    color: #374151;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.details-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.detail-item {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.detail-item strong {
+    color: #4b5563;
+    min-width: 80px;
+}
+
+.reactie-form {
+    margin-top: 1.5rem;
+}
+
+.reactie-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.reactie-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.reactie-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+    transform: translateY(-1px);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Responsive table improvements */
 @media (max-width: 768px) {
-    .data-tabel {
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .action-cell {
+        width: auto;
+    }
+    
+    .data-table {
         font-size: 0.8rem;
     }
     
-    .data-tabel th,
-    .data-tabel td {
-        padding: 8px 12px;
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -609,9 +868,6 @@ body.dark-theme .tab-content h2 {
 .btn-approve {
     background: linear-gradient(135deg, #27ae60 0%, #2ecc71 50%, #27ae60 100%);
     color: white;
-    box-shadow: 
-        0 4px 15px rgba(39, 174, 96, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-approve:hover {
@@ -632,9 +888,6 @@ body.dark-theme .tab-content h2 {
 .btn-reject {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #e74c3c 100%);
     color: white;
-    box-shadow: 
-        0 4px 15px rgba(231, 76, 60, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-reject:hover {
@@ -1367,33 +1620,177 @@ body.dark-theme .actionable-row:hover {
     border-left-color: #60a5fa;
 }
 
-/* Enhanced table header icons */
-.data-tabel th[data-tooltip*="Status"]::before {
-    content: '📊 ';
-    margin-right: 4px;
+/* Enhanced Tab Section Styling */
+.tab-section {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e2e8f0;
+    min-width: 450px; /* Ensure sections have adequate width */
 }
 
-.data-tabel th[data-tooltip*="Datum"]::before {
-    content: '📅 ';
-    margin-right: 4px;
+.tab-section:last-child {
+    border-right: none;
 }
 
-.data-tabel th[data-tooltip*="Medewerker"]::before {
-    content: '👤 ';
-    margin-right: 4px;
+.tab-section-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-.data-tabel th[data-tooltip*="uren"]::before {
-    content: '⏰ ';
-    margin-right: 4px;
+.lopende-sectie .tab-section-header {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
-.data-tabel th[data-tooltip*="Acties"]::before {
-    content: '⚡ ';
-    margin-right: 4px;
+.archief-sectie .tab-section-header {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
 }
 
-.data-tabel th[data-tooltip*="Reden"]::before {
-    content: '📝 ';
-    margin-right: 4px;
+.tab-buttons {
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
 }
+
+.tab-section .tab-button {
+    border-bottom: 1px solid #e2e8f0;
+    border-right: none;
+    border-radius: 0;
+    text-align: left;
+    justify-content: space-between;
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    min-width: auto;
+}
+
+.tab-section .tab-button:last-child {
+    border-bottom: none;
+}
+
+.tab-section .tab-button:hover {
+    background: linear-gradient(135deg, 
+        rgba(102, 126, 234, 0.08) 0%, 
+        rgba(118, 75, 162, 0.08) 100%);
+    transform: translateX(4px);
+    border-left: 3px solid #667eea;
+}
+
+.tab-section .tab-button.active {
+    background: linear-gradient(135deg, 
+        rgba(102, 126, 234, 0.15) 0%, 
+        rgba(118, 75, 162, 0.15) 100%);
+    border-left: 4px solid #667eea;
+    border-bottom-color: #e2e8f0;
+    transform: translateX(0);
+}
+
+.tab-section .tab-button.active::after {
+    display: none; /* Remove bottom border for vertical tabs */
+}
+
+/* Badge styling improvements */
+.badge {
+    background: #e2e8f0;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    min-width: 24px;
+    text-align: center;
+    margin-left: auto;
+}
+
+.badge.urgent {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    animation: pulse 2s infinite;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+/* Tab content enhancements */
+.tab-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.tab-header h2 {
+    color: #1e293b;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.alert {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.alert-info {
+    background-color: #dbeafe;
+    border-color: #60a5fa;
+    color: #1d4ed8;
+}
+
+.alert-info i {
+    color: #2563eb;
+}
+
+/* Responsive improvements for tab sections */
+@media (max-width: 1024px) {
+    .tab-navigation {
+        flex-direction: column;
+    }
+    
+    .tab-section {
+        min-width: auto;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .tab-section:last-child {
+        border-bottom: none;
+    }
+    
+    .tab-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .tab-section .tab-button {
+        flex: 1;
+        min-width: 120px;
+        border-right: 1px solid #e2e8f0;
+        border-bottom: none;
+    }
+    
+    .tab-section .tab-button:last-child {
+        border-right: none;
+    }
+}
+
+/* Original tab styles preserved for compatibility */

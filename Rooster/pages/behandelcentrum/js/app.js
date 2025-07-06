@@ -24,13 +24,30 @@ const h = (tag, props, ...children) => {
 class BehandelcentrumApp {
     constructor() {
         this.root = document.getElementById('behandelcentrum-root');
-        this.verlofAanvragen = [];
-        this.ziekteAanvragen = [];
-        this.compensatieAanvragen = [];
-        this.zittingsvrijAanvragen = [];
-        this.verlofInBehandeling = [];
-        this.compensatieInBehandeling = [];
-        this.activeTab = 'verlof-behandeling';
+        
+        // Lopende aanvragen (nieuwe/in behandeling)
+        this.verlofLopend = [];
+        this.compensatieLopend = [];
+        this.ziekteLopend = [];
+        this.zittingsvrijLopend = [];
+        
+        // Archief (goedgekeurd/afgekeurd)
+        this.verlofArchief = [];
+        this.compensatieArchief = [];
+        this.ziekteArchief = [];
+        this.zittingsvrijArchief = [];
+        
+        // Alle data voor overzicht
+        this.alleVerlofAanvragen = [];
+        this.alleCompensatieAanvragen = [];
+        this.alleZiekteAanvragen = [];
+        this.alleZittingsvrijAanvragen = [];
+        
+        this.activeTab = 'verlof-lopend';
+        
+        // Voor reactie modal
+        this.selectedItem = null;
+        this.isReactieModalOpen = false;
     }
 
     async init() {
@@ -48,38 +65,83 @@ class BehandelcentrumApp {
     }
 
     async loadData() {
-        // Haal alle verlof aanvragen op
-        const allVerlofItems = await sharepointService.getListItems('Verlof');
-        
-        // Verdeel in verlof en ziekte op basis van reden
-        const verlofItems = allVerlofItems.filter(item => 
-            !item.Reden || item.Reden.toLowerCase().includes('verlof') || item.Reden.toLowerCase().includes('vakantie')
-        );
-        this.ziekteAanvragen = allVerlofItems.filter(item => 
-            item.Reden && item.Reden.toLowerCase().includes('ziekte')
-        );
-        
-        // Filter verlof voor nieuwe items (in behandeling)
-        this.verlofInBehandeling = verlofItems.filter(item => 
-            this.isInBehandeling(item.Status)
-        );
-        this.verlofAanvragen = verlofItems; // Alle verlof items voor volledig overzicht
-        
-        // Haal compensatie-uren op
-        const allCompensatieItems = await sharepointService.getListItems('CompensatieUren');
-        
-        // Filter compensatie voor nieuwe items (in behandeling)
-        this.compensatieInBehandeling = allCompensatieItems.filter(item => 
-            this.isInBehandeling(item.Status)
-        );
-        this.compensatieAanvragen = allCompensatieItems; // Alle compensatie items voor volledig overzicht
-        
-        // Haal zittingsvrij op (aangenomen dat er een lijst is)
         try {
-            this.zittingsvrijAanvragen = await sharepointService.getListItems('Zittingsvrij');
+            // Load Verlofredenen first to properly categorize leave requests
+            let verlofredenen = [];
+            try {
+                verlofredenen = await sharepointService.getListItems('Verlofredenen');
+            } catch (error) {
+                console.warn('Verlofredenen lijst niet gevonden:', error);
+            }
+            
+            // Load all leave requests from Verlof list
+            const allVerlofItems = await sharepointService.getListItems('Verlof');
+            
+            // Split into regular leave and sick leave based on reasons
+            const verlofItems = allVerlofItems.filter(item => {
+                if (!item.Reden) return true; // No reason = general leave
+                
+                const reden = item.Reden.toLowerCase();
+                // Check if it's NOT sick leave
+                return !reden.includes('ziekte') && 
+                       !reden.includes('ziek') && 
+                       !reden.includes('sick');
+            });
+            
+            const ziekteItems = allVerlofItems.filter(item => {
+                if (!item.Reden) return false; // No reason = not sick leave
+                
+                const reden = item.Reden.toLowerCase();
+                // Check if it IS sick leave
+                return reden.includes('ziekte') || 
+                       reden.includes('ziek') || 
+                       reden.includes('sick');
+            });
+            
+            // Load compensation hours from CompensatieUren list
+            const allCompensatieItems = await sharepointService.getListItems('CompensatieUren');
+            
+            // Load incident-free court days from IncidenteelZittingVrij list
+            let zittingsvrijItems = [];
+            try {
+                zittingsvrijItems = await sharepointService.getListItems('IncidenteelZittingVrij');
+            } catch (error) {
+                console.warn('IncidenteelZittingVrij lijst niet gevonden:', error);
+            }
+            
+            // Split all data into lopende (open) and archief (closed) categories
+            // Lopende = requests awaiting treatment (new, pending, in progress)
+            // Archief = processed requests (approved, rejected, completed)
+            
+            this.verlofLopend = verlofItems.filter(item => this.isInBehandeling(item.Status));
+            this.verlofArchief = verlofItems.filter(item => !this.isInBehandeling(item.Status));
+            this.alleVerlofAanvragen = verlofItems;
+            
+            this.compensatieLopend = allCompensatieItems.filter(item => this.isInBehandeling(item.Status));
+            this.compensatieArchief = allCompensatieItems.filter(item => !this.isInBehandeling(item.Status));
+            this.alleCompensatieAanvragen = allCompensatieItems;
+            
+            this.ziekteLopend = ziekteItems.filter(item => this.isInBehandeling(item.Status));
+            this.ziekteArchief = ziekteItems.filter(item => !this.isInBehandeling(item.Status));
+            this.alleZiekteAanvragen = ziekteItems;
+            
+            this.zittingsvrijLopend = zittingsvrijItems.filter(item => this.isInBehandeling(item.Status));
+            this.zittingsvrijArchief = zittingsvrijItems.filter(item => !this.isInBehandeling(item.Status));
+            this.alleZittingsvrijAanvragen = zittingsvrijItems;
+            
+            console.log('Data geladen volgens configLijst.js:', {
+                verlofLopend: this.verlofLopend.length,
+                verlofArchief: this.verlofArchief.length,
+                compensatieLopend: this.compensatieLopend.length,
+                compensatieArchief: this.compensatieArchief.length,
+                ziekteLopend: this.ziekteLopend.length,
+                ziekteArchief: this.ziekteArchief.length,
+                zittingsvrijLopend: this.zittingsvrijLopend.length,
+                zittingsvrijArchief: this.zittingsvrijArchief.length
+            });
+            
         } catch (error) {
-            console.warn('Zittingsvrij lijst niet gevonden:', error);
-            this.zittingsvrijAanvragen = [];
+            console.error('Fout bij laden van data:', error);
         }
     }
 
@@ -97,7 +159,8 @@ class BehandelcentrumApp {
         this.root.innerHTML = '';
         const app = h('div', { class: 'behandelcentrum-app' },
             this.renderTabs(),
-            this.renderTabContent()
+            this.renderTabContent(),
+            this.isReactieModalOpen ? this.renderReactieModal() : null
         );
         this.root.appendChild(app);
     }
@@ -105,103 +168,162 @@ class BehandelcentrumApp {
     renderTabs() {
         return h('div', { class: 'tab-container gradient-border' },
             h('div', { class: 'tab-navigation' },
-                h('button', { 
-                    class: `tab-button ${this.activeTab === 'verlof-behandeling' ? 'active' : ''}`,
-                    'data-tab': 'verlof-behandeling',
-                    'data-tooltip': 'Verlofaanvragen die nog goedkeuring behoeven'
-                }, 
-                    'Verlofaanvragen - In behandeling',
-                    h('span', { class: 'badge' }, this.verlofInBehandeling.length.toString())
+                // LOPENDE AANVRAGEN SECTIE
+                h('div', { class: 'tab-section lopende-sectie' },
+                    h('div', { class: 'tab-section-header' }, 
+                        h('i', { class: 'fas fa-clock' }), 
+                        ' Lopende Aanvragen'
+                    ),
+                    h('div', { class: 'tab-buttons' },
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'verlof-lopend' ? 'active' : ''}`,
+                            'data-tab': 'verlof-lopend',
+                            'data-tooltip': 'Verlofaanvragen die wachten op behandeling'
+                        }, 
+                            'Verlof',
+                            h('span', { class: 'badge urgent' }, this.verlofLopend.length.toString())
+                        ),
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'compensatie-lopend' ? 'active' : ''}`,
+                            'data-tab': 'compensatie-lopend',
+                            'data-tooltip': 'Compensatie-uren die wachten op behandeling'
+                        }, 
+                            'Compensatie',
+                            h('span', { class: 'badge urgent' }, this.compensatieLopend.length.toString())
+                        ),
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'ziekte-lopend' ? 'active' : ''}`,
+                            'data-tab': 'ziekte-lopend',
+                            'data-tooltip': 'Ziektemeldingen die wachten op behandeling'
+                        }, 
+                            'Ziekte',
+                            h('span', { class: 'badge urgent' }, this.ziekteLopend.length.toString())
+                        ),
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'zittingsvrij-lopend' ? 'active' : ''}`,
+                            'data-tab': 'zittingsvrij-lopend',
+                            'data-tooltip': 'Zittingsvrije dagen die wachten op behandeling'
+                        }, 
+                            'Zittingsvrij',
+                            h('span', { class: 'badge urgent' }, this.zittingsvrijLopend.length.toString())
+                        )
+                    )
                 ),
-                h('button', { 
-                    class: `tab-button ${this.activeTab === 'compensatie-behandeling' ? 'active' : ''}`,
-                    'data-tab': 'compensatie-behandeling',
-                    'data-tooltip': 'Compensatie-uren aanvragen die nog goedkeuring behoeven'
-                }, 
-                    'Compensatie-uren - In behandeling',
-                    h('span', { class: 'badge' }, this.compensatieInBehandeling.length.toString())
-                ),
-                h('button', { 
-                    class: `tab-button ${this.activeTab === 'verlof' ? 'active' : ''}`,
-                    'data-tab': 'verlof',
-                    'data-tooltip': 'Alle verlofaanvragen (inclusief verwerkte)'
-                }, 
-                    'Alle Verlof',
-                    h('span', { class: 'badge' }, this.verlofAanvragen.length.toString())
-                ),
-                h('button', { 
-                    class: `tab-button ${this.activeTab === 'ziekte' ? 'active' : ''}`,
-                    'data-tab': 'ziekte',
-                    'data-tooltip': 'Alle ziektemeldingen'
-                }, 
-                    'Ziekte',
-                    h('span', { class: 'badge' }, this.ziekteAanvragen.length.toString())
-                ),
-                h('button', { 
-                    class: `tab-button ${this.activeTab === 'compensatie' ? 'active' : ''}`,
-                    'data-tab': 'compensatie',
-                    'data-tooltip': 'Alle compensatie-uren (inclusief verwerkte)'
-                }, 
-                    'Alle Compensatie-uren',
-                    h('span', { class: 'badge' }, this.compensatieAanvragen.length.toString())
-                ),
-                h('button', { 
-                    class: `tab-button ${this.activeTab === 'zittingsvrij' ? 'active' : ''}`,
-                    'data-tab': 'zittingsvrij',
-                    'data-tooltip': 'Zittingsvrije dagen'
-                }, 
-                    'Zittingsvrij',
-                    h('span', { class: 'badge' }, this.zittingsvrijAanvragen.length.toString())
+                
+                // ARCHIEF SECTIE
+                h('div', { class: 'tab-section archief-sectie' },
+                    h('div', { class: 'tab-section-header' }, 
+                        h('i', { class: 'fas fa-archive' }), 
+                        ' Archief'
+                    ),
+                    h('div', { class: 'tab-buttons' },
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'verlof-archief' ? 'active' : ''}`,
+                            'data-tab': 'verlof-archief',
+                            'data-tooltip': 'Alle verlofaanvragen (verwerkt)'
+                        }, 
+                            'Verlof',
+                            h('span', { class: 'badge' }, this.verlofArchief.length.toString())
+                        ),
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'compensatie-archief' ? 'active' : ''}`,
+                            'data-tab': 'compensatie-archief',
+                            'data-tooltip': 'Alle compensatie-uren (verwerkt)'
+                        }, 
+                            'Compensatie',
+                            h('span', { class: 'badge' }, this.compensatieArchief.length.toString())
+                        ),
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'ziekte-archief' ? 'active' : ''}`,
+                            'data-tab': 'ziekte-archief',
+                            'data-tooltip': 'Alle ziektemeldingen (verwerkt)'
+                        }, 
+                            'Ziekte',
+                            h('span', { class: 'badge' }, this.ziekteArchief.length.toString())
+                        ),
+                        h('button', { 
+                            class: `tab-button ${this.activeTab === 'zittingsvrij-archief' ? 'active' : ''}`,
+                            'data-tab': 'zittingsvrij-archief',
+                            'data-tooltip': 'Alle zittingsvrije dagen (verwerkt)'
+                        }, 
+                            'Zittingsvrij',
+                            h('span', { class: 'badge' }, this.zittingsvrijArchief.length.toString())
+                        )
+                    )
                 )
             )
         );
     }
 
     renderTabContent() {
+        const getTabData = () => {
+            switch (this.activeTab) {
+                case 'verlof-lopend': return { data: this.verlofLopend, type: 'verlof', actionable: true };
+                case 'compensatie-lopend': return { data: this.compensatieLopend, type: 'compensatie', actionable: true };
+                case 'ziekte-lopend': return { data: this.ziekteLopend, type: 'verlof', actionable: true };
+                case 'zittingsvrij-lopend': return { data: this.zittingsvrijLopend, type: 'zittingsvrij', actionable: true };
+                case 'verlof-archief': return { data: this.verlofArchief, type: 'verlof', actionable: false };
+                case 'compensatie-archief': return { data: this.compensatieArchief, type: 'compensatie', actionable: false };
+                case 'ziekte-archief': return { data: this.ziekteArchief, type: 'verlof', actionable: false };
+                case 'zittingsvrij-archief': return { data: this.zittingsvrijArchief, type: 'zittingsvrij', actionable: false };
+                default: return { data: [], type: 'verlof', actionable: false };
+            }
+        };
+
+        const { data, type, actionable } = getTabData();
+        const isLopend = this.activeTab.includes('-lopend');
+        
         return h('div', { class: 'tab-content-container' },
-            h('div', { 
-                class: `tab-content ${this.activeTab === 'verlof-behandeling' ? 'active' : ''}`,
-                id: 'tab-verlof-behandeling'
-            }, 
-                h('h2', null, 'Verlofaanvragen - In behandeling'),
-                this.renderActionableTable(this.verlofInBehandeling, ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status', 'Acties'])
-            ),
-            h('div', { 
-                class: `tab-content ${this.activeTab === 'compensatie-behandeling' ? 'active' : ''}`,
-                id: 'tab-compensatie-behandeling'
-            }, 
-                h('h2', null, 'Compensatie-uren - In behandeling'),
-                this.renderActionableTable(this.compensatieInBehandeling, ['Medewerker', 'Datum', 'AantalUren', 'Reden', 'Status', 'Acties'])
-            ),
-            h('div', { 
-                class: `tab-content ${this.activeTab === 'verlof' ? 'active' : ''}`,
-                id: 'tab-verlof'
-            }, 
-                h('h2', null, 'Alle Verlof Aanvragen'),
-                this.renderTable(this.verlofAanvragen, ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status'])
-            ),
-            h('div', { 
-                class: `tab-content ${this.activeTab === 'ziekte' ? 'active' : ''}`,
-                id: 'tab-ziekte'
-            }, 
-                h('h2', null, 'Ziekte Meldingen'),
-                this.renderTable(this.ziekteAanvragen, ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status'])
-            ),
-            h('div', { 
-                class: `tab-content ${this.activeTab === 'compensatie' ? 'active' : ''}`,
-                id: 'tab-compensatie'
-            }, 
-                h('h2', null, 'Alle Compensatie Uren'),
-                this.renderTable(this.compensatieAanvragen, ['Medewerker', 'Datum', 'AantalUren', 'Reden', 'Status'])
-            ),
-            h('div', { 
-                class: `tab-content ${this.activeTab === 'zittingsvrij' ? 'active' : ''}`,
-                id: 'tab-zittingsvrij'
-            }, 
-                h('h2', null, 'Zittingsvrij'),
-                this.renderTable(this.zittingsvrijAanvragen, ['Medewerker', 'StartDatum', 'EindDatum', 'Reden'])
+            h('div', { class: 'tab-content active' },
+                h('div', { class: 'tab-header' },
+                    h('h2', null, 
+                        isLopend ? 
+                        `🔄 ${this.getTabTitle()} - Lopende Aanvragen (${data.length})` :
+                        `📁 ${this.getTabTitle()} - Archief (${data.length})`
+                    ),
+                    isLopend && data.length > 0 && h('div', { class: 'alert alert-info' },
+                        h('i', { class: 'fas fa-info-circle' }),
+                        'Deze aanvragen wachten op uw behandeling'
+                    )
+                ),
+                actionable ? 
+                    this.renderActionableTable(data, this.getColumnsForType(type, true)) :
+                    this.renderTable(data, this.getColumnsForType(type, false))
             )
         );
+    }
+
+    getTabTitle() {
+        const tabTitles = {
+            'verlof-lopend': 'Verlofaanvragen',
+            'compensatie-lopend': 'Compensatie-uren',
+            'ziekte-lopend': 'Ziektemeldingen',
+            'zittingsvrij-lopend': 'Zittingsvrije dagen',
+            'verlof-archief': 'Verlofaanvragen',
+            'compensatie-archief': 'Compensatie-uren',
+            'ziekte-archief': 'Ziektemeldingen',
+            'zittingsvrij-archief': 'Zittingsvrije dagen'
+        };
+        return tabTitles[this.activeTab] || 'Overzicht';
+    }
+
+    getColumnsForType(type, includeActions = false) {
+        const baseColumns = {
+            'verlof': ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status'],
+            'compensatie': ['Medewerker', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'Omschrijving', 'Status'],
+            'zittingsvrij': ['Gebruikersnaam', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'Opmerking', 'Status']
+        };
+
+        let columns = [...(baseColumns[type] || baseColumns['verlof'])];
+        
+        if (includeActions) {
+            columns.push('Acties');
+        } else {
+            // Voor archief items, toon behandelaar reactie als die er is
+            columns.push('Behandelaar Reactie');
+        }
+        
+        return columns;
     }
 
     bindEvents() {
@@ -321,175 +443,347 @@ class BehandelcentrumApp {
         }
     }
 
-    renderTable(items, columns) {
-        if (!items || items.length === 0) {
-            return h('div', { class: 'empty-state' }, 
-                h('p', null, 'Geen gegevens beschikbaar voor deze categorie')
-            );
-        }
-
-        return h('table', { class: 'data-tabel elevation-2' },
-            h('thead', null,
-                h('tr', null, ...columns.map(col => 
-                    h('th', { 'data-tooltip': this.getColumnTooltip(col) }, col)
-                ))
-            ),
-            h('tbody', null,
-                ...items.map((item, index) =>
-                    h('tr', { 
-                        'data-item-id': item.ID || item.Id,
-                        tabindex: 0,
-                        'aria-label': `Rij ${index + 1} van ${items.length}`
-                    },
-                        ...columns.map(col => {
-                            let value = item[col];
-                            if (col === 'Status') {
-                                return h('td', null, this.renderStatusBadge(value));
-                            }
-                            if (col.includes('Datum') && value) {
-                                const date = new Date(value);
-                                value = date.toLocaleDateString('nl-NL');
-                                return h('td', { 
-                                    'data-tooltip': `Exacte tijd: ${date.toLocaleString('nl-NL')}`
-                                }, value);
-                            }
-                            if (col === 'AantalUren' && value !== undefined) {
-                                const formatted = `${value > 0 ? '+' : ''}${value} uur`;
-                                return h('td', { 
-                                    'data-tooltip': value > 0 ? 'Extra uren' : value < 0 ? 'Compensatie uren' : 'Neutrale uren',
-                                    class: value > 0 ? 'positive-hours' : value < 0 ? 'negative-hours' : 'neutral-hours'
-                                }, formatted);
-                            }
-                            return h('td', { 
-                                'data-tooltip': value ? value.toString() : 'Geen waarde'
-                            }, value ? value.toString() : '-');
-                        })
-                    )
-                )
-            )
-        );
+    openReactieModal(item) {
+        this.selectedItem = item;
+        this.isReactieModalOpen = true;
+        this.render();
+        this.bindEvents();
     }
 
-    renderActionableTable(items, columns) {
-        if (!items || items.length === 0) {
-            return h('div', { class: 'empty-state' }, 
-                h('p', null, 'Geen items in behandeling op dit moment')
-            );
-        }
-
-        return h('table', { class: 'data-tabel elevation-2' },
-            h('thead', null,
-                h('tr', null, ...columns.map(col => 
-                    h('th', { 'data-tooltip': this.getColumnTooltip(col) }, col)
-                ))
-            ),
-            h('tbody', null,
-                ...items.map((item, index) =>
-                    h('tr', { 
-                        'data-item-id': item.ID || item.Id,
-                        tabindex: 0,
-                        'aria-label': `Actieve rij ${index + 1} van ${items.length}`,
-                        class: 'actionable-row'
-                    },
-                        ...columns.map(col => {
-                            if (col === 'Acties') {
-                                return h('td', { class: 'action-cell' }, this.renderActionButtons(item));
-                            }
-                            
-                            let value = item[col];
-                            if (col === 'Status') {
-                                return h('td', null, this.renderStatusBadge(value));
-                            }
-                            if (col.includes('Datum') && value) {
-                                const date = new Date(value);
-                                value = date.toLocaleDateString('nl-NL');
-                                return h('td', { 
-                                    'data-tooltip': `Exacte tijd: ${date.toLocaleString('nl-NL')}`
-                                }, value);
-                            }
-                            if (col === 'AantalUren' && value !== undefined) {
-                                const formatted = `${value > 0 ? '+' : ''}${value} uur`;
-                                return h('td', { 
-                                    'data-tooltip': value > 0 ? 'Extra uren' : value < 0 ? 'Compensatie uren' : 'Neutrale uren',
-                                    class: value > 0 ? 'positive-hours' : value < 0 ? 'negative-hours' : 'neutral-hours'
-                                }, formatted);
-                            }
-                            return h('td', { 
-                                'data-tooltip': value ? value.toString() : 'Geen waarde'
-                            }, value ? value.toString() : '-');
-                        })
-                    )
-                )
-            )
-        );
+    closeReactieModal() {
+        this.selectedItem = null;
+        this.isReactieModalOpen = false;
+        this.render();
+        this.bindEvents();
     }
 
-    renderActionButtons(item) {
-        const status = item.Status || 'Nieuw';
-        const canModify = status === 'Nieuw' || status === 'In behandeling';
+    renderReactieModal() {
+        if (!this.selectedItem) return null;
 
-        if (!canModify) {
-            return this.renderStatusBadge(status);
-        }
-
-        const listType = this.activeTab === 'verlof-behandeling' ? 'Verlof' : 'CompensatieUren';
-        const itemId = item.ID || item.Id;
-
-        return h('div', { class: 'action-buttons' },
-            h('button', { 
-                class: 'btn-action btn-approve',
-                'data-item-id': itemId,
-                'data-item-type': listType,
-                'data-tooltip': 'Klik om deze aanvraag goed te keuren',
-                'aria-label': `Goedkeuren: ${item.Medewerker || 'Onbekende medewerker'}`
-            }, '✓ Goedkeuren'),
-            h('button', { 
-                class: 'btn-action btn-reject',
-                'data-item-id': itemId,
-                'data-item-type': listType,
-                'data-tooltip': 'Klik om deze aanvraag af te wijzen',
-                'aria-label': `Afwijzen: ${item.Medewerker || 'Onbekende medewerker'}`
-            }, '✗ Afwijzen')
-        );
-    }
-
-    getColumnTooltip(column) {
-        const tooltips = {
-            'Medewerker': 'Naam van de medewerker die de aanvraag heeft ingediend',
-            'StartDatum': 'Begin datum van de aanvraag',
-            'EindDatum': 'Eind datum van de aanvraag',
-            'Datum': 'Datum van de aanvraag',
-            'Reden': 'Opgegeven reden voor de aanvraag',
-            'Status': 'Huidige status van de aanvraag',
-            'AantalUren': 'Aantal uren (+ = extra, - = compensatie)',
-            'Acties': 'Beschikbare acties voor deze aanvraag'
-        };
-        return tooltips[column] || `Informatie over ${column}`;
-    }
-
-    renderStatusBadge(status) {
-        if (!status) status = 'Nieuw';
+        const item = this.selectedItem;
+        const medewerkerNaam = item.Medewerker || item.Gebruikersnaam || 'Onbekende medewerker';
         
-        let badgeClass = 'status-badge ';
-        switch (status.toLowerCase()) {
-            case 'goedgekeurd':
-            case 'approved':
-                badgeClass += 'status-approved';
-                break;
-            case 'afgekeurd':
-            case 'rejected':
-                badgeClass += 'status-rejected';
-                break;
-            case 'in behandeling':
-            case 'pending':
-                badgeClass += 'status-pending';
-                break;
-            default:
-                badgeClass += 'status-new';
-                break;
+        // Get the current handler comment based on the active tab
+        let currentReactie = '';
+        if (this.activeTab.includes('compensatie')) {
+            currentReactie = item.ReactieBehandelaar || ''; // CompensatieUren uses ReactieBehandelaar
+        } else if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
+            currentReactie = item.OpmerkingBehandelaar || ''; // Verlof uses OpmerkingBehandelaar
+        } else if (this.activeTab.includes('zittingsvrij')) {
+            currentReactie = item.Opmerking || ''; // IncidenteelZittingVrij uses Opmerking
         }
 
-        return h('span', { class: badgeClass }, status);
+        return h('div', { class: 'modal-overlay', onClick: (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                this.closeReactieModal();
+            }
+        }},
+            h('div', { class: 'modal-content reactie-modal' },
+                h('div', { class: 'modal-header' },
+                    h('h3', null, `💬 Reactie toevoegen`),
+                    h('div', { class: 'modal-subtitle' }, 
+                        `Aanvraag van: ${medewerkerNaam}`
+                    ),
+                    h('button', { 
+                        class: 'modal-close',
+                        onClick: () => this.closeReactieModal()
+                    }, '×')
+                ),
+                h('div', { class: 'modal-body' },
+                    h('div', { class: 'aanvraag-details' },
+                        h('h4', null, 'Aanvraag Details:'),
+                        this.renderAanvraagDetails(item)
+                    ),
+                    h('div', { class: 'reactie-form' },
+                        h('label', { for: 'reactie-text' }, 'Uw reactie:'),
+                        h('textarea', {
+                            id: 'reactie-text',
+                            class: 'reactie-textarea',
+                            placeholder: 'Typ hier uw reactie voor de medewerker...',
+                            value: currentReactie,
+                            rows: 4
+                        })
+                    )
+                ),
+                h('div', { class: 'modal-footer' },
+                    h('button', { 
+                        class: 'btn btn-secondary',
+                        onClick: () => this.closeReactieModal()
+                    }, 'Annuleren'),
+                    h('button', { 
+                        class: 'btn btn-primary',
+                        onClick: () => this.saveReactie()
+                    }, 'Reactie Opslaan')
+                )
+            )
+        );
+    }
+
+    renderAanvraagDetails(item) {
+        const details = [];
+        
+        if (item.StartDatum) {
+            details.push(h('div', { class: 'detail-item' },
+                h('strong', null, 'Start: '),
+                new Date(item.StartDatum).toLocaleDateString('nl-NL')
+            ));
+        }
+        
+        if (item.EindDatum) {
+            details.push(h('div', { class: 'detail-item' },
+                h('strong', null, 'Eind: '),
+                new Date(item.EindDatum).toLocaleDateString('nl-NL')
+            ));
+        }
+        
+        if (item.StartCompensatieUren) {
+            details.push(h('div', { class: 'detail-item' },
+                h('strong', null, 'Start: '),
+                new Date(item.StartCompensatieUren).toLocaleDateString('nl-NL')
+            ));
+        }
+        
+        if (item.UrenTotaal) {
+            details.push(h('div', { class: 'detail-item' },
+                h('strong', null, 'Uren: '),
+                `${item.UrenTotaal > 0 ? '+' : ''}${item.UrenTotaal} uur`
+            ));
+        }
+        
+        if (item.Reden || item.Omschrijving || item.Opmerking) {
+            details.push(h('div', { class: 'detail-item' },
+                h('strong', null, 'Reden/Omschrijving: '),
+                item.Reden || item.Omschrijving || item.Opmerking
+            ));
+        }
+
+        return h('div', { class: 'details-grid' }, ...details);
+    }
+
+    async saveReactie() {
+        const textarea = document.getElementById('reactie-text');
+        const reactie = textarea.value.trim();
+        
+        if (!reactie) {
+            alert('Voer eerst een reactie in.');
+            return;
+        }
+
+        try {
+            const itemId = this.selectedItem.ID || this.selectedItem.Id;
+            const listType = this.getListTypeForActiveTab();
+            
+            // Determine the correct field name for the handler comment based on configLijst.js
+            let reactieField;
+            switch (listType) {
+                case 'CompensatieUren':
+                    reactieField = 'ReactieBehandelaar'; // From configLijst.js
+                    break;
+                case 'Verlof':
+                    reactieField = 'OpmerkingBehandelaar'; // From configLijst.js
+                    break;
+                case 'IncidenteelZittingVrij':
+                    // IncidenteelZittingVrij doesn't have a specific handler comment field in configLijst.js
+                    // We'll use Opmerking field for now
+                    reactieField = 'Opmerking';
+                    break;
+                default:
+                    reactieField = 'ReactieBehandelaar';
+            }
+            
+            await sharepointService.updateListItem(listType, itemId, {
+                [reactieField]: reactie
+            });
+            
+            // Reload data en sluit modal
+            await this.loadData();
+            this.closeReactieModal();
+            
+        } catch (error) {
+            console.error('Fout bij opslaan reactie:', error);
+            alert('Er is een fout opgetreden bij het opslaan van de reactie.');
+        }
+    }
+
+    getListTypeForActiveTab() {
+        if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
+            return 'Verlof';
+        } else if (this.activeTab.includes('compensatie')) {
+            return 'CompensatieUren';
+        } else if (this.activeTab.includes('zittingsvrij')) {
+            return 'IncidenteelZittingVrij';
+        }
+        return 'Verlof'; // default
+    }
+
+    renderActionableTable(data, columns) {
+        if (!data || data.length === 0) {
+            return h('div', { class: 'empty-state' },
+                h('div', { class: 'empty-icon' }, '📋'),
+                h('h3', null, 'Geen lopende aanvragen'),
+                h('p', null, 'Er zijn momenteel geen aanvragen die wachten op behandeling.')
+            );
+        }
+
+        return h('div', { class: 'table-container' },
+            h('table', { class: 'data-table actionable-table' },
+                h('thead', null,
+                    h('tr', null,
+                        ...columns.map(col => h('th', null, this.getColumnDisplayName(col)))
+                    )
+                ),
+                h('tbody', null,
+                    ...data.map(item => this.renderActionableRow(item, columns))
+                )
+            )
+        );
+    }
+
+    renderTable(data, columns) {
+        if (!data || data.length === 0) {
+            return h('div', { class: 'empty-state' },
+                h('div', { class: 'empty-icon' }, '📁'),
+                h('h3', null, 'Geen gegevens'),
+                h('p', null, 'Er zijn geen gegevens beschikbaar voor deze categorie.')
+            );
+        }
+
+        return h('div', { class: 'table-container' },
+            h('table', { class: 'data-table archive-table' },
+                h('thead', null,
+                    h('tr', null,
+                        ...columns.map(col => h('th', null, this.getColumnDisplayName(col)))
+                    )
+                ),
+                h('tbody', null,
+                    ...data.map(item => this.renderArchiveRow(item, columns))
+                )
+            )
+        );
+    }
+
+    renderActionableRow(item, columns) {
+        return h('tr', { class: 'actionable-row' },
+            ...columns.map(col => {
+                if (col === 'Acties') {
+                    return h('td', { class: 'action-cell' },
+                        h('div', { class: 'action-buttons' },
+                            h('button', {
+                                class: 'btn btn-sm btn-approve',
+                                'data-item-id': item.ID || item.Id,
+                                'data-item-type': this.getListTypeForActiveTab(),
+                                title: 'Aanvraag goedkeuren'
+                            }, '✓ Goedkeuren'),
+                            h('button', {
+                                class: 'btn btn-sm btn-reject',
+                                'data-item-id': item.ID || item.Id,
+                                'data-item-type': this.getListTypeForActiveTab(),
+                                title: 'Aanvraag afwijzen'
+                            }, '✗ Afwijzen'),
+                            h('button', {
+                                class: 'btn btn-sm btn-comment',
+                                onClick: () => this.openReactieModal(item),
+                                title: 'Reactie toevoegen'
+                            }, '💬 Reactie')
+                        )
+                    );
+                } else {
+                    return h('td', null, this.formatCellValue(item[col], col));
+                }
+            })
+        );
+    }
+
+    renderArchiveRow(item, columns) {
+        return h('tr', { class: `archive-row status-${(item.Status || '').toLowerCase()}` },
+            ...columns.map(col => {
+                if (col === 'Behandelaar Reactie') {
+                    // Get the correct handler comment field based on the current tab
+                    let reactie = '';
+                    if (this.activeTab.includes('compensatie')) {
+                        reactie = item.ReactieBehandelaar || ''; // CompensatieUren uses ReactieBehandelaar
+                    } else if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
+                        reactie = item.OpmerkingBehandelaar || ''; // Verlof uses OpmerkingBehandelaar
+                    } else if (this.activeTab.includes('zittingsvrij')) {
+                        reactie = item.Opmerking || ''; // IncidenteelZittingVrij uses Opmerking
+                    }
+                    
+                    return h('td', { class: 'reactie-cell' },
+                        reactie ? h('div', { class: 'reactie-content', title: reactie }, 
+                            reactie.length > 50 ? reactie.substring(0, 50) + '...' : reactie
+                        ) : h('span', { class: 'no-reactie' }, '-')
+                    );
+                } else {
+                    return h('td', null, this.formatCellValue(item[col], col));
+                }
+            })
+        );
+    }
+
+    getColumnDisplayName(column) {
+        const displayNames = {
+            'Medewerker': 'Medewerker',
+            'Gebruikersnaam': 'Medewerker',
+            'StartDatum': 'Startdatum',
+            'EindDatum': 'Einddatum',
+            'StartCompensatieUren': 'Start',
+            'EindeCompensatieUren': 'Einde',
+            'ZittingsVrijeDagTijdStart': 'Start',
+            'ZittingsVrijeDagTijdEind': 'Einde',
+            'UrenTotaal': 'Uren',
+            'Reden': 'Reden',
+            'Omschrijving': 'Omschrijving',
+            'Opmerking': 'Opmerking',
+            'Status': 'Status',
+            'Acties': 'Acties',
+            'Behandelaar Reactie': 'Behandelaar Reactie'
+        };
+        return displayNames[column] || column;
+    }
+
+    formatCellValue(value, column) {
+        if (!value) return '-';
+
+        // Format dates
+        if (column.includes('Datum') || column.includes('Tijd') || column.includes('Start') || column.includes('Eind')) {
+            try {
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                    // Check if it includes time
+                    if (column.includes('Tijd') || value.includes('T')) {
+                        return date.toLocaleString('nl-NL', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } else {
+                        return date.toLocaleDateString('nl-NL');
+                    }
+                }
+            } catch (e) {
+                // If date parsing fails, return original value
+            }
+        }
+
+        // Format status with badges
+        if (column === 'Status') {
+            const statusClass = value.toLowerCase().replace(/\s+/g, '-');
+            return h('span', { class: `status-badge status-${statusClass}` }, value);
+        }
+
+        // Format hours
+        if (column === 'UrenTotaal' && !isNaN(value)) {
+            return `${value > 0 ? '+' : ''}${value} uur`;
+        }
+
+        // Truncate long text
+        if (typeof value === 'string' && value.length > 100) {
+            return h('span', { title: value }, value.substring(0, 100) + '...');
+        }
+
+        return value;
     }
 }
 
