@@ -266,12 +266,26 @@ class BehandelcentrumApp {
     }
 
     renderTabContent() {
+        console.log('=== renderTabContent called ===');
+        console.log('Current state:', {
+            viewMode: this.viewMode,
+            selectedType: this.selectedType,
+            verlofLopend: this.verlofLopend.length,
+            compensatieLopend: this.compensatieLopend.length
+        });
+        
         const getTabData = () => {
             if (this.viewMode === 'lopend') {
                 switch (this.selectedType) {
-                    case 'verlof': return { data: this.verlofLopend, type: 'verlof', actionable: true };
-                    case 'compensatie': return { data: this.compensatieLopend, type: 'compensatie', actionable: true };
-                    default: return { data: [], type: this.selectedType, actionable: true };
+                    case 'verlof': 
+                        console.log('Returning verlof lopend data:', this.verlofLopend.length, 'items');
+                        return { data: this.verlofLopend, type: 'verlof', actionable: true };
+                    case 'compensatie': 
+                        console.log('Returning compensatie lopend data:', this.compensatieLopend.length, 'items');
+                        return { data: this.compensatieLopend, type: 'compensatie', actionable: true };
+                    default: 
+                        console.log('Default case - returning empty data');
+                        return { data: [], type: this.selectedType, actionable: true };
                 }
             } else {
                 switch (this.selectedType) {
@@ -285,21 +299,28 @@ class BehandelcentrumApp {
         };
 
         const { data, type, actionable } = getTabData();
-        const isLopend = this.viewMode === 'lopend';
+        console.log('Tab data:', { dataLength: data.length, type, actionable });
 
         // Apply team filtering if needed
         const filteredData = this.showOnlyOwnTeam ? this.filterDataByTeam(data) : data;
+        console.log('Filtered data:', { originalLength: data.length, filteredLength: filteredData.length, showOnlyOwnTeam: this.showOnlyOwnTeam });
 
         // If showing only own team or no data, use single table
         if (this.showOnlyOwnTeam || !filteredData || filteredData.length === 0) {
+            console.log('Rendering simple table with', filteredData?.length || 0, 'items');
             return this.renderSimpleTable(filteredData, type, actionable);
         } else {
+            console.log('Rendering grouped tables with', filteredData.length, 'items');
             return this.renderGroupedTables(filteredData, type, actionable);
         }
     }
 
     renderSimpleTable(data, type, actionable) {
+        console.log('=== renderSimpleTable called ===');
+        console.log('Data:', data?.length || 0, 'items, type:', type, 'actionable:', actionable);
+        
         if (!data || data.length === 0) {
+            console.log('Rendering empty state');
             return h('div', { className: 'empty-state' },
                 h('div', { className: 'empty-icon' }, actionable ? '📋' : '📁'),
                 h('h3', null, actionable ? 'Geen lopende aanvragen' : 'Geen gegevens'),
@@ -311,6 +332,8 @@ class BehandelcentrumApp {
         }
 
         const columns = this.getColumnsForType(type, actionable);
+        console.log('Table columns:', columns);
+        console.log('First data item:', data[0]);
 
         return h('div', { className: 'table-container' },
             h('table', { className: 'data-table' },
