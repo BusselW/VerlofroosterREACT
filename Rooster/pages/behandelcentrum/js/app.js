@@ -45,9 +45,12 @@ class BehandelcentrumApp {
         
         this.activeTab = 'verlof-lopend';
         
-        // Voor reactie modal
+        // Voor approve/reject modals
         this.selectedItem = null;
         this.isReactieModalOpen = false;
+        this.isApproveModalOpen = false;
+        this.isRejectModalOpen = false;
+        this.modalAction = null; // 'approve', 'reject', or 'comment'
     }
 
     async init() {
@@ -159,8 +162,7 @@ class BehandelcentrumApp {
         this.root.innerHTML = '';
         const app = h('div', { class: 'behandelcentrum-app' },
             this.renderTabs(),
-            this.renderTabContent(),
-            this.isReactieModalOpen ? this.renderReactieModal() : null
+            this.renderTabContent()
         );
         this.root.appendChild(app);
     }
@@ -266,7 +268,8 @@ class BehandelcentrumApp {
                 actionable ? 
                     this.renderActionableTable(data, this.getColumnsForType(type, true)) :
                     this.renderTable(data, this.getColumnsForType(type, false))
-            )
+            ),
+            this.isReactieModalOpen || this.isApproveModalOpen || this.isRejectModalOpen ? this.renderModal() : null
         );
     }
 
@@ -327,45 +330,22 @@ class BehandelcentrumApp {
         const button = event.target;
         const itemId = button.dataset.itemId;
         const itemType = button.dataset.itemType;
-        const row = button.closest('tr');
         
-        // Disable button en toon loading state
-        button.disabled = true;
-        button.innerHTML = '⟳ Verwerken...';
-        button.classList.add('loading');
+        // Find the item to show in modal
+        const allData = [
+            ...this.verlofLopend, ...this.compensatieLopend,
+            ...this.verlofArchief, ...this.compensatieArchief,
+            ...this.ziekteArchief, ...this.zittingsvrijArchief
+        ];
         
-        try {
-            await sharepointService.updateListItem(itemType, itemId, { Status: 'Goedgekeurd' });
-            
-            // Succes feedback
-            row.classList.add('success-flash');
-            button.innerHTML = '✓ Goedgekeurd';
-            button.classList.remove('loading');
-            button.classList.add('btn-approved');
-            
-            // Wacht even voor visuele feedback
-            setTimeout(async () => {
-                await this.loadData();
-                this.render();
-                this.bindEvents();
-            }, 800);
-            
-        } catch (error) {
-            console.error('Fout bij goedkeuren:', error);
-            
-            // Error feedback
-            row.classList.add('error-flash');
-            button.innerHTML = '✗ Fout opgetreden';
-            button.classList.remove('loading');
-            button.disabled = false;
-            
-            // Reset na 2 seconden
-            setTimeout(() => {
-                button.innerHTML = '✓ Goedkeuren';
-                row.classList.remove('error-flash');
-            }, 2000);
-            
-            alert('Er is een fout opgetreden bij het goedkeuren van de aanvraag. Probeer het opnieuw.');
+        const item = allData.find(i => i.ID.toString() === itemId);
+        if (item) {
+            this.selectedItem = item;
+            this.selectedItem.itemType = itemType;
+            this.modalAction = 'approve';
+            this.isApproveModalOpen = true;
+            this.render();
+            this.bindEvents();
         }
     }
 
@@ -373,55 +353,28 @@ class BehandelcentrumApp {
         const button = event.target;
         const itemId = button.dataset.itemId;
         const itemType = button.dataset.itemType;
-        const row = button.closest('tr');
         
-        // Confirm dialog
-        if (!confirm('Weet u zeker dat u deze aanvraag wilt afwijzen?')) {
-            return;
-        }
+        // Find the item to show in modal
+        const allData = [
+            ...this.verlofLopend, ...this.compensatieLopend,
+            ...this.verlofArchief, ...this.compensatieArchief,
+            ...this.ziekteArchief, ...this.zittingsvrijArchief
+        ];
         
-        // Disable button en toon loading state
-        button.disabled = true;
-        button.innerHTML = '⟳ Verwerken...';
-        button.classList.add('loading');
-        
-        try {
-            await sharepointService.updateListItem(itemType, itemId, { Status: 'Afgekeurd' });
-            
-            // Succes feedback
-            row.classList.add('success-flash');
-            button.innerHTML = '✗ Afgekeurd';
-            button.classList.remove('loading');
-            button.classList.add('btn-rejected');
-            
-            // Wacht even voor visuele feedback
-            setTimeout(async () => {
-                await this.loadData();
-                this.render();
-                this.bindEvents();
-            }, 800);
-            
-        } catch (error) {
-            console.error('Fout bij afwijzen:', error);
-            
-            // Error feedback
-            row.classList.add('error-flash');
-            button.innerHTML = '✗ Fout opgetreden';
-            button.classList.remove('loading');
-            button.disabled = false;
-            
-            // Reset na 2 seconden
-            setTimeout(() => {
-                button.innerHTML = '✗ Afwijzen';
-                row.classList.remove('error-flash');
-            }, 2000);
-            
-            alert('Er is een fout opgetreden bij het afwijzen van de aanvraag. Probeer het opnieuw.');
+        const item = allData.find(i => i.ID.toString() === itemId);
+        if (item) {
+            this.selectedItem = item;
+            this.selectedItem.itemType = itemType;
+            this.modalAction = 'reject';
+            this.isRejectModalOpen = true;
+            this.render();
+            this.bindEvents();
         }
     }
 
     openReactieModal(item) {
         this.selectedItem = item;
+        this.modalAction = 'comment';
         this.isReactieModalOpen = true;
         this.render();
         this.bindEvents();
@@ -434,36 +387,80 @@ class BehandelcentrumApp {
         this.bindEvents();
     }
 
-    renderReactieModal() {
+    closeApproveModal() {
+        this.selectedItem = null;
+        this.isApproveModalOpen = false;
+        this.modalAction = null;
+        this.render();
+        this.bindEvents();
+    }
+
+    closeRejectModal() {
+        this.selectedItem = null;
+        this.isRejectModalOpen = false;
+        this.modalAction = null;
+        this.render();
+        this.bindEvents();
+    }
+
+    renderModal() {
         if (!this.selectedItem) return null;
 
         const item = this.selectedItem;
         const medewerkerNaam = item.Medewerker || item.Gebruikersnaam || 'Onbekende medewerker';
         
+        // Get modal title and action based on modalAction
+        let modalTitle, modalSubtitle, actionButtonText, actionButtonClass, actionButtonIcon;
+        
+        switch (this.modalAction) {
+            case 'approve':
+                modalTitle = 'Aanvraag Goedkeuren';
+                modalSubtitle = `${medewerkerNaam} - ${this.getTabTitle()}`;
+                actionButtonText = '✓ Goedkeuren';
+                actionButtonClass = 'btn-approve-confirm';
+                actionButtonIcon = 'fas fa-check';
+                break;
+            case 'reject':
+                modalTitle = 'Aanvraag Afwijzen';
+                modalSubtitle = `${medewerkerNaam} - ${this.getTabTitle()}`;
+                actionButtonText = '✗ Afwijzen';
+                actionButtonClass = 'btn-reject-confirm';
+                actionButtonIcon = 'fas fa-times';
+                break;
+            case 'comment':
+            default:
+                modalTitle = 'Reactie Toevoegen';
+                modalSubtitle = `${medewerkerNaam} - ${this.getTabTitle()}`;
+                actionButtonText = '💬 Reactie Opslaan';
+                actionButtonClass = 'btn-comment-save';
+                actionButtonIcon = 'fas fa-comment';
+                break;
+        }
+        
         // Get the current handler comment based on the active tab
         let currentReactie = '';
         if (this.activeTab.includes('compensatie')) {
-            currentReactie = item.ReactieBehandelaar || ''; // CompensatieUren uses ReactieBehandelaar
+            currentReactie = item.ReactieBehandelaar || '';
         } else if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
-            currentReactie = item.OpmerkingBehandelaar || ''; // Verlof uses OpmerkingBehandelaar
+            currentReactie = item.OpmerkingBehandelaar || '';
         } else if (this.activeTab.includes('zittingsvrij')) {
-            currentReactie = item.Opmerking || ''; // IncidenteelZittingVrij uses Opmerking
+            currentReactie = item.Opmerking || '';
         }
+
+        const isActionModal = this.modalAction === 'approve' || this.modalAction === 'reject';
 
         return h('div', { class: 'modal-overlay', onClick: (e) => {
             if (e.target.classList.contains('modal-overlay')) {
-                this.closeReactieModal();
+                this.closeModal();
             }
         }},
-            h('div', { class: 'modal-content reactie-modal' },
+            h('div', { class: `modal-content ${isActionModal ? 'action-modal' : 'reactie-modal'}` },
                 h('div', { class: 'modal-header' },
-                    h('h3', null, `💬 Reactie toevoegen`),
-                    h('div', { class: 'modal-subtitle' }, 
-                        `Aanvraag van: ${medewerkerNaam}`
-                    ),
+                    h('h3', null, modalTitle),
+                    h('div', { class: 'modal-subtitle' }, modalSubtitle),
                     h('button', { 
                         class: 'modal-close',
-                        onClick: () => this.closeReactieModal()
+                        onClick: () => this.closeModal()
                     }, '×')
                 ),
                 h('div', { class: 'modal-body' },
@@ -471,29 +468,54 @@ class BehandelcentrumApp {
                         h('h4', null, 'Aanvraag Details:'),
                         this.renderAanvraagDetails(item)
                     ),
+                    isActionModal && h('div', { class: 'action-warning' },
+                        h('div', { class: 'warning-icon' }, 
+                            h('i', { class: this.modalAction === 'approve' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle' })
+                        ),
+                        h('p', null, 
+                            this.modalAction === 'approve' 
+                                ? 'U staat op het punt deze aanvraag goed te keuren. Deze actie kan niet ongedaan worden gemaakt.'
+                                : 'U staat op het punt deze aanvraag af te wijzen. Deze actie kan niet ongedaan worden gemaakt.'
+                        )
+                    ),
                     h('div', { class: 'reactie-form' },
-                        h('label', { for: 'reactie-text' }, 'Uw reactie:'),
+                        h('label', { for: 'reactie-text' }, 
+                            isActionModal 
+                                ? `Optionele ${this.modalAction === 'approve' ? 'goedkeurings' : 'afwijzings'}opmerking:`
+                                : 'Uw reactie:'
+                        ),
                         h('textarea', {
                             id: 'reactie-text',
                             class: 'reactie-textarea',
-                            placeholder: 'Typ hier uw reactie voor de medewerker...',
+                            placeholder: isActionModal 
+                                ? `Optionele opmerking bij ${this.modalAction === 'approve' ? 'goedkeuring' : 'afwijzing'}...`
+                                : 'Typ hier uw reactie voor de medewerker...',
                             value: currentReactie,
-                            rows: 4
+                            rows: isActionModal ? 3 : 4
                         })
                     )
                 ),
                 h('div', { class: 'modal-footer' },
                     h('button', { 
                         class: 'btn btn-secondary',
-                        onClick: () => this.closeReactieModal()
+                        onClick: () => this.closeModal()
                     }, 'Annuleren'),
                     h('button', { 
-                        class: 'btn btn-primary',
-                        onClick: () => this.saveReactie()
-                    }, 'Reactie Opslaan')
+                        class: `btn ${actionButtonClass}`,
+                        onClick: () => isActionModal ? this.confirmAction() : this.saveReactie()
+                    }, 
+                        h('i', { class: actionButtonIcon }),
+                        ` ${actionButtonText}`
+                    )
                 )
             )
         );
+    }
+
+    closeModal() {
+        if (this.isReactieModalOpen) this.closeReactieModal();
+        if (this.isApproveModalOpen) this.closeApproveModal();
+        if (this.isRejectModalOpen) this.closeRejectModal();
     }
 
     renderAanvraagDetails(item) {
@@ -761,6 +783,48 @@ class BehandelcentrumApp {
         }
 
         return value;
+    }
+
+    async confirmAction() {
+        const item = this.selectedItem;
+        const itemId = item.ID;
+        const itemType = item.itemType;
+        const comment = document.getElementById('reactie-text')?.value || '';
+        
+        const isApprove = this.modalAction === 'approve';
+        const newStatus = isApprove ? 'Goedgekeurd' : 'Afgekeurd';
+        
+        try {
+            // Prepare update data
+            const updateData = { Status: newStatus };
+            
+            // Add comment if provided
+            if (comment.trim()) {
+                if (this.activeTab.includes('compensatie')) {
+                    updateData.ReactieBehandelaar = comment;
+                } else if (this.activeTab.includes('verlof') || this.activeTab.includes('ziekte')) {
+                    updateData.OpmerkingBehandelaar = comment;
+                } else if (this.activeTab.includes('zittingsvrij')) {
+                    updateData.Opmerking = comment;
+                }
+            }
+            
+            // Update the item
+            await sharepointService.updateListItem(itemType, itemId, updateData);
+            
+            // Close modal and refresh data
+            this.closeModal();
+            await this.loadData();
+            this.render();
+            this.bindEvents();
+            
+            // Show success message
+            alert(`Aanvraag succesvol ${isApprove ? 'goedgekeurd' : 'afgekeurd'}!`);
+            
+        } catch (error) {
+            console.error(`Fout bij ${isApprove ? 'goedkeuren' : 'afwijzen'}:`, error);
+            alert(`Er is een fout opgetreden bij het ${isApprove ? 'goedkeuren' : 'afwijzen'} van de aanvraag. Probeer het opnieuw.`);
+        }
     }
 }
 
