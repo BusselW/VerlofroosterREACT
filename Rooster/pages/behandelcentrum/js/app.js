@@ -8,7 +8,7 @@
  * Custom createElement function for DOM manipulation
  * Creates DOM elements with props and children, similar to React.createElement but for vanilla DOM
  */
-const h = (tag, props, ...children) => {
+const createElement = (tag, props, ...children) => {
     const el = document.createElement(tag);
     
     if (props) {
@@ -48,6 +48,9 @@ const h = (tag, props, ...children) => {
     
     return el;
 };
+
+// Create alias for shorter syntax
+const h = createElement;
 
  
 
