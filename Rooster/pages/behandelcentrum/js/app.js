@@ -3,48 +3,7 @@
 // window.LinkInfo (from linkInfo-global.js)
 // window.appConfiguratie (from configLijst.js)
 // window.ConfigHelper (from configHelper.js)
-
- 
-
-const h = (tag, props, ...children) => {
-
-    const el = document.createElement(tag);
-
-    if (props) {
-
-        for (const key in props) {
-
-            if (key.startsWith('on') && typeof props[key] === 'function') {
-
-                el.addEventListener(key.substring(2).toLowerCase(), props[key]);
-
-            } else {
-
-                el.setAttribute(key, props[key]);
-
-            }
-
-        }
-
-    }
-
-    children.forEach(child => {
-
-        if (typeof child === 'string' ) {
-
-           el.appendChild(document.createTextNode(child));
-
-        } else if (child instanceof HTMLElement) {
-
-            el.appendChild(child);
-
-        }
-
-    });
-
-    return el;
-
-};
+// h = React.createElement (from React CDN, declared in HTML)
 
  
 
