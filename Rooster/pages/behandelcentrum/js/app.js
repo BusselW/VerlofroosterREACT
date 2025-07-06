@@ -588,6 +588,8 @@ class BehandelcentrumApp {
                         h('h4', null, 'Aanvraag Details:'),
                         this.renderAanvraagDetails(item)
                     ),
+                    // Show employee comment prominently for action modals
+                    isActionModal && this.renderEmployeeComment(item),
                     isActionModal && h('div', { className: 'action-warning' },
                         h('div', { className: 'warning-icon' },
                             h('i', { className: this.modalAction === 'approve' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle' })
@@ -1233,18 +1235,49 @@ class BehandelcentrumApp {
 
         console.log('=== End Team Mapping Validation ===');
     }
+
+    renderEmployeeComment(item) {
+        // Get the employee's comment from the appropriate field
+        let employeeComment = '';
+        let commentLabel = 'Medewerker opmerking:';
+
+        if (this.selectedType === 'compensatie') {
+            employeeComment = item.Omschrijving || '';
+        } else if (this.selectedType === 'verlof' || this.selectedType === 'ziekte') {
+            employeeComment = item.Omschrijving || '';
+        } else if (this.selectedType === 'zittingsvrij') {
+            employeeComment = item.Opmerking || '';
+        }
+
+        // Only render if there's an employee comment
+        if (!employeeComment || employeeComment.trim() === '') {
+            return null;
+        }
+
+        return h('div', { className: 'employee-comment-section' },
+            h('h4', { className: 'employee-comment-title' },
+                h('i', { className: 'fas fa-user-comment' }),
+                ' ' + commentLabel
+            ),
+            h('div', { className: 'employee-comment-content' },
+                h('blockquote', { className: 'employee-comment-text' },
+                    employeeComment
+                )
+            )
+        );
+    }
 }
 
 // Create a fallback appConfiguratie if it doesn't exist
-if (typeof window.appConfiguratie === "undefined") {
-    console.warn("Creating fallback appConfiguratie object in app.js because it was not found");
-    window.appConfiguratie = {
-        instellingen: {
-            debounceTimer: 300,
-            siteUrl: ""
-        }
-    };
-}
+    if (typeof window.appConfiguratie === "undefined") {
+        console.warn("Creating fallback appConfiguratie object in app.js because it was not found");
+        window.appConfiguratie = {
+            instellingen: {
+                debounceTimer: 300,
+                siteUrl: ""
+            }
+        };
+    }
 
-const app = new BehandelcentrumApp();
-app.init();
+    const app = new BehandelcentrumApp();
+    app.init();
