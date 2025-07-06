@@ -122,21 +122,29 @@ class BehandelcentrumApp {
             // Lopende = requests awaiting treatment (new, pending, in progress)
             // Archief = processed requests (approved, rejected, completed)
             
-            this.verlofLopend = verlofItems.filter(item => this.isInBehandeling(item.Status));
-            this.verlofArchief = verlofItems.filter(item => !this.isInBehandeling(item.Status));
-            this.alleVerlofAanvragen = verlofItems;
+            // Sort all data by creation date (newest first)
+            const sortByDate = (a, b) => {
+                const dateA = a.AanvraagTijdstip ? new Date(a.AanvraagTijdstip) : new Date(0);
+                const dateB = b.AanvraagTijdstip ? new Date(b.AanvraagTijdstip) : new Date(0);
+                return dateB - dateA; // Newest first
+            };
             
-            this.compensatieLopend = allCompensatieItems.filter(item => this.isInBehandeling(item.Status));
-            this.compensatieArchief = allCompensatieItems.filter(item => !this.isInBehandeling(item.Status));
-            this.alleCompensatieAanvragen = allCompensatieItems;
+            // Sort and filter all data collections
+            this.verlofLopend = verlofItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.verlofArchief = verlofItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleVerlofAanvragen = verlofItems.sort(sortByDate);
             
-            this.ziekteLopend = ziekteItems.filter(item => this.isInBehandeling(item.Status));
-            this.ziekteArchief = ziekteItems.filter(item => !this.isInBehandeling(item.Status));
-            this.alleZiekteAanvragen = ziekteItems;
+            this.compensatieLopend = allCompensatieItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.compensatieArchief = allCompensatieItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleCompensatieAanvragen = allCompensatieItems.sort(sortByDate);
             
-            this.zittingsvrijLopend = zittingsvrijItems.filter(item => this.isInBehandeling(item.Status));
-            this.zittingsvrijArchief = zittingsvrijItems.filter(item => !this.isInBehandeling(item.Status));
-            this.alleZittingsvrijAanvragen = zittingsvrijItems;
+            this.ziekteLopend = ziekteItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.ziekteArchief = ziekteItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleZiekteAanvragen = ziekteItems.sort(sortByDate);
+            
+            this.zittingsvrijLopend = zittingsvrijItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.zittingsvrijArchief = zittingsvrijItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleZittingsvrijAanvragen = zittingsvrijItems.sort(sortByDate);
             
             console.log('Data geladen volgens configLijst.js:', {
                 verlofLopend: this.verlofLopend.length,
@@ -295,9 +303,9 @@ class BehandelcentrumApp {
 
     getColumnsForType(type, includeActions = false) {
         const baseColumns = {
-            'verlof': ['Medewerker', 'StartDatum', 'EindDatum', 'Reden', 'Status'],
-            'compensatie': ['Medewerker', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'Omschrijving', 'Status'],
-            'zittingsvrij': ['Gebruikersnaam', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'Opmerking', 'Status']
+            'verlof': ['Medewerker', 'AanvraagTijdstip', 'StartDatum', 'EindDatum', 'Reden', 'Status'],
+            'compensatie': ['Medewerker', 'AanvraagTijdstip', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'Omschrijving', 'Status'],
+            'zittingsvrij': ['Gebruikersnaam', 'AanvraagTijdstip', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'Opmerking', 'Status']
         };
 
         let columns = [...(baseColumns[type] || baseColumns['verlof'])];
@@ -634,7 +642,7 @@ class BehandelcentrumApp {
             h('table', { class: 'data-table actionable-table' },
                 h('thead', null,
                     h('tr', null,
-                        ...columns.map(col => h('th', null, this.getColumnDisplayName(col)))
+                        ...columns.map(col => h('th', { 'data-column': col }, this.getColumnDisplayName(col)))
                     )
                 ),
                 h('tbody', null,
@@ -657,7 +665,7 @@ class BehandelcentrumApp {
             h('table', { class: 'data-table archive-table' },
                 h('thead', null,
                     h('tr', null,
-                        ...columns.map(col => h('th', null, this.getColumnDisplayName(col)))
+                        ...columns.map(col => h('th', { 'data-column': col }, this.getColumnDisplayName(col)))
                     )
                 ),
                 h('tbody', null,
@@ -671,7 +679,7 @@ class BehandelcentrumApp {
         return h('tr', { class: 'actionable-row' },
             ...columns.map(col => {
                 if (col === 'Acties') {
-                    return h('td', { class: 'action-cell' },
+                    return h('td', { class: 'action-cell', 'data-column': col },
                         h('div', { class: 'action-buttons' },
                             h('button', {
                                 class: 'btn btn-sm btn-approve',
@@ -693,7 +701,7 @@ class BehandelcentrumApp {
                         )
                     );
                 } else {
-                    return h('td', null, this.formatCellValue(item[col], col));
+                    return h('td', { 'data-column': col }, this.formatCellValue(item[col], col));
                 }
             })
         );
@@ -713,13 +721,13 @@ class BehandelcentrumApp {
                         reactie = item.Opmerking || ''; // IncidenteelZittingVrij uses Opmerking
                     }
                     
-                    return h('td', { class: 'reactie-cell' },
+                    return h('td', { class: 'reactie-cell', 'data-column': col },
                         reactie ? h('div', { class: 'reactie-content', title: reactie }, 
                             reactie.length > 50 ? reactie.substring(0, 50) + '...' : reactie
                         ) : h('span', { class: 'no-reactie' }, '-')
                     );
                 } else {
-                    return h('td', null, this.formatCellValue(item[col], col));
+                    return h('td', { 'data-column': col }, this.formatCellValue(item[col], col));
                 }
             })
         );
@@ -729,6 +737,7 @@ class BehandelcentrumApp {
         const displayNames = {
             'Medewerker': 'Medewerker',
             'Gebruikersnaam': 'Medewerker',
+            'AanvraagTijdstip': 'Aangemaakt op',
             'StartDatum': 'Startdatum',
             'EindDatum': 'Einddatum',
             'StartCompensatieUren': 'Start',
@@ -750,7 +759,22 @@ class BehandelcentrumApp {
         if (!value) return '-';
 
         // Format dates
-        if (column.includes('Datum') || column.includes('Tijd') || column.includes('Start') || column.includes('Eind')) {
+        if (column === 'AanvraagTijdstip') {
+            try {
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleString('nl-NL', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+            } catch (e) {
+                // If date parsing fails, return original value
+            }
+        } else if (column.includes('Datum') || column.includes('Tijd') || column.includes('Start') || column.includes('Eind')) {
             try {
                 const date = new Date(value);
                 if (!isNaN(date.getTime())) {

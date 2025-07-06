@@ -527,6 +527,16 @@ body {
     border-bottom: none;
 }
 
+/* Date columns */
+td[data-column="AanvraagTijdstip"],
+th[data-column="AanvraagTijdstip"] {
+    white-space: nowrap;
+    min-width: 120px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* ==========================================================================
    ULTRA-COMPACT ACTION BUTTONS
    ========================================================================== */
