@@ -166,88 +166,66 @@ class BehandelcentrumApp {
     }
 
     renderTabs() {
-        return h('div', { class: 'tab-container gradient-border' },
-            h('div', { class: 'tab-navigation' },
-                // LOPENDE AANVRAGEN SECTIE
-                h('div', { class: 'tab-section lopende-sectie' },
-                    h('div', { class: 'tab-section-header' }, 
+        return h('div', { class: 'tab-container-compact' },
+            h('div', { class: 'tab-sections-wrapper' },
+                // LOPENDE AANVRAGEN - Only Verlof and Compensatie (Very compact)
+                h('div', { class: 'tab-section lopende-section' },
+                    h('div', { class: 'section-header' }, 
                         h('i', { class: 'fas fa-clock' }), 
-                        ' Lopende Aanvragen'
+                        'Lopend'
                     ),
-                    h('div', { class: 'tab-buttons' },
+                    h('div', { class: 'compact-buttons' },
                         h('button', { 
-                            class: `tab-button ${this.activeTab === 'verlof-lopend' ? 'active' : ''}`,
-                            'data-tab': 'verlof-lopend',
-                            'data-tooltip': 'Verlofaanvragen die wachten op behandeling'
+                            class: `compact-tab ${this.activeTab === 'verlof-lopend' ? 'active' : ''}`,
+                            'data-tab': 'verlof-lopend'
                         }, 
                             'Verlof',
-                            h('span', { class: 'badge urgent' }, this.verlofLopend.length.toString())
+                            h('span', { class: 'mini-badge urgent' }, this.verlofLopend.length)
                         ),
                         h('button', { 
-                            class: `tab-button ${this.activeTab === 'compensatie-lopend' ? 'active' : ''}`,
-                            'data-tab': 'compensatie-lopend',
-                            'data-tooltip': 'Compensatie-uren die wachten op behandeling'
+                            class: `compact-tab ${this.activeTab === 'compensatie-lopend' ? 'active' : ''}`,
+                            'data-tab': 'compensatie-lopend'
                         }, 
                             'Compensatie',
-                            h('span', { class: 'badge urgent' }, this.compensatieLopend.length.toString())
-                        ),
-                        h('button', { 
-                            class: `tab-button ${this.activeTab === 'ziekte-lopend' ? 'active' : ''}`,
-                            'data-tab': 'ziekte-lopend',
-                            'data-tooltip': 'Ziektemeldingen die wachten op behandeling'
-                        }, 
-                            'Ziekte',
-                            h('span', { class: 'badge urgent' }, this.ziekteLopend.length.toString())
-                        ),
-                        h('button', { 
-                            class: `tab-button ${this.activeTab === 'zittingsvrij-lopend' ? 'active' : ''}`,
-                            'data-tab': 'zittingsvrij-lopend',
-                            'data-tooltip': 'Zittingsvrije dagen die wachten op behandeling'
-                        }, 
-                            'Zittingsvrij',
-                            h('span', { class: 'badge urgent' }, this.zittingsvrijLopend.length.toString())
+                            h('span', { class: 'mini-badge urgent' }, this.compensatieLopend.length)
                         )
                     )
                 ),
                 
-                // ARCHIEF SECTIE
-                h('div', { class: 'tab-section archief-sectie' },
-                    h('div', { class: 'tab-section-header' }, 
+                // ARCHIEF - All four types (Compact grid)
+                h('div', { class: 'tab-section archief-section' },
+                    h('div', { class: 'section-header' }, 
                         h('i', { class: 'fas fa-archive' }), 
-                        ' Archief'
+                        'Archief'
                     ),
-                    h('div', { class: 'tab-buttons' },
+                    h('div', { class: 'compact-grid' },
                         h('button', { 
-                            class: `tab-button ${this.activeTab === 'verlof-archief' ? 'active' : ''}`,
-                            'data-tab': 'verlof-archief',
-                            'data-tooltip': 'Alle verlofaanvragen (verwerkt)'
+                            class: `compact-tab ${this.activeTab === 'verlof-archief' ? 'active' : ''}`,
+                            'data-tab': 'verlof-archief'
                         }, 
                             'Verlof',
-                            h('span', { class: 'badge' }, this.verlofArchief.length.toString())
+                            h('span', { class: 'mini-badge' }, this.verlofArchief.length)
                         ),
                         h('button', { 
-                            class: `tab-button ${this.activeTab === 'compensatie-archief' ? 'active' : ''}`,
-                            'data-tab': 'compensatie-archief',
-                            'data-tooltip': 'Alle compensatie-uren (verwerkt)'
+                            class: `compact-tab ${this.activeTab === 'compensatie-archief' ? 'active' : ''}`,
+                            'data-tab': 'compensatie-archief'
                         }, 
                             'Compensatie',
-                            h('span', { class: 'badge' }, this.compensatieArchief.length.toString())
+                            h('span', { class: 'mini-badge' }, this.compensatieArchief.length)
                         ),
                         h('button', { 
-                            class: `tab-button ${this.activeTab === 'ziekte-archief' ? 'active' : ''}`,
-                            'data-tab': 'ziekte-archief',
-                            'data-tooltip': 'Alle ziektemeldingen (verwerkt)'
+                            class: `compact-tab ${this.activeTab === 'ziekte-archief' ? 'active' : ''}`,
+                            'data-tab': 'ziekte-archief'
                         }, 
                             'Ziekte',
-                            h('span', { class: 'badge' }, this.ziekteArchief.length.toString())
+                            h('span', { class: 'mini-badge' }, this.ziekteArchief.length)
                         ),
                         h('button', { 
-                            class: `tab-button ${this.activeTab === 'zittingsvrij-archief' ? 'active' : ''}`,
-                            'data-tab': 'zittingsvrij-archief',
-                            'data-tooltip': 'Alle zittingsvrije dagen (verwerkt)'
+                            class: `compact-tab ${this.activeTab === 'zittingsvrij-archief' ? 'active' : ''}`,
+                            'data-tab': 'zittingsvrij-archief'
                         }, 
                             'Zittingsvrij',
-                            h('span', { class: 'badge' }, this.zittingsvrijArchief.length.toString())
+                            h('span', { class: 'mini-badge' }, this.zittingsvrijArchief.length)
                         )
                     )
                 )
@@ -260,8 +238,7 @@ class BehandelcentrumApp {
             switch (this.activeTab) {
                 case 'verlof-lopend': return { data: this.verlofLopend, type: 'verlof', actionable: true };
                 case 'compensatie-lopend': return { data: this.compensatieLopend, type: 'compensatie', actionable: true };
-                case 'ziekte-lopend': return { data: this.ziekteLopend, type: 'verlof', actionable: true };
-                case 'zittingsvrij-lopend': return { data: this.zittingsvrijLopend, type: 'zittingsvrij', actionable: true };
+                // Ziekte and Zittingsvrij are only in archief now
                 case 'verlof-archief': return { data: this.verlofArchief, type: 'verlof', actionable: false };
                 case 'compensatie-archief': return { data: this.compensatieArchief, type: 'compensatie', actionable: false };
                 case 'ziekte-archief': return { data: this.ziekteArchief, type: 'verlof', actionable: false };
@@ -275,15 +252,15 @@ class BehandelcentrumApp {
         
         return h('div', { class: 'tab-content-container' },
             h('div', { class: 'tab-content active' },
-                h('div', { class: 'tab-header' },
-                    h('h2', null, 
+                h('div', { class: 'tab-header-compact' },
+                    h('h3', null, 
                         isLopend ? 
                         `🔄 ${this.getTabTitle()} - Lopende Aanvragen (${data.length})` :
                         `📁 ${this.getTabTitle()} - Archief (${data.length})`
                     ),
-                    isLopend && data.length > 0 && h('div', { class: 'alert alert-info' },
+                    isLopend && data.length > 0 && h('div', { class: 'compact-alert' },
                         h('i', { class: 'fas fa-info-circle' }),
-                        'Deze aanvragen wachten op uw behandeling'
+                        'Wacht op behandeling'
                     )
                 ),
                 actionable ? 
