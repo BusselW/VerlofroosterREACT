@@ -63,6 +63,15 @@ class BehandelcentrumApp {
         this.isSuperUser = false; // org\busselw can see all data and emulate other team leaders
         this.emulatingTeamLeader = null; // When emulating, this holds the teamleader info
         this.allTeamLeaders = []; // All available team leaders for emulation
+
+        // Pagination state
+        this.pagination = {
+            currentPage: 1,
+            pageSize: 10,
+            totalItems: 0,
+            totalPages: 0
+        };
+        this.teamPagination = new Map(); // Per-team pagination state
     }
 
     async init() {
@@ -1275,7 +1284,7 @@ class BehandelcentrumApp {
         this.setupTableScrolling();
     }
 
-    // Enhanced table rendering with scroll support
+    // Enhanced table rendering with pagination support
     renderTableWithScrollSupport(data, type, actionable, containerClass = 'table-container') {
         const filteredData = this.filterDataForCurrentUser(data);
         console.log('Filtered data for enhanced table:', { originalLength: data?.length || 0, filteredLength: filteredData.length });
@@ -1292,27 +1301,39 @@ class BehandelcentrumApp {
             );
         }
 
+        // Initialize pagination for this data
+        this.initializePagination(filteredData.length);
+        
+        // Get paginated data
+        const paginatedData = this.paginateData(filteredData);
+        
         const columns = this.getColumnsForType(type, actionable);
         console.log('Table columns:', columns);
-        console.log('First data item:', filteredData[0]);
+        console.log('Paginated data:', paginatedData.length, 'items of', filteredData.length, 'total');
 
-        return h('div', { 
-            className: containerClass,
-            'data-record-count': filteredData.length
-        },
-            h('table', { className: 'data-table' },
-                h('thead', null,
-                    h('tr', null,
-                        ...columns.map(col =>
-                            h('th', { 'data-column': col }, this.getColumnDisplayName(col))
+        return h('div', { className: 'table-wrapper' },
+            h('div', { className: containerClass },
+                h('table', { className: 'data-table' },
+                    h('thead', null,
+                        h('tr', null,
+                            ...columns.map(col =>
+                                h('th', { 'data-column': col }, this.getColumnDisplayName(col))
+                            )
+                        )
+                    ),
+                    h('tbody', null,
+                        ...paginatedData.map(item =>
+                            this.renderTableRow(item, columns, actionable)
                         )
                     )
-                ),
-                h('tbody', null,
-                    ...filteredData.map(item =>
-                        this.renderTableRow(item, columns, actionable)
-                    )
                 )
+            ),
+            this.renderPagination(
+                filteredData.length,
+                this.pagination.currentPage,
+                this.pagination.pageSize,
+                (page) => this.changePage(page),
+                (size) => this.changePageSize(size)
             )
         );
     }
@@ -1401,6 +1422,146 @@ class BehandelcentrumApp {
         if (this.allTeamLeaders.length > 0) {
             console.log('Available team leaders for emulation:', this.allTeamLeaders);
         }
+    }
+
+    // ==========================================================================
+    // PAGINATION METHODS
+    // ==========================================================================
+
+    initializePagination(totalItems) {
+        this.pagination.totalItems = totalItems;
+        this.pagination.totalPages = Math.ceil(totalItems / this.pagination.pageSize);
+        this.pagination.currentPage = Math.min(this.pagination.currentPage, this.pagination.totalPages || 1);
+    }
+
+    getTeamPagination(teamName) {
+        if (!this.teamPagination.has(teamName)) {
+            this.teamPagination.set(teamName, {
+                currentPage: 1,
+                pageSize: 10,
+                totalItems: 0,
+                totalPages: 0
+            });
+        }
+        return this.teamPagination.get(teamName);
+    }
+
+    initializeTeamPagination(teamName, totalItems) {
+        const pagination = this.getTeamPagination(teamName);
+        pagination.totalItems = totalItems;
+        pagination.totalPages = Math.ceil(totalItems / pagination.pageSize);
+        pagination.currentPage = Math.min(pagination.currentPage, pagination.totalPages || 1);
+    }
+
+    paginateData(data, currentPage = this.pagination.currentPage, pageSize = this.pagination.pageSize) {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return data.slice(startIndex, endIndex);
+    }
+
+    changePage(newPage) {
+        if (newPage >= 1 && newPage <= this.pagination.totalPages) {
+            this.pagination.currentPage = newPage;
+            this.render();
+        }
+    }
+
+    changeTeamPage(teamName, newPage) {
+        const pagination = this.getTeamPagination(teamName);
+        if (newPage >= 1 && newPage <= pagination.totalPages) {
+            pagination.currentPage = newPage;
+            this.render();
+        }
+    }
+
+    changePageSize(newSize) {
+        this.pagination.pageSize = newSize;
+        this.pagination.currentPage = 1; // Reset to first page
+        this.render();
+    }
+
+    renderPagination(totalItems, currentPage, pageSize, onPageChange, onPageSizeChange) {
+        const totalPages = Math.ceil(totalItems / pageSize);
+        
+        if (totalPages <= 1) {
+            return null; // No pagination needed
+        }
+
+        const startItem = ((currentPage - 1) * pageSize) + 1;
+        const endItem = Math.min(currentPage * pageSize, totalItems);
+
+        // Generate page numbers to show
+        const getPageNumbers = () => {
+            const pages = [];
+            const maxVisible = 5;
+            
+            if (totalPages <= maxVisible) {
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                const start = Math.max(1, currentPage - 2);
+                const end = Math.min(totalPages, start + maxVisible - 1);
+                
+                for (let i = start; i <= end; i++) {
+                    pages.push(i);
+                }
+                
+                if (start > 1) {
+                    pages.unshift('...');
+                    pages.unshift(1);
+                }
+                
+                if (end < totalPages) {
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            
+            return pages;
+        };
+
+        return h('div', { className: 'pagination-container' },
+            h('div', { className: 'pagination-info' },
+                `${startItem}-${endItem} van ${totalItems} resultaten`
+            ),
+            h('div', { className: 'pagination-controls' },
+                h('button', {
+                    className: 'pagination-btn',
+                    disabled: currentPage === 1,
+                    onClick: () => onPageChange(currentPage - 1)
+                }, '‹'),
+                h('div', { className: 'pagination-numbers' },
+                    ...getPageNumbers().map(page => {
+                        if (page === '...') {
+                            return h('span', { className: 'pagination-ellipsis' }, '...');
+                        }
+                        return h('button', {
+                            className: `pagination-btn ${page === currentPage ? 'active' : ''}`,
+                            onClick: () => onPageChange(page)
+                        }, page.toString());
+                    })
+                ),
+                h('button', {
+                    className: 'pagination-btn',
+                    disabled: currentPage === totalPages,
+                    onClick: () => onPageChange(currentPage + 1)
+                }, '›')
+            ),
+            h('div', { className: 'page-size-selector' },
+                h('span', null, 'Per pagina:'),
+                h('select', {
+                    className: 'page-size-select',
+                    value: pageSize,
+                    onChange: (e) => onPageSizeChange(parseInt(e.target.value))
+                },
+                    h('option', { value: 5 }, '5'),
+                    h('option', { value: 10 }, '10'),
+                    h('option', { value: 25 }, '25'),
+                    h('option', { value: 50 }, '50')
+                )
+            )
+        );
     }
 }
 
