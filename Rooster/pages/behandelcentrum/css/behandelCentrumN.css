@@ -465,7 +465,7 @@ body {
    ========================================================================== */
 .tab-content-container {
     padding: var(--space-lg);
-    height: calc(100vh - 200px); /* Adjust for header space */
+    height: calc(100vh - 180px); /* More space for table content */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -493,17 +493,18 @@ body {
     margin-bottom: var(--space-xl);
     width: 100%;
     flex: 1; /* Take remaining space */
-    min-height: 300px; /* Minimum height for visibility */
+    min-height: 500px; /* Increased minimum height for more records */
+    max-height: 80vh; /* Limit max height to viewport */
 }
 
 /* Ensure table headers are visible */
 .data-table {
     width: 100%;
-    min-width: 1000px; /* Ensure minimum width for horizontal scrolling */
+    min-width: 800px; /* Reduced min-width since we're hiding columns */
     border-collapse: collapse;
-    font-size: 0.75rem;
+    font-size: 0.875rem; /* Slightly larger font */
     border: 1px solid #e2e8f0;
-    table-layout: auto; /* Allow columns to size dynamically */
+    table-layout: auto; /* Allow columns to size dynamically based on content */
 }
 
 .data-table thead {
@@ -518,12 +519,76 @@ body {
     background: none !important;
     color: var(--text-primary) !important;
     font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    padding: var(--space-lg) var(--space-xl) !important;
-    border-bottom: 2px solid var(--brand-primary) !important;
-    position: relative;
+    padding: var(--space-lg) var(--space-md); /* More padding for readability */
+    text-align: left;
+    white-space: nowrap; /* Prevent header text wrapping */
+    border-right: 1px solid #e2e8f0;
+}
+
+/* Auto-size columns based on content */
+.data-table td {
+    padding: var(--space-md) var(--space-md);
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+    white-space: nowrap; /* Prevent content wrapping */
+    max-width: 200px; /* Limit max width */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Specific column widths for better content fitting */
+.data-table td[data-column="Medewerker"],
+.data-table th[data-column="Medewerker"] {
+    min-width: 120px;
+    max-width: 150px;
+}
+
+.data-table td[data-column="Omschrijving"],
+.data-table th[data-column="Omschrijving"] {
+    min-width: 150px;
+    max-width: 250px;
+    white-space: normal; /* Allow wrapping for descriptions */
+}
+
+.data-table td[data-column="StartDatum"],
+.data-table td[data-column="EindDatum"],
+.data-table td[data-column="StartCompensatieUren"],
+.data-table td[data-column="EindeCompensatieUren"],
+.data-table td[data-column="ZittingsVrijeDagTijdStart"],
+.data-table td[data-column="ZittingsVrijeDagTijdEind"],
+.data-table th[data-column="StartDatum"],
+.data-table th[data-column="EindDatum"],
+.data-table th[data-column="StartCompensatieUren"],
+.data-table th[data-column="EindeCompensatieUren"],
+.data-table th[data-column="ZittingsVrijeDagTijdStart"],
+.data-table th[data-column="ZittingsVrijeDagTijdEind"] {
+    min-width: 90px;
+    max-width: 110px;
+}
+
+.data-table td[data-column="AanvraagTijdstip"],
+.data-table th[data-column="AanvraagTijdstip"] {
+    min-width: 120px;
+    max-width: 140px;
+}
+
+.data-table td[data-column="UrenTotaal"],
+.data-table th[data-column="UrenTotaal"] {
+    min-width: 70px;
+    max-width: 80px;
+    text-align: center;
+}
+
+.data-table td[data-column="Acties"],
+.data-table th[data-column="Acties"] {
+    min-width: 180px;
+    max-width: 200px;
+}
+
+.data-table td[data-column="Behandelaar Reactie"],
+.data-table th[data-column="Behandelaar Reactie"] {
+    min-width: 120px;
+    max-width: 200px;
 }
 
 .data-table thead th:not(:last-child)::after {
@@ -1644,3 +1709,81 @@ body.dark-theme .data-table tbody tr:hover {
 /* ==========================================================================
    COMPACT TABLE DESIGN
    ========================================================================== */
+
+/* ==========================================================================
+   TEAM SECTIONS & GROUPED TABLES
+   ========================================================================== */
+
+.grouped-tables {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+}
+
+.team-section {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.team-header {
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    color: white;
+    padding: var(--space-lg) var(--space-xl);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--brand-accent);
+}
+
+.team-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.team-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.team-section .table-container {
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
+.loading-groups {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.error-state {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--danger);
+}
+
+.error-state h3 {
+    color: var(--danger);
+    margin-bottom: var(--space-md);
+}
+
+/* Dark theme adjustments */
+body.dark-theme .team-header {
+    background: linear-gradient(135deg, #1e40af 0%, #0f172a 100%);
+}
+
+body.dark-theme .team-section {
+    background: var(--bg-secondary);
+    border-color: #334155;
+}

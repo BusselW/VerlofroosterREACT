@@ -340,6 +340,85 @@ class BehandelcentrumApp {
 
  
 
+    async groupDataByTeam(data) {
+        if (!data || data.length === 0) return {};
+        
+        try {
+            // Load necessary data for grouping
+            const [employees, teams] = await Promise.all([
+                window.SharePointService.fetchSharePointList('Medewerkers'),
+                window.SharePointService.fetchSharePointList('Teams')
+            ]);
+            
+            // Create maps for quick lookup
+            const employeeMap = {};
+            employees.forEach(emp => {
+                if (emp.Username) {
+                    employeeMap[emp.Username.toLowerCase()] = {
+                        team: emp.Team,
+                        name: emp.Naam || emp.Title
+                    };
+                }
+            });
+            
+            const teamMap = {};
+            teams.forEach(team => {
+                if (team.Naam) {
+                    teamMap[team.Naam] = {
+                        teamleider: team.Teamleider,
+                        teamleiderId: team.TeamleiderId
+                    };
+                }
+            });
+            
+            // Group data by team
+            const grouped = {};
+            
+            data.forEach(item => {
+                const username = (item.MedewerkerID || item.Medewerker || item.Gebruikersnaam || '').toLowerCase();
+                const employeeInfo = employeeMap[username];
+                
+                if (employeeInfo && employeeInfo.team) {
+                    const teamName = employeeInfo.team;
+                    const teamInfo = teamMap[teamName];
+                    
+                    if (!grouped[teamName]) {
+                        grouped[teamName] = {
+                            teamName: teamName,
+                            teamleider: teamInfo ? teamInfo.teamleider : 'Onbekend',
+                            items: []
+                        };
+                    }
+                    
+                    grouped[teamName].items.push(item);
+                } else {
+                    // Items without team info
+                    if (!grouped['Onbekend Team']) {
+                        grouped['Onbekend Team'] = {
+                            teamName: 'Onbekend Team',
+                            teamleider: 'Onbekend',
+                            items: []
+                        };
+                    }
+                    grouped['Onbekend Team'].items.push(item);
+                }
+            });
+            
+            return grouped;
+            
+        } catch (error) {
+            console.warn('Error grouping data by team:', error);
+            // Fallback: return all data as one group
+            return {
+                'Alle Teams': {
+                    teamName: 'Alle Teams',
+                    teamleider: 'Verschillende',
+                    items: data
+                }
+            };
+        }
+    }
+
     renderTabContent() {
         const getTabData = () => {
             // Determine the data based on viewMode and selectedType
@@ -371,17 +450,144 @@ class BehandelcentrumApp {
         const { data, type, actionable } = getTabData();
         const isLopend = this.viewMode === 'lopend';
         
-        return h('div', { className: 'tab-content-container' },
-            h('div', { className: 'tab-content active' },
-                h('div', { className: 'content-header' },
-                    h('h3', null,
-                        isLopend ?
-                        `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen (${data.length})` :
-                        `📁 ${this.getActiveTypeTitle()} - Historisch (${data.length})`
-                    )
-                ),
-                this.renderSimpleTable(data, type, actionable)
-            )
+        // If showing only own team or no data, use single table
+        if (this.showOnlyOwnTeam || !data || data.length === 0) {
+            return h('div', { className: 'tab-content-container' },
+                h('div', { className: 'tab-content active' },
+                    h('div', { className: 'content-header' },
+                        h('h3', null,
+                            isLopend ?
+                            `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen (${data.length})` :
+                            `📁 ${this.getActiveTypeTitle()} - Historisch (${data.length})`
+                        )
+                    ),
+                    this.renderSimpleTable(data, type, actionable)
+                )
+            );
+        } else {
+            // Group by team and show multiple tables
+            return h('div', { className: 'tab-content-container' },
+                h('div', { className: 'tab-content active' },
+                    h('div', { className: 'content-header' },
+                        h('h3', null,
+                            isLopend ?
+                            `🔄 ${this.getActiveTypeTitle()} - Lopende Aanvragen` :
+                            `📁 ${this.getActiveTypeTitle()} - Historisch`
+                        )
+                    ),
+                    this.renderGroupedTables(data, type, actionable)
+                )
+            );
+        }
+    }
+
+    renderGroupedTables(data, type, actionable) {
+        // Create a unique ID for this render
+        const containerId = `grouped-tables-${Date.now()}`;
+        
+        // Schedule async loading after render
+        setTimeout(() => {
+            const container = document.getElementById(containerId);
+            if (container && !container._groupedDataLoaded) {
+                container._groupedDataLoaded = true;
+                this.loadGroupedTables(container, data, type, actionable);
+            }
+        }, 0);
+        
+        return h('div', { 
+            className: 'grouped-tables',
+            id: containerId
+        }, 
+            h('div', { className: 'loading-groups' }, 'Groeperen op teams...')
+        );
+    }
+
+    async loadGroupedTables(container, data, type, actionable) {
+        try {
+            const groupedData = await this.groupDataByTeam(data);
+            const groupKeys = Object.keys(groupedData);
+            
+            if (groupKeys.length === 0) {
+                container.innerHTML = '';
+                const emptyState = h('div', { className: 'empty-state' },
+                    h('div', { className: 'empty-icon' }, '📋'),
+                    h('h3', null, 'Geen gegevens'),
+                    h('p', null, 'Er zijn geen gegevens beschikbaar voor deze categorie.')
+                );
+                container.appendChild(emptyState);
+                return;
+            }
+
+            // Clear loading message
+            container.innerHTML = '';
+            
+            // Render each team group
+            groupKeys.forEach(teamKey => {
+                const group = groupedData[teamKey];
+                const teamSection = this.renderTeamSection(group, type, actionable);
+                container.appendChild(teamSection);
+            });
+            
+        } catch (error) {
+            console.error('Error loading grouped tables:', error);
+            container.innerHTML = '';
+            const errorState = h('div', { className: 'error-state' },
+                h('h3', null, 'Fout bij laden'),
+                h('p', null, 'Er is een fout opgetreden bij het groeperen van gegevens.')
+            );
+            container.appendChild(errorState);
+        }
+    }
+
+    renderTeamSection(group, type, actionable) {
+        const { teamName, teamleider, items } = group;
+        
+        // Analyze reasons and statuses for dynamic header
+        const reasons = new Set();
+        const statuses = new Set();
+        
+        items.forEach(item => {
+            if (item.Reden) reasons.add(item.Reden);
+            if (item.Status) statuses.add(item.Status);
+        });
+        
+        // Determine reason text
+        let reasonText = '';
+        if (this.selectedType === 'verlof' || this.selectedType === 'ziekte') {
+            if (reasons.size === 1) {
+                reasonText = Array.from(reasons)[0];
+            } else if (reasons.size > 1) {
+                reasonText = 'Diverse verlof';
+            } else {
+                reasonText = this.getActiveTypeTitle();
+            }
+        } else if (this.selectedType === 'compensatie') {
+            reasonText = 'Compensatie-uren';
+        } else if (this.selectedType === 'zittingsvrij') {
+            reasonText = 'Zittingsvrije dagen';
+        } else {
+            reasonText = this.getActiveTypeTitle();
+        }
+        
+        // Determine status text
+        let statusText = '';
+        if (statuses.size === 1) {
+            statusText = Array.from(statuses)[0];
+        } else if (statuses.size > 1) {
+            statusText = 'Diverse statussen';
+        } else {
+            statusText = this.viewMode === 'lopend' ? 'Nieuw' : 'Verschillende';
+        }
+        
+        // Create dynamic header: "{Reason} aanvragen met status {Status} van {Teamleider} - {Teamname}"
+        const dynamicHeader = `${reasonText} aanvragen met status ${statusText} van ${teamleider} - ${teamName}`;
+        
+        return h('div', { className: 'team-section' },
+            h('div', { className: 'team-header' },
+                h('h4', { className: 'team-title' }, dynamicHeader),
+                h('span', { className: 'team-count' }, `${items.length} ${items.length === 1 ? 'aanvraag' : 'aanvragen'}`)
+            ),
+            this.renderSimpleTable(items, type, actionable)
         );
     }
 
@@ -432,9 +638,10 @@ class BehandelcentrumApp {
 
     getColumnsForType(type, includeActions = false) {
         const baseColumns = {
-            'verlof': ['Medewerker', 'Teamleider', 'Reden', 'Omschrijving', 'StartDatum', 'EindDatum', 'AanvraagTijdstip', 'Status'],
-            'compensatie': ['Medewerker', 'Teamleider', 'Omschrijving', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'AanvraagTijdstip', 'Status'],
-            'zittingsvrij': ['Gebruikersnaam', 'Teamleider', 'Opmerking', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'AanvraagTijdstip', 'Status']
+            // Removed: Teamleider, Reden, Status (hidden but data still loaded)
+            'verlof': ['Medewerker', 'Omschrijving', 'StartDatum', 'EindDatum', 'AanvraagTijdstip'],
+            'compensatie': ['Medewerker', 'Omschrijving', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'AanvraagTijdstip'],
+            'zittingsvrij': ['Gebruikersnaam', 'Opmerking', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'AanvraagTijdstip']
         };
 
         let columns = [...(baseColumns[type] || baseColumns['verlof'])];
@@ -790,7 +997,7 @@ class BehandelcentrumApp {
 
         if (item.StartDatum) {
 
-            details.push(h('div', { class: 'detail-item' },
+            details.push(h('div', { className: 'detail-item' },
 
                 h('strong', null, 'Start: '),
 
@@ -804,7 +1011,7 @@ class BehandelcentrumApp {
 
         if (item.EindDatum) {
 
-            details.push(h('div', { class: 'detail-item' },
+            details.push(h('div', { className: 'detail-item' },
 
                 h('strong', null, 'Eind: '),
 
@@ -818,7 +1025,7 @@ class BehandelcentrumApp {
 
         if (item.StartCompensatieUren) {
 
-            details.push(h('div', { class: 'detail-item' },
+            details.push(h('div', { className: 'detail-item' },
 
                 h('strong', null, 'Start: '),
 
@@ -832,7 +1039,7 @@ class BehandelcentrumApp {
 
         if (item.UrenTotaal) {
 
-            details.push(h('div', { class: 'detail-item' },
+            details.push(h('div', { className: 'detail-item' },
 
                 h('strong', null, 'Uren: '),
 
@@ -845,29 +1052,29 @@ class BehandelcentrumApp {
        
 
         if (item.Reden) {
-            details.push(h('div', { class: 'detail-item' },
+            details.push(h('div', { className: 'detail-item' },
                 h('strong', null, 'Reden: '),
                 item.Reden
             ));
         }
         
         if (item.Omschrijving) {
-            details.push(h('div', { class: 'detail-item detail-item-employee-comment' },
+            details.push(h('div', { className: 'detail-item detail-item-employee-comment' },
                 h('strong', null, 'Medewerker opmerking: '),
-                h('div', { class: 'employee-comment' }, item.Omschrijving)
+                h('div', { className: 'employee-comment' }, item.Omschrijving)
             ));
         }
         
         if (item.Opmerking && !item.Omschrijving) {
-            details.push(h('div', { class: 'detail-item detail-item-employee-comment' },
+            details.push(h('div', { className: 'detail-item detail-item-employee-comment' },
                 h('strong', null, 'Opmerking: '),
-                h('div', { class: 'employee-comment' }, item.Opmerking)
+                h('div', { className: 'employee-comment' }, item.Opmerking)
             ));
         }
 
  
 
-        return h('div', { class: 'details-grid' }, ...details);
+        return h('div', { className: 'details-grid' }, ...details);
 
     }
 
