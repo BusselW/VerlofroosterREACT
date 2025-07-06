@@ -118,8 +118,6 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
     background-color: #f4f7fa;
 }
 
@@ -137,7 +135,6 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
 }
 
 .behandelcentrum-app {
