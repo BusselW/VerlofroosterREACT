@@ -311,7 +311,9 @@ class BehandelcentrumApp {
             return this.renderSimpleTable(filteredData, type, actionable);
         } else {
             console.log('Rendering grouped tables with', filteredData.length, 'items');
-            return this.renderGroupedTables(filteredData, type, actionable);
+            // TEMP FIX: Always use simple table until grouped tables are implemented
+            console.log('FIXED: Forcing simple table instead of grouped tables');
+            return this.renderSimpleTable(filteredData, type, actionable);
         }
     }
 
