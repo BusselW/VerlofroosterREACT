@@ -40,6 +40,14 @@
                 lastFetchTime = now;
                 
                 console.log(`Cache refreshed with ${teamsCache.length} teams and ${medewerkersCache.length} employees`);
+                
+                // Debug: Log sample data structure
+                if (teamsCache.length > 0) {
+                    console.log('Sample team data:', teamsCache[0]);
+                }
+                if (medewerkersCache.length > 0) {
+                    console.log('Sample employee data:', medewerkersCache[0]);
+                }
             } catch (error) {
                 console.error('Error refreshing team/employee cache:', error);
                 // If cache already exists, keep using it despite the error
@@ -85,27 +93,72 @@
     /**
      * Gets the team leader information for a given employee
      * @param {string} employeeUsername - The username of the employee (domain\username format)
-     * @returns {Promise<Object|null>} Team leader information or null if not found
+     * @returns {Promise<string|null>} Team leader display name or null if not found
      */
     async function getTeamLeaderForEmployee(employeeUsername) {
         const { teams, medewerkers } = await refreshCacheIfNeeded();
         
-        // Find the team for this employee
-        const team = await getTeamForEmployee(employeeUsername);
-        
-        if (!team || !team.TeamleiderId) {
+        if (!teams.length || !medewerkers.length) {
+            console.warn('Teams or Medewerkers data not available');
             return null;
         }
         
-        // Normalize the team leader username for comparison
-        const normalizedTeamLeaderId = team.TeamleiderId.toLowerCase();
+        // Normalize the username for comparison
+        const normalizedUsername = employeeUsername.toLowerCase();
+        console.log(`Looking for team leader for employee: ${employeeUsername} (normalized: ${normalizedUsername})`);
         
-        // Find the team leader
+        // Step 1: Find the employee by Username
+        const employee = medewerkers.find(m => 
+            m.Username && m.Username.toLowerCase() === normalizedUsername
+        );
+        
+        if (!employee) {
+            console.warn(`Employee not found: ${employeeUsername}`);
+            console.log('Available usernames:', medewerkers.map(m => m.Username).filter(u => u));
+            return null;
+        }
+        
+        if (!employee.Team) {
+            console.warn(`Employee has no team assigned: ${employeeUsername}`);
+            return null;
+        }
+        
+        console.log(`Found employee: ${employee.Naam || employee.Username}, Team: ${employee.Team}`);
+        
+        // Step 2: Find the team by matching employee's Team with Teams.Naam
+        const team = teams.find(t => 
+            t.Naam && t.Naam.toLowerCase() === employee.Team.toLowerCase()
+        );
+        
+        if (!team) {
+            console.warn(`Team not found: ${employee.Team}`);
+            console.log('Available teams:', teams.map(t => t.Naam).filter(n => n));
+            return null;
+        }
+        
+        if (!team.TeamleiderId) {
+            console.warn(`Team has no team leader assigned: ${employee.Team}`);
+            return null;
+        }
+        
+        console.log(`Found team: ${team.Naam}, TeamleiderId: ${team.TeamleiderId}`);
+        
+        // Step 3: Find the team leader by matching TeamleiderId with Medewerkers.Username
+        const normalizedTeamLeaderId = team.TeamleiderId.toLowerCase();
         const teamLeader = medewerkers.find(m => 
             m.Username && m.Username.toLowerCase() === normalizedTeamLeaderId
         );
         
-        return teamLeader || null;
+        if (!teamLeader) {
+            console.warn(`Team leader not found: ${team.TeamleiderId}`);
+            return null;
+        }
+        
+        const teamLeaderName = teamLeader.Naam || teamLeader.Title || teamLeader.Username;
+        console.log(`Found team leader: ${teamLeaderName}`);
+        
+        // Return the display name of the team leader
+        return teamLeaderName;
     }
 
     /**
