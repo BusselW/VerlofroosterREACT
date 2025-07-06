@@ -301,7 +301,12 @@ Otherwise, extract values from DagenIndicators.Title
           titel: "WeekendenWeergeven",
           interneNaam: "WeekendenWeergeven",
           type: "Boolean"
-        }
+        },
+        {
+          titel: "BHCAlleenEigen",
+          interneNaam: "BHCAlleenEigen",
+          type: "Boolean"
+        } /* Only relevant for the behandelcentrum - controls whether teamleaders see only their own team's requests or all teams */
       ]
     },
 

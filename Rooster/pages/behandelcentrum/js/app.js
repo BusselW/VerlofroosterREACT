@@ -121,6 +121,13 @@ class BehandelcentrumApp {
         // Notification system
         this.notifications = [];
         this.notificationId = 0;
+        
+        // Team filtering
+        this.currentUser = null;
+        this.currentUserTeams = [];
+        this.isTeamLeader = false;
+        this.showOnlyOwnTeam = false; // Personal setting from gebruikersInstellingen
+        this.userSettings = null;
     }
 
  
@@ -136,12 +143,16 @@ class BehandelcentrumApp {
 
         // Get current user information
         try {
-            const currentUser = await window.SharePointService.getCurrentUser();
-            if (currentUser && currentUser.Title) {
+            this.currentUser = await window.SharePointService.getCurrentUser();
+            if (this.currentUser && this.currentUser.Title) {
                 const userElement = document.getElementById('huidige-gebruiker');
                 if (userElement) {
-                    userElement.textContent = currentUser.Title;
+                    userElement.textContent = this.currentUser.Title;
                 }
+                
+                // Load user settings and team information
+                await this.loadUserTeamInfo();
+                await this.loadUserSettings();
             }
         } catch (error) {
             console.warn('Could not get current user info:', error);
@@ -205,29 +216,34 @@ class BehandelcentrumApp {
                 console.warn('Could not load IncidenteelZittingVrij:', error);
             }
             
-            // Sort all data by creation date (newest first)
+            // Sort and filter all data collections
             const sortByDate = (a, b) => {
                 const dateA = new Date(a.AanvraagTijdstip || a.Created || a.Modified || 0);
                 const dateB = new Date(b.AanvraagTijdstip || b.Created || b.Modified || 0);
                 return dateB - dateA;
             };
             
-            // Sort and filter all data collections
-            this.verlofLopend = verlofItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.verlofArchief = verlofItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.alleVerlofAanvragen = verlofItems.sort(sortByDate);
+            // Apply team filtering if needed
+            const filteredVerlofItems = await this.filterByTeams(verlofItems);
+            const filteredCompensatieItems = await this.filterByTeams(allCompensatieItems);
+            const filteredZiekteItems = await this.filterByTeams(ziekteItems);
+            const filteredZittingsvrijItems = await this.filterByTeams(zittingsvrijItems);
             
-            this.compensatieLopend = allCompensatieItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.compensatieArchief = allCompensatieItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.alleCompensatieAanvragen = allCompensatieItems.sort(sortByDate);
+            this.verlofLopend = filteredVerlofItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.verlofArchief = filteredVerlofItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleVerlofAanvragen = filteredVerlofItems.sort(sortByDate);
             
-            this.ziekteLopend = ziekteItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.ziekteArchief = ziekteItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.alleZiekteAanvragen = ziekteItems.sort(sortByDate);
+            this.compensatieLopend = filteredCompensatieItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.compensatieArchief = filteredCompensatieItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleCompensatieAanvragen = filteredCompensatieItems.sort(sortByDate);
             
-            this.zittingsvrijLopend = zittingsvrijItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.zittingsvrijArchief = zittingsvrijItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
-            this.alleZittingsvrijAanvragen = zittingsvrijItems.sort(sortByDate);
+            this.ziekteLopend = filteredZiekteItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.ziekteArchief = filteredZiekteItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleZiekteAanvragen = filteredZiekteItems.sort(sortByDate);
+            
+            this.zittingsvrijLopend = filteredZittingsvrijItems.filter(item => this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.zittingsvrijArchief = filteredZittingsvrijItems.filter(item => !this.isInBehandeling(item.Status)).sort(sortByDate);
+            this.alleZittingsvrijAanvragen = filteredZittingsvrijItems.sort(sortByDate);
             
             console.log('Data geladen volgens configLijst.js:', {
                 verlofLopend: this.verlofLopend.length,
@@ -280,6 +296,24 @@ class BehandelcentrumApp {
     }
     renderTabs() {
         return h('div', { class: 'navigation-container' },
+            // Team filter toggle (only show for team leaders)
+            this.isTeamLeader && h('div', { class: 'team-filter-container' },
+                h('div', { class: 'filter-toggle' },
+                    h('label', { class: 'toggle-label' },
+                        h('span', { class: 'toggle-text' }, 'Alleen eigen team:'),
+                        h('div', { class: 'toggle-switch' },
+                            h('input', {
+                                type: 'checkbox',
+                                id: 'team-filter-toggle',
+                                checked: this.showOnlyOwnTeam,
+                                onChange: (e) => this.handleTeamFilterToggle(e)
+                            }),
+                            h('span', { class: 'toggle-slider' })
+                        )
+                    )
+                )
+            ),
+            
             // Main toggle between Lopende and Historische aanvragen
             h('div', { class: 'main-toggle' },
                 h('button', {
@@ -438,7 +472,7 @@ class BehandelcentrumApp {
 
     getColumnsForType(type, includeActions = false) {
         const baseColumns = {
-            'verlof': ['Medewerker', 'Teamleider', 'Reden', 'StartDatum', 'EindDatum', 'AanvraagTijdstip', 'Status'],
+            'verlof': ['Medewerker', 'Teamleider', 'Reden', 'Omschrijving', 'StartDatum', 'EindDatum', 'AanvraagTijdstip', 'Status'],
             'compensatie': ['Medewerker', 'Teamleider', 'Omschrijving', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'AanvraagTijdstip', 'Status'],
             'zittingsvrij': ['Gebruikersnaam', 'Teamleider', 'Opmerking', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'AanvraagTijdstip', 'Status']
         };
@@ -845,16 +879,25 @@ class BehandelcentrumApp {
 
        
 
-        if (item.Reden || item.Omschrijving || item.Opmerking) {
-
+        if (item.Reden) {
             details.push(h('div', { class: 'detail-item' },
-
-                h('strong', null, 'Reden/Omschrijving: '),
-
-                item.Reden || item.Omschrijving || item.Opmerking
-
+                h('strong', null, 'Reden: '),
+                item.Reden
             ));
-
+        }
+        
+        if (item.Omschrijving) {
+            details.push(h('div', { class: 'detail-item detail-item-employee-comment' },
+                h('strong', null, 'Medewerker opmerking: '),
+                h('div', { class: 'employee-comment' }, item.Omschrijving)
+            ));
+        }
+        
+        if (item.Opmerking && !item.Omschrijving) {
+            details.push(h('div', { class: 'detail-item detail-item-employee-comment' },
+                h('strong', null, 'Opmerking: '),
+                h('div', { class: 'employee-comment' }, item.Opmerking)
+            ));
         }
 
  
@@ -1000,6 +1043,16 @@ class BehandelcentrumApp {
 
  
 
+        // Format employee comments with special styling
+        if (column === 'Omschrijving' && value) {
+            return h('div', { class: 'employee-comment-cell' },
+                h('span', { class: 'employee-comment-preview', title: value },
+                    value.length > 30 ? value.substring(0, 30) + '...' : value
+                ),
+                h('div', { class: 'employee-comment-full' }, value)
+            );
+        }
+
         // Format status with badges
 
         if (column === 'Status') {
@@ -1113,225 +1166,151 @@ class BehandelcentrumApp {
         }
     }
 
-    handleModeToggle(e) {
-        const mode = e.currentTarget.getAttribute('data-mode');
-        if (mode && mode !== this.viewMode) {
-            this.viewMode = mode;
-            
-            // Reset to valid type for the new mode
-            if (mode === 'lopend' && (this.selectedType === 'ziekte' || this.selectedType === 'zittingsvrij')) {
-                this.selectedType = 'verlof'; // Default to verlof for lopende aanvragen
-            }
-            
-            this.render();
-            this.bindEvents();
-        }
-    }
-
-    handleTypeSelection(e) {
-        const type = e.currentTarget.getAttribute('data-type');
-        if (type && type !== this.selectedType) {
-            this.selectedType = type;
-            this.render();
-            this.bindEvents();
-        }
-    }
-
-    handleTabClick(e) {
-        // Legacy method for backward compatibility
-        const tabId = e.currentTarget.getAttribute('data-tab');
-        if (tabId && tabId !== this.activeTab) {
-            this.activeTab = tabId;
-            
-            // Convert legacy tab format to new navigation state
-            if (tabId.includes('-lopend')) {
-                this.viewMode = 'lopend';
-            } else {
-                this.viewMode = 'historisch';
-            }
-            
-            if (tabId.includes('verlof')) {
-                this.selectedType = 'verlof';
-            } else if (tabId.includes('compensatie')) {
-                this.selectedType = 'compensatie';
-            } else if (tabId.includes('ziekte')) {
-                this.selectedType = 'ziekte';
-            } else if (tabId.includes('zittingsvrij')) {
-                this.selectedType = 'zittingsvrij';
-            }
-            
-            this.render();
-            this.bindEvents();
-        }
-    }
-
-    handleApprove(event) {
-        const button = event.target;
-        const itemId = button.dataset.itemId;
-        const itemType = button.dataset.itemType;
-        
-        // Find the item in our data to show in modal
-        this.selectedItem = this.findItemById(itemId, itemType);
-        if (this.selectedItem) {
-            this.modalAction = 'approve';
-            this.isApproveModalOpen = true;
-            this.render();
-            this.bindEvents();
-        }
-    }
-
-    handleReject(event) {
-        const button = event.target;
-        const itemId = button.dataset.itemId;
-        const itemType = button.dataset.itemType;
-        
-        // Find the item in our data to show in modal
-        this.selectedItem = this.findItemById(itemId, itemType);
-        if (this.selectedItem) {
-            this.modalAction = 'reject';
-            this.isRejectModalOpen = true;
-            this.render();
-            this.bindEvents();
-        }
-    }
-
-    findItemById(itemId, itemType) {
-        const allItems = [];
-        
-        // Collect all items based on type
-        if (itemType === 'Verlof') {
-            allItems.push(...this.alleVerlofAanvragen, ...this.alleZiekteAanvragen);
-        } else if (itemType === 'CompensatieUren') {
-            allItems.push(...this.alleCompensatieAanvragen);
-        } else if (itemType === 'IncidenteelZittingVrij') {
-            allItems.push(...this.alleZittingsvrijAanvragen);
-        }
-        
-        // Find item by ID (handle both ID and Id properties)
-        return allItems.find(item => (item.ID || item.Id) == itemId);
-    }
-
-    async confirmAction() {
-        const textarea = document.getElementById('reactie-text');
-        const reactie = textarea ? textarea.value.trim() : '';
+    async loadUserTeamInfo() {
+        if (!this.currentUser || !this.currentUser.LoginName) return;
         
         try {
-            const itemId = this.selectedItem.ID || this.selectedItem.Id;
-            const listType = this.getListTypeForActiveTab();
-            const newStatus = this.modalAction === 'approve' ? 'Goedgekeurd' : 'Afgekeurd';
+            // Get current user's username in the format stored in MedewerkerID
+            const username = this.currentUser.LoginName.includes('\\') 
+                ? this.currentUser.LoginName 
+                : `som\\${this.currentUser.LoginName}`;
             
-            // Determine the correct field name for the handler comment
-            let reactieField;
-            switch (listType) {
-                case 'CompensatieUren':
-                    reactieField = 'ReactieBehandelaar';
-                    break;
-                case 'Verlof':
-                    reactieField = 'OpmerkingBehandelaar';
-                    break;
-                case 'IncidenteelZittingVrij':
-                    reactieField = 'Opmerking';
-                    break;
-                default:
-                    reactieField = 'ReactieBehandelaar';
-            }
+            // Load all teams to check if current user is the team leader
+            const allTeams = await window.SharePointService.fetchSharePointList('Teams');
             
-            // Prepare update data
-            const updateData = {
-                Status: newStatus
-            };
+            // Find teams where current user is the team leader
+            this.currentUserTeams = allTeams.filter(team => 
+                team.TeamleiderId && team.TeamleiderId.toLowerCase().includes(username.toLowerCase())
+            );
             
-            // Add reaction if provided
-            if (reactie) {
-                updateData[reactieField] = reactie;
-            }
+            this.isTeamLeader = this.currentUserTeams.length > 0;
             
-            await window.SharePointService.updateListItem(listType, itemId, updateData);
-            
-            // Reload data and close modal
-            await this.loadData();
-            this.closeModal();
-            
-            this.showNotification(`Aanvraag succesvol ${newStatus.toLowerCase()}!`, 'success');
+            console.log('User team info loaded:', {
+                username,
+                isTeamLeader: this.isTeamLeader,
+                teams: this.currentUserTeams.map(t => t.Naam)
+            });
             
         } catch (error) {
-            console.error(`Fout bij ${this.modalAction === 'approve' ? 'goedkeuren' : 'afwijzen'} van aanvraag:`, error);
-            this.showNotification(`Er is een fout opgetreden bij het ${this.modalAction === 'approve' ? 'goedkeuren' : 'afwijzen'} van de aanvraag.`, 'error');
+            console.warn('Could not load user team info:', error);
+        }
+    }
+    
+    async loadUserSettings() {
+        if (!this.currentUser || !this.currentUser.Title) return;
+        
+        try {
+            // Load user settings from gebruikersInstellingen list
+            const userSettings = await window.SharePointService.fetchSharePointList('gebruikersInstellingen');
+            
+            // Find settings for current user (match by Title/Name)
+            this.userSettings = userSettings.find(setting => 
+                setting.Title && setting.Title.toLowerCase() === this.currentUser.Title.toLowerCase()
+            );
+            
+            if (this.userSettings) {
+                this.showOnlyOwnTeam = this.userSettings.BHCAlleenEigen === true;
+            } else {
+                // Create default user settings if none exist
+                this.userSettings = {
+                    Title: this.currentUser.Title,
+                    BHCAlleenEigen: false
+                };
+                this.showOnlyOwnTeam = false;
+            }
+            
+            console.log('User settings loaded:', {
+                showOnlyOwnTeam: this.showOnlyOwnTeam,
+                userSettings: this.userSettings
+            });
+            
+        } catch (error) {
+            console.warn('Could not load user settings:', error);
+            this.showOnlyOwnTeam = false;
+        }
+    }
+    
+    async updateUserSetting(field, value) {
+        try {
+            if (!this.userSettings) return;
+            
+            const updateData = { [field]: value };
+            
+            if (this.userSettings.ID || this.userSettings.Id) {
+                // Update existing setting
+                await window.SharePointService.updateListItem(
+                    'gebruikersInstellingen', 
+                    this.userSettings.ID || this.userSettings.Id, 
+                    updateData
+                );
+            } else {
+                // Create new setting
+                const newSetting = {
+                    Title: this.currentUser.Title,
+                    ...updateData
+                };
+                const created = await window.SharePointService.createListItem('gebruikersInstellingen', newSetting);
+                this.userSettings = { ...this.userSettings, ...created };
+            }
+            
+            // Update local state
+            this.userSettings[field] = value;
+            if (field === 'BHCAlleenEigen') {
+                this.showOnlyOwnTeam = value;
+                // Reload data with new filter
+                await this.loadData();
+                this.render();
+                this.bindEvents();
+            }
+            
+        } catch (error) {
+            console.error('Could not update user setting:', error);
+            this.showNotification('Fout bij opslaan instelling.', 'error');
+        }
+    }
+    
+    async filterByTeams(items) {
+        // If not a team leader or showing all teams, return all items
+        if (!this.isTeamLeader || !this.showOnlyOwnTeam) {
+            return items;
+        }
+        
+        if (!this.currentUserTeams || this.currentUserTeams.length === 0) {
+            return items;
+        }
+        
+        try {
+            // Get all employees to map usernames to teams
+            const employees = await window.SharePointService.fetchSharePointList('Medewerkers');
+            
+            // Create a map of username to team
+            const userTeamMap = {};
+            employees.forEach(emp => {
+                if (emp.Username && emp.Team) {
+                    userTeamMap[emp.Username.toLowerCase()] = emp.Team;
+                }
+            });
+            
+            // Get the team names that current user leads
+            const ownTeamNames = this.currentUserTeams.map(team => team.Naam);
+            
+            // Filter items to only show those from own teams
+            return items.filter(item => {
+                const username = (item.MedewerkerID || item.Medewerker || item.Gebruikersnaam || '').toLowerCase();
+                const userTeam = userTeamMap[username];
+                
+                return userTeam && ownTeamNames.includes(userTeam);
+            });
+            
+        } catch (error) {
+            console.warn('Error filtering by teams:', error);
+            return items; // Return all items if filtering fails
         }
     }
 
-    // Notification System
-    showNotification(message, type = 'info', duration = 4000) {
-        const id = ++this.notificationId;
-        const notification = {
-            id,
-            message,
-            type, // 'success', 'error', 'warning', 'info'
-            timestamp: Date.now()
-        };
-        
-        this.notifications.push(notification);
-        this.renderNotifications();
-        
-        // Auto remove after duration
-        setTimeout(() => {
-            this.removeNotification(id);
-        }, duration);
-        
-        return id;
-    }
-    
-    removeNotification(id) {
-        this.notifications = this.notifications.filter(n => n.id !== id);
-        this.renderNotifications();
-    }
-    
-    renderNotifications() {
-        let container = document.getElementById('notification-container');
-        if (!container) {
-            container = h('div', { 
-                id: 'notification-container',
-                class: 'notification-container'
-            });
-            document.body.appendChild(container);
-        }
-        
-        container.innerHTML = '';
-        
-        this.notifications.forEach(notification => {
-            const notificationEl = h('div', {
-                class: `notification notification-${notification.type} notification-enter`,
-                'data-id': notification.id
-            },
-                h('div', { class: 'notification-content' },
-                    h('div', { class: 'notification-icon' },
-                        this.getNotificationIcon(notification.type)
-                    ),
-                    h('div', { class: 'notification-message' }, notification.message),
-                    h('button', {
-                        class: 'notification-close',
-                        onClick: () => this.removeNotification(notification.id)
-                    }, '×')
-                )
-            );
-            
-            container.appendChild(notificationEl);
-            
-            // Trigger animation
-            setTimeout(() => {
-                notificationEl.classList.add('notification-visible');
-            }, 10);
-        });
-    }
-    
-    getNotificationIcon(type) {
-        const icons = {
-            'success': '✓',
-            'error': '✗',
-            'warning': '⚠',
-            'info': 'ℹ'
-        };
-        return icons[type] || icons.info;
+    handleTeamFilterToggle(e) {
+        const newValue = e.target.checked;
+        this.updateUserSetting('BHCAlleenEigen', newValue);
     }
 }
  
