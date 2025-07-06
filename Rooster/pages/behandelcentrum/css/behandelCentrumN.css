@@ -163,20 +163,18 @@ body {
    ========================================================================== */
 /* Keep your existing banner styles exactly as they were */
 
-/* Header & Toolbar (Modern Harmonized Design) - COMPACT */
+/* Header & Toolbar (Modern Harmonized Design) */
 .header {
     background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 85%, #c2410c 100%);
     color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(30, 58, 138, 0.3);
-    padding: var(--space-md) var(--space-lg);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(30, 58, 138, 0.4);
+    padding: 1.25rem 2rem;
     border: none;
     position: relative;
     overflow: visible;
-    margin: var(--space-md);
-    margin-bottom: var(--space-sm);
-    height: var(--header-height);
-    min-height: var(--header-height);
+    margin: var(--space-lg);
+    margin-bottom: var(--space-md);
 }
 
 .header::before {
@@ -194,27 +192,26 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 100%;
 }
 
 .header-left {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
+    gap: 1rem;
 }
 
 .header h1 {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.75rem;
+    font-weight: 700;
     margin: 0;
     color: white;
-    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
     letter-spacing: -0.025em;
 }
 
 .header-acties {
     display: flex;
-    gap: var(--space-md);
+    gap: 1rem;
     align-items: center;
 }
 
@@ -956,4 +953,181 @@ body.dark-theme .teamleider-unavailable {
     margin: 0;
     font-size: 0.8rem;
     color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   COMPACT IMPROVEMENTS - ALLEEN HOOGTE REDUCTIES
+   ========================================================================== */
+
+/* Maak navigation container compacter */
+.navigation-container {
+    margin-bottom: var(--space-sm) !important;
+}
+
+/* Reduceer padding en marges van team filter */
+.team-filter-container {
+    padding: var(--space-xs) var(--space-md) !important;
+    margin-bottom: var(--space-xs) !important;
+}
+
+/* Compactere toggle switches */
+.toggle-switch {
+    width: 36px !important;
+    height: 18px !important;
+}
+
+.toggle-slider:before {
+    height: 16px !important;
+    width: 16px !important;
+    left: 2px !important;
+    bottom: 2px !important;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px) !important;
+}
+
+/* Smaller fonts en padding voor toggle labels */
+.toggle-label {
+    font-size: 0.75rem !important;
+}
+
+.toggle-text {
+    font-size: 0.75rem !important;
+}
+
+/* Maak main toggle buttons compacter */
+.main-toggle {
+    padding: var(--space-xs) !important;
+}
+
+.main-toggle .toggle-btn {
+    padding: var(--space-xs) var(--space-sm) !important;
+    font-size: 0.8rem !important;
+    height: 2rem !important;
+    min-height: 2rem !important;
+}
+
+.main-toggle .toggle-btn i {
+    font-size: 0.75rem !important;
+}
+
+/* Maak type selection buttons compacter */
+.type-selection {
+    padding: var(--space-sm) !important;
+}
+
+.type-btn {
+    padding: var(--space-xs) var(--space-sm) !important;
+    font-size: 0.75rem !important;
+    height: 1.75rem !important;
+    min-height: 1.75rem !important;
+}
+
+.count-badge {
+    font-size: 0.65rem !important;
+    padding: 1px 3px !important;
+    min-width: 14px !important;
+    height: 14px !important;
+}
+
+/* Maak table content area hoger door navigation te verkleinen */
+.tab-content-container {
+    height: calc(100vh - 130px) !important; /* Vergroot van 140px naar 130px */
+    padding: var(--space-sm) var(--space-md) !important;
+}
+
+/* Compactere content headers */
+.content-header {
+    margin-bottom: var(--space-xs) !important;
+    padding-bottom: var(--space-xs) !important;
+}
+
+.content-header h3 {
+    font-size: 0.95rem !important;
+    margin: 0 !important;
+}
+
+/* Maak table headers en cells compacter */
+.data-table thead th {
+    padding: var(--space-sm) var(--space-sm) !important;
+    font-size: 0.8rem !important;
+}
+
+.data-table td {
+    padding: var(--space-sm) var(--space-sm) !important;
+    font-size: 0.8rem !important;
+    line-height: 1.3 !important;
+}
+
+/* Compactere action buttons */
+.action-buttons .btn {
+    padding: var(--space-xs) var(--space-sm) !important;
+    font-size: 0.75rem !important;
+    height: 1.5rem !important;
+    min-height: 1.5rem !important;
+}
+
+/* Compactere reactie cells */
+.reactie-cell {
+    font-size: 0.75rem !important;
+}
+
+.reactie-content {
+    font-size: 0.75rem !important;
+}
+
+/* Maak team sections compacter */
+.team-header {
+    padding: var(--space-sm) var(--space-md) !important;
+}
+
+.team-title {
+    font-size: 0.9rem !important;
+}
+
+.team-count {
+    font-size: 0.7rem !important;
+    padding: 2px 6px !important;
+}
+
+/* Reduceer empty state ruimte */
+.empty-state {
+    padding: var(--space-lg) !important;
+    min-height: 150px !important;
+}
+
+.empty-icon {
+    font-size: 1.5rem !important;
+    margin-bottom: var(--space-sm) !important;
+}
+
+.empty-state h3 {
+    font-size: 0.9rem !important;
+}
+
+.empty-state p {
+    font-size: 0.75rem !important;
+}
+
+/* Header emulation dropdown compacter maken */
+.header-emulation {
+    padding: var(--space-xs) var(--space-sm) !important;
+}
+
+.header-emulation-label {
+    font-size: 0.75rem !important;
+}
+
+.header-emulation-select {
+    padding: var(--space-xs) var(--space-sm) !important;
+    font-size: 0.75rem !important;
+    height: 1.5rem !important;
+    min-width: 140px !important;
+}
+
+/* Page footer compacter */
+.page-footer {
+    padding: var(--space-xs) var(--space-md) !important;
+    font-size: 0.7rem !important;
 }

@@ -996,6 +996,155 @@ class BehandelcentrumApp {
         );
 
     }
+
+                actionButtonIcon = 'fas fa-comment';
+
+                break;
+
+        }
+
+        // Get the current handler comment based on the selected type
+        let currentReactie = '';
+        if (this.selectedType === 'compensatie') {
+            currentReactie = item.ReactieBehandelaar || '';
+        } else if (this.selectedType === 'verlof' || this.selectedType === 'ziekte') {
+            currentReactie = item.OpmerkingBehandelaar || '';
+        } else if (this.selectedType === 'zittingsvrij') {
+            currentReactie = item.Opmerking || '';
+        }
+
+
+
+        const isActionModal = this.modalAction === 'approve' || this.modalAction === 'reject';
+
+
+
+        return h('div', {
+            className: 'modal-overlay', onClick: (e) => {
+
+                if (e.target.classList.contains('modal-overlay')) {
+
+                    this.closeModal();
+
+                }
+
+            }
+        },
+
+            h('div', { className: `modal-content ${isActionModal ? 'action-modal' : 'reactie-modal'}` },
+
+                h('div', { className: 'modal-header' },
+
+                    h('h3', null, modalTitle),
+
+                    h('div', { className: 'modal-subtitle' }, modalSubtitle),
+
+                    h('button', {
+
+                        className: 'modal-close',
+
+                        onClick: () => this.closeModal()
+
+                    }, '×')
+
+                ),
+
+                h('div', { className: 'modal-body' },
+
+                    h('div', { className: 'aanvraag-details' },
+
+                        h('h4', null, 'Aanvraag Details:'),
+
+                        this.renderAanvraagDetails(item)
+
+                    ),
+
+                    isActionModal && h('div', { className: 'action-warning' },
+
+                        h('div', { className: 'warning-icon' },
+
+                            h('i', { className: this.modalAction === 'approve' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle' })
+
+                        ),
+
+                        h('p', null,
+
+                            this.modalAction === 'approve'
+
+                                ? 'U staat op het punt deze aanvraag goed te keuren. Deze actie kan niet ongedaan worden gemaakt.'
+
+                                : 'U staat op het punt deze aanvraag af te wijzen. Deze actie kan niet ongedaan worden gemaakt.'
+
+                        )
+
+                    ),
+
+                    h('div', { className: 'reactie-form' },
+
+                        h('label', { htmlFor: 'reactie-text' },
+
+                            isActionModal
+
+                                ? `Optionele ${this.modalAction === 'approve' ? 'goedkeurings' : 'afwijzings'}opmerking:`
+
+                                : 'Uw reactie:'
+
+                        ),
+
+                        h('textarea', {
+
+                            id: 'reactie-text',
+
+                            className: 'reactie-textarea',
+
+                            placeholder: isActionModal
+
+                                ? `Optionele opmerking bij ${this.modalAction === 'approve' ? 'goedkeuring' : 'afwijzing'}...`
+
+                                : 'Typ hier uw reactie voor de medewerker...',
+
+                            defaultValue: currentReactie,
+
+                            rows: isActionModal ? 3 : 4
+
+                        })
+
+                    )
+
+                ),
+
+                h('div', { className: 'modal-footer' },
+
+                    h('button', {
+
+                        className: 'btn btn-secondary',
+
+                        onClick: () => this.closeModal()
+
+                    }, 'Annuleren'),
+
+                    h('button', {
+
+                        className: `btn ${actionButtonClass}`,
+
+                        onClick: () => isActionModal ? this.confirmAction() : this.saveReactie()
+
+                    },
+
+                        h('i', { className: actionButtonIcon }),
+
+                        ` ${actionButtonText}`
+
+                    )
+
+                )
+
+            )
+
+        );
+
+    }
+
     closeModal() {
         this.selectedItem = null;
         this.modalAction = null;
