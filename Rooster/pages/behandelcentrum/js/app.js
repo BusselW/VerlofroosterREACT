@@ -174,9 +174,6 @@ class BehandelcentrumApp {
             }
             
             console.log('Data loaded successfully');
-            
-            // Update table scrolling after data loads
-            setTimeout(() => this.updateTableScrolling(), 100);
         } catch (error) {
             console.error('Error loading data:', error);
         }
@@ -226,7 +223,6 @@ class BehandelcentrumApp {
         // Load teamleider data after React has rendered
         setTimeout(() => {
             this.loadTeamleiderData();
-            this.setupTableScrolling(); // Setup table scrolling detection
         }, 0);
         
         // Setup header emulation dropdown for super user
@@ -380,7 +376,7 @@ class BehandelcentrumApp {
 
         return h('div', { className: 'grouped-tables' },
             ...groupedData.map(teamGroup => 
-                this.renderTeamGroup(teamGroup, type, actionable)
+                this.renderTeamGroupWithPagination(teamGroup, type, actionable)
             )
         );
     }
@@ -418,6 +414,59 @@ class BehandelcentrumApp {
                             this.renderTableRow(item, columns, actionable)
                         )
                     )
+                )
+            )
+        );
+    }
+
+    renderTeamGroupWithPagination(teamGroup, type, actionable) {
+        const { teamName, teamInfo, requests } = teamGroup;
+        const columns = this.getColumnsForType(type, actionable);
+        
+        // Get pagination state for this team
+        const pagination = this.getTeamPagination(teamName);
+        this.updatePaginationInfo(requests.length, teamName);
+        
+        // Get paginated data for this team
+        const paginatedRequests = this.paginateData(requests, pagination.currentPage, pagination.pageSize);
+        
+        return h('div', { 
+            className: 'team-group',
+            style: { borderLeft: `4px solid ${teamInfo.teamKleur}` }
+        },
+            h('div', { className: 'team-header' },
+                h('h3', { className: 'team-name' },
+                    h('span', { className: 'team-indicator' }, '👥'),
+                    teamName,
+                    h('span', { className: 'request-count' }, `(${requests.length})`)
+                ),
+                h('div', { className: 'team-leader' },
+                    h('span', { className: 'leader-label' }, 'Teamleider:'),
+                    h('span', { className: 'leader-name' }, teamInfo.teamleider || 'Onbekend')
+                )
+            ),
+            h('div', { className: 'team-table-container' },
+                h('table', { className: 'data-table team-table' },
+                    h('thead', null,
+                        h('tr', null,
+                            ...columns.map(col =>
+                                h('th', { 'data-column': col }, this.getColumnDisplayName(col))
+                            )
+                        )
+                    ),
+                    h('tbody', null,
+                        ...paginatedRequests.map(item =>
+                            this.renderTableRow(item, columns, actionable)
+                        )
+                    )
+                ),
+                // Add pagination controls for this team
+                this.renderPagination(
+                    requests.length,
+                    pagination.currentPage,
+                    pagination.pageSize,
+                    (newPage) => this.changeTeamPage(teamName, newPage),
+                    (newSize) => this.changeTeamPageSize(teamName, newSize)
                 )
             )
         );
@@ -1102,7 +1151,7 @@ class BehandelcentrumApp {
         );
         
         if (teamsWithoutLeaders.length > 0) {
-            console.warn(`${teamsWithoutLeaders.length} teams found without teamleader:`, 
+            console.warn(`${teamsWithoutLeaders.length} teams found without teamleider:`, 
                 teamsWithoutLeaders.map(team => ({ Naam: team.Naam, Teamleider: team.Teamleider }))
             );
         }
@@ -1279,10 +1328,8 @@ class BehandelcentrumApp {
     }
 
     // Update table scrolling after data changes
-    updateTableScrolling() {
-        // Update scroll detection when data changes
-        this.setupTableScrolling();
-    }
+    // Update table scrolling after data changes
+    // Removed - using pagination instead of scrolling
 
     // Enhanced table rendering with pagination support
     renderTableWithScrollSupport(data, type, actionable, containerClass = 'table-container') {
@@ -1338,20 +1385,8 @@ class BehandelcentrumApp {
         );
     }
 
-    // Add scroll detection for table containers
-    setupTableScrolling() {
-        // Add scroll detection after render
-        setTimeout(() => {
-            const tableContainers = document.querySelectorAll('.table-container, .team-table-container');
-            tableContainers.forEach(container => {
-                if (container.scrollHeight > container.clientHeight) {
-                    container.classList.add('scrollable');
-                } else {
-                    container.classList.remove('scrollable');
-                }
-            });
-        }, 100);
-    }
+    // Add pagination controls and remove scroll detection since we use pagination
+    // Removed setupTableScrolling method - using pagination instead
 
     findItemById(itemId) {
         // Search in all current data arrays
@@ -1472,6 +1507,13 @@ class BehandelcentrumApp {
             pagination.currentPage = newPage;
             this.render();
         }
+    }
+
+    changeTeamPageSize(teamName, newSize) {
+        const pagination = this.getTeamPagination(teamName);
+        pagination.pageSize = newSize;
+        pagination.currentPage = 1; // Reset to first page
+        this.render();
     }
 
     changePageSize(newSize) {
