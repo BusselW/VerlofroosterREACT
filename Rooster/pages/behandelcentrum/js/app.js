@@ -5,12 +5,8 @@
 // window.ConfigHelper (from configHelper.js)
 // h = React.createElement (from React CDN, declared in HTML)
 
-
-
 class BehandelcentrumApp {
-
     constructor() {
-
         this.root = document.getElementById('behandelcentrum-root');
 
 
@@ -1142,7 +1138,6 @@ class BehandelcentrumApp {
             )
 
         );
-
     }
 
     closeModal() {
@@ -1916,8 +1911,6 @@ class BehandelcentrumApp {
             this.render();
         });
     }
-
-    // ...existing code...
 }
 
 
