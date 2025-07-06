@@ -118,6 +118,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-y: auto; /* Allow vertical scrolling when needed */
     background-color: #f4f7fa;
 }
 
@@ -135,6 +136,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow-y: auto; /* Allow scrolling if content is too tall */
 }
 
 .behandelcentrum-app {
@@ -508,6 +510,7 @@ body {
     padding: var(--space-sm) var(--space-md);
     display: flex;
     flex-direction: column;
+    flex: 1; /* Allow to grow and shrink as needed */
 }
 
 .tab-content {
@@ -1443,10 +1446,7 @@ body.dark-theme .teamleider-unavailable {
     position: relative;
     display: flex;
     flex-direction: column;
-}
-
-.table-wrapper .table-container {
-    min-height: 500px; /* Ensure space for ~10 rows */
+    /* Remove fixed heights - let content size naturally */
 }
 
 /* Ensure proper table display for header alignment */
@@ -1473,16 +1473,16 @@ body.dark-theme .teamleider-unavailable {
     display: table-cell;
 }
 
-/* Additional table styling for proper layout and 10-row display */
+/* Additional table styling for proper layout and responsive sizing */
 .table-container {
-    min-height: 500px; /* Space for 10 rows + header + pagination */
     display: flex;
     flex-direction: column;
+    /* Remove fixed heights - let content determine size */
 }
 
 .data-table {
-    flex: 1;
-    min-height: 400px; /* Minimum space for table content */
+    /* Remove fixed height - let content determine size naturally */
+    width: 100%;
 }
 
 /* Ensure table rows have consistent spacing */
@@ -1502,3 +1502,35 @@ body.dark-theme .teamleider-unavailable {
 .team-table-container .data-table thead tr {
     height: 38px;
 }
+
+/* Team table container - responsive to content */
+.team-table-container {
+    overflow: visible;
+    /* Let content determine height naturally */
+}
+
+.team-table-container .data-table {
+    width: 100%;
+    display: table;
+}
+
+.team-table-container .data-table thead {
+    display: table-header-group;
+}
+
+.team-table-container .data-table tbody {
+    display: table-row-group;
+    overflow: visible;
+}
+
+.team-table-container .data-table thead tr,
+.team-table-container .data-table tbody tr {
+    display: table-row;
+}
+
+.team-table-container .data-table th,
+.team-table-container .data-table td {
+    display: table-cell;
+}
+
+/* Team table adjustments */
