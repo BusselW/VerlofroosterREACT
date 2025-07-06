@@ -482,19 +482,5 @@ export function trimLoginNaamPrefix(loginName) {
     return processed;
 }
 
-// Create a fallback appConfiguratie if it doesn't exist
-if (typeof window.appConfiguratie === "undefined") {
-    console.warn("Creating fallback appConfiguratie object because it was not found");
-    window.appConfiguratie = {
-        instellingen: {
-            debounceTimer: 300,
-            siteUrl: ""  // Empty site URL will cause graceful fallbacks
-        }
-    };
-}
-
-window.getSharePointListItems = getSharePointListItems;
-window.createSharePointListItem = createSharePointListItem;
-window.updateSharePointListItem = updateSharePointListItem;
-window.deleteSharePointListItem = deleteSharePointListItem;
-window.getCurrentUser = getCurrentUser;
+// Note: This file maintains ES6 module exports for the main rooster application
+// For global (non-module) usage, see sharepointService-global.js instead
