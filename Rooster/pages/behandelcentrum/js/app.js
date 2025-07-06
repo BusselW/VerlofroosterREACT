@@ -1469,6 +1469,19 @@ class BehandelcentrumApp {
         this.pagination.currentPage = Math.min(this.pagination.currentPage, this.pagination.totalPages || 1);
     }
 
+    updatePaginationInfo(totalItems, teamName = null) {
+        if (teamName) {
+            // Update team-specific pagination
+            const pagination = this.getTeamPagination(teamName);
+            pagination.totalItems = totalItems;
+            pagination.totalPages = Math.ceil(totalItems / pagination.pageSize);
+            pagination.currentPage = Math.min(pagination.currentPage, pagination.totalPages || 1);
+        } else {
+            // Update main pagination
+            this.initializePagination(totalItems);
+        }
+    }
+
     getTeamPagination(teamName) {
         if (!this.teamPagination.has(teamName)) {
             this.teamPagination.set(teamName, {
