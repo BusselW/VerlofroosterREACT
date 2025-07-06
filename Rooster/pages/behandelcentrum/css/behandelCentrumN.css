@@ -797,6 +797,7 @@ body.dark-theme .teamleider-unavailable {
     display: flex;
     gap: var(--space-xs);
     align-items: center;
+    justify-content: center; /* Center the buttons */
 }
 
 .btn {
@@ -1178,11 +1179,13 @@ body.dark-theme .teamleider-unavailable {
 /* Action buttons in table */
 .action-cell {
     width: 200px;
+    text-align: center; /* Center the cell content */
 }
 
 .action-buttons {
     display: flex;
     gap: var(--space-sm);
+    justify-content: center; /* Center the buttons */
 }
 
 .btn {
@@ -1592,4 +1595,59 @@ html, body {
     margin-top: var(--space-sm);
     padding: var(--space-sm);
     border-top: 1px solid #e2e8f0;
+}
+
+/* ==========================================================================
+   TEAM HEADER STYLES (MATCHING REACT CODE)
+   ========================================================================== */
+
+/* Team header styles for grouped view */
+.team-header {
+    padding: var(--space-md) var(--space-lg);
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.team-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.team-indicator {
+    font-size: 1.1rem;
+}
+
+.request-count {
+    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-xs);
+}
+
+.team-leader {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.8rem;
+}
+
+.leader-label {
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.leader-name {
+    font-weight: 600;
+    margin-top: 2px;
 }
