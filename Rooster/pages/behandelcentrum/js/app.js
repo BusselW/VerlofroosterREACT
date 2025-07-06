@@ -3,7 +3,51 @@
 // window.LinkInfo (from linkInfo-global.js)
 // window.appConfiguratie (from configLijst.js)
 // window.ConfigHelper (from configHelper.js)
-// h = React.createElement (from React CDN, declared in HTML)
+
+/**
+ * Custom createElement function for DOM manipulation
+ * Creates DOM elements with props and children, similar to React.createElement but for vanilla DOM
+ */
+const h = (tag, props, ...children) => {
+    const el = document.createElement(tag);
+    
+    if (props) {
+        for (const key in props) {
+            if (key.startsWith('on') && typeof props[key] === 'function') {
+                // Handle event listeners
+                el.addEventListener(key.substring(2).toLowerCase(), props[key]);
+            } else if (key === 'className') {
+                // Handle className
+                el.className = props[key];
+            } else if (key === 'class') {
+                // Handle class attribute
+                el.className = props[key];
+            } else if (key === 'checked' && typeof props[key] === 'boolean') {
+                // Handle boolean attributes like checked
+                el.checked = props[key];
+            } else if (key === 'value') {
+                // Handle value attribute
+                el.value = props[key];
+            } else {
+                // Handle other attributes
+                el.setAttribute(key, props[key]);
+            }
+        }
+    }
+    
+    children.forEach(child => {
+        if (child === null || child === undefined || child === false) {
+            // Skip falsy children (allows conditional rendering)
+            return;
+        } else if (typeof child === 'string' || typeof child === 'number') {
+            el.appendChild(document.createTextNode(child));
+        } else if (child instanceof HTMLElement) {
+            el.appendChild(child);
+        }
+    });
+    
+    return el;
+};
 
  
 

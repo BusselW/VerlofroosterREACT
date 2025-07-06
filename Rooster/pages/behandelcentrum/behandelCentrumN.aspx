@@ -55,14 +55,6 @@
     </div>
     
     <!-- JS files -->
-    <!-- React libraries from CDN -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script>
-        // Declare h as global variable for React
-        const h = React.createElement;
-    </script>
-    
     <script src="../../js/config/configLijst.js"></script>
     <script src="../../js/config/configHelper.js"></script>
     <script src="../../js/services/sharepointService-global.js"></script>
