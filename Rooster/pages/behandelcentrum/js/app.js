@@ -1198,6 +1198,77 @@ class BehandelcentrumApp {
         this.render();
     }
 
+    async confirmAction() {
+        if (!this.selectedItem || !this.modalAction) return;
+
+        try {
+            const itemId = this.selectedItem.ID || this.selectedItem.Id;
+            const listType = this.getListTypeForActiveTab();
+            const textarea = document.getElementById('reactie-text');
+            const reactie = textarea ? textarea.value.trim() : '';
+
+            console.log('=== confirmAction Debug Info ===');
+            console.log('Action:', this.modalAction);
+            console.log('Item ID:', itemId);
+            console.log('List Type:', listType);
+            console.log('Selected Item:', this.selectedItem);
+            console.log('Handler Comment:', reactie);
+
+            // Determine the correct fields based on the action and list type
+            const updateData = {};
+
+            if (this.modalAction === 'approve') {
+                updateData.Status = 'Goedgekeurd';
+            } else if (this.modalAction === 'reject') {
+                updateData.Status = 'Afgekeurd';
+            }
+
+            // Add handler comment if provided
+            if (reactie) {
+                let reactieField;
+                switch (listType) {
+                    case 'CompensatieUren':
+                        reactieField = 'ReactieBehandelaar';
+                        break;
+                    case 'Verlof':
+                        reactieField = 'OpmerkingBehandelaar';
+                        break;
+                    case 'IncidenteelZittingVrij':
+                        reactieField = 'Opmerking';
+                        break;
+                    default:
+                        reactieField = 'ReactieBehandelaar';
+                }
+                updateData[reactieField] = reactie;
+            }
+
+            console.log('Update Data to send:', updateData);
+
+            const result = await window.SharePointService.updateListItem(listType, itemId, updateData);
+            
+            if (result && result.success) {
+                // Show success notification
+                this.showNotification(
+                    `Aanvraag ${this.modalAction === 'approve' ? 'goedgekeurd' : 'afgekeurd'}.`,
+                    'success'
+                );
+
+                // Reload data and close modal
+                await this.loadData();
+                this.closeModal();
+            } else {
+                throw new Error('Update returned no success result');
+            }
+
+        } catch (error) {
+            console.error('Error confirming action:', error);
+            this.showNotification(
+                `Er is een fout opgetreden: ${error.message}`,
+                'error'
+            );
+        }
+    }
+
     // Update table scrolling after data changes
     updateTableScrolling() {
         // Update scroll detection when data changes
@@ -1259,6 +1330,77 @@ class BehandelcentrumApp {
                 }
             });
         }, 100);
+    }
+
+    findItemById(itemId) {
+        // Search in all current data arrays
+        const allItems = [
+            ...this.verlofLopend,
+            ...this.verlofArchief,
+            ...this.compensatieLopend,
+            ...this.compensatieArchief,
+            ...this.ziekteLopend,
+            ...this.ziekteArchief,
+            ...this.zittingsvrijLopend,
+            ...this.zittingsvrijArchief
+        ];
+
+        return allItems.find(item => (item.ID || item.Id) == itemId);
+    }
+
+    showNotification(message, type = 'info') {
+        // Simple notification system
+        const notificationContainer = document.createElement('div');
+        notificationContainer.className = `notification notification-${type}`;
+        notificationContainer.textContent = message;
+        notificationContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+
+        if (type === 'success') {
+            notificationContainer.style.backgroundColor = '#10b981';
+        } else if (type === 'error') {
+            notificationContainer.style.backgroundColor = '#ef4444';
+        } else {
+            notificationContainer.style.backgroundColor = '#3b82f6';
+        }
+
+        document.body.appendChild(notificationContainer);
+
+        // Animate in
+        setTimeout(() => {
+            notificationContainer.style.opacity = '1';
+        }, 100);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notificationContainer.style.opacity = '0';
+            setTimeout(() => {
+                if (document.body.contains(notificationContainer)) {
+                    document.body.removeChild(notificationContainer);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    setupHeaderEmulationDropdown() {
+        // Implementation for header emulation dropdown for super users
+        // This would be called if needed for org\busselw to emulate other team leaders
+        console.log('Setting up header emulation dropdown for super user');
+        
+        // For now, just log that it's available
+        if (this.allTeamLeaders.length > 0) {
+            console.log('Available team leaders for emulation:', this.allTeamLeaders);
+        }
     }
 }
 
