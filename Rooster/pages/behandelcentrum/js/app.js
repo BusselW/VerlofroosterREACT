@@ -1210,8 +1210,44 @@ class BehandelcentrumApp {
         document.querySelectorAll('.btn-reject').forEach(button => {
             button.addEventListener('click', (e) => this.handleReject(e));
         });
+
+        // Load teamleider data asynchronously
+        this.loadTeamleiderData();
     }
-    
+
+    async loadTeamleiderData() {
+        // Only load if showTeamleider is enabled and LinkInfo is available
+        if (!this.showTeamleider || !window.LinkInfo) {
+            return;
+        }
+
+        const placeholders = document.querySelectorAll('.teamleider-placeholder');
+        
+        for (const placeholder of placeholders) {
+            const username = placeholder.getAttribute('data-username');
+            if (!username) continue;
+
+            try {
+                const teamleider = await window.LinkInfo.getTeamleider(username);
+                
+                if (teamleider && teamleider !== username) {
+                    placeholder.textContent = teamleider;
+                    placeholder.className = 'teamleider-loaded';
+                    placeholder.title = `Teamleider van ${username}: ${teamleider}`;
+                } else {
+                    placeholder.textContent = 'Niet beschikbaar';
+                    placeholder.className = 'teamleider-unavailable';
+                    placeholder.title = `Geen teamleider gevonden voor ${username}`;
+                }
+            } catch (error) {
+                console.warn(`Fout bij ophalen teamleider voor ${username}:`, error);
+                placeholder.textContent = 'Niet beschikbaar';
+                placeholder.className = 'teamleider-unavailable';
+                placeholder.title = `Kon teamleider niet ophalen voor ${username}`;
+            }
+        }
+    }
+
     handleTabClick(e) {
         const tabId = e.currentTarget.getAttribute('data-tab');
         if (tabId && tabId !== this.activeTab) {

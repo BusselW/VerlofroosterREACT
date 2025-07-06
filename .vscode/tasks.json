@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Open Behandelcentrum Page",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"Test task created. Open 'Rooster/pages/behandelcentrum/behandelCentrumN.aspx' in a web server to test the refactored page."
+			],
+			"group": "build",
+			"isBackground": false
+		}
+	]
+}
