@@ -322,12 +322,11 @@ class BehandelcentrumApp {
 
     bindEvents() {
         // Tab switching
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                this.activeTab = e.target.dataset.tab;
-                this.render();
-                this.bindEvents(); // Re-bind after re-render
-            });
+        document.querySelectorAll('.compact-tab').forEach(button => {
+            // Remove existing event listeners to prevent duplicates
+            button.removeEventListener('click', this.handleTabClick);
+            // Add new event listener
+            button.addEventListener('click', this.handleTabClick.bind(this));
         });
 
         // Action button events
@@ -338,6 +337,15 @@ class BehandelcentrumApp {
         document.querySelectorAll('.btn-reject').forEach(button => {
             button.addEventListener('click', (e) => this.handleReject(e));
         });
+    }
+    
+    handleTabClick(e) {
+        const tabId = e.currentTarget.getAttribute('data-tab');
+        if (tabId && tabId !== this.activeTab) {
+            this.activeTab = tabId;
+            this.render();
+            this.bindEvents();
+        }
     }
 
     async handleApprove(event) {
