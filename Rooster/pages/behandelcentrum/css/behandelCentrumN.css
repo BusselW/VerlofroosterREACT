@@ -1798,3 +1798,36 @@ body.dark-theme .teamleider-unavailable {
 .leader-name {
     font-weight: 500;
 }
+
+/* Team group specific pagination styles */
+.team-group .pagination-container {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    margin-top: 0;
+}
+
+.team-group .pagination-info {
+    font-size: 0.8rem;
+}
+
+.team-group .pagination-btn {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+}
+
+/* Ensure team tables don't have scrolling */
+.team-table-container {
+    overflow: visible;
+}
+
+.team-table-container .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.team-table-container .data-table tbody {
+    display: table-row-group;
+    overflow: visible;
+}
