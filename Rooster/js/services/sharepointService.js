@@ -159,11 +159,21 @@ export function getProfilePictureUrl(loginName, size = 'M') {
 export async function fetchSharePointList(lijstNaam) {
     try {
         if (!window.appConfiguratie || !window.appConfiguratie.instellingen) {
-            throw new Error('App configuratie niet gevonden.');
+            console.warn('App configuratie niet gevonden. Fallback naar lege lijst.');
+            return [];
         }
+        
         const siteUrl = window.appConfiguratie.instellingen.siteUrl;
+        if (!siteUrl) {
+            console.warn('SharePoint site URL niet gevonden. Fallback naar lege lijst.');
+            return [];
+        }
+        
         const lijstConfig = window.appConfiguratie[lijstNaam];
-        if (!lijstConfig) throw new Error(`Configuratie voor lijst '${lijstNaam}' niet gevonden.`);
+        if (!lijstConfig) {
+            console.warn(`Configuratie voor lijst '${lijstNaam}' niet gevonden. Fallback naar lege lijst.`);
+            return [];
+        }
 
         const lijstTitel = lijstConfig.lijstTitel;
         const apiUrl = `${siteUrl.replace(/\/$/, "")}/_api/web/lists/getbytitle('${lijstTitel}')/items?$top=5000`;
@@ -172,12 +182,18 @@ export async function fetchSharePointList(lijstNaam) {
             headers: { 'Accept': 'application/json;odata=nometadata' },
             credentials: 'same-origin'
         });
-        if (!response.ok) throw new Error(`Fout bij ophalen van ${lijstNaam}: ${response.statusText}`);
+        
+        if (!response.ok) {
+            console.warn(`Fout bij ophalen van ${lijstNaam}: ${response.statusText}. Fallback naar lege lijst.`);
+            return [];
+        }
+        
         const data = await response.json();
         return data.value || [];
     } catch (error) {
         console.error(`Fout bij ophalen van lijst ${lijstNaam}:`, error);
-        throw error;
+        console.warn('Fallback naar lege lijst vanwege fout.');
+        return [];
     }
 }
 

@@ -571,6 +571,43 @@ th[data-column="Teamleider"] {
     font-weight: 500;
 }
 
+/* ==========================================================================
+   TEAMLEIDER COLUMN STYLES
+   ========================================================================== */
+
+/* Teamleider cells */
+td[data-column="Teamleider"] {
+    font-size: 0.85rem;
+    padding: var(--space-sm) var(--space-md);
+}
+
+/* Different states for teamleider information */
+.teamleider-placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.teamleider-loaded {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.teamleider-unavailable {
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Dark theme adjustments */
+body.dark-theme .teamleider-loaded {
+    color: var(--brand-accent);
+}
+
+body.dark-theme .teamleider-unavailable {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
 .teamleider-placeholder {
     color: var(--text-muted);
     font-style: italic;
@@ -579,6 +616,11 @@ th[data-column="Teamleider"] {
 .teamleider-loaded {
     color: var(--text-primary);
     font-style: normal;
+}
+
+.teamleider-unavailable {
+    color: #94a3b8;
+    font-style: italic;
 }
 
 /* ==========================================================================

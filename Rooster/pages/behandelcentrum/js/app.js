@@ -52,6 +52,9 @@ class BehandelcentrumApp {
         this.isApproveModalOpen = false;
         this.isRejectModalOpen = false;
         this.modalAction = null; // 'approve', 'reject', or 'comment'
+        
+        // Feature flags
+        this.showTeamleider = true; // Default to true, will be checked during init
     }
 
     async init() {
@@ -68,6 +71,15 @@ class BehandelcentrumApp {
         }
         
         document.getElementById('huidig-jaar').textContent = new Date().getFullYear();
+
+        // Check if Teams list is available to determine whether to show Teamleider column
+        try {
+            await linkInfo.getAllTeams();
+            this.showTeamleider = true;
+        } catch (error) {
+            console.warn('Teams list not available, disabling Teamleider column:', error.message);
+            this.showTeamleider = false;
+        }
 
         await this.loadData();
         this.render();
@@ -773,10 +785,13 @@ class BehandelcentrumApp {
 
         // For Teamleider column
         if (column === 'Teamleider') {
-            // This gets populated asynchronously, return a placeholder
-            return h('span', { class: 'teamleider-placeholder', 'data-username': item.Medewerker || item.Gebruikersnaam || '' }, 
-                'Laden...'
-            );
+            // Create a placeholder with data attributes for async loading
+            const username = item.Medewerker || item.Gebruikersnaam || '';
+            return h('span', { 
+                class: 'teamleider-placeholder', 
+                'data-username': username,
+                title: 'Teamleider van ' + username
+            }, 'Laden...');
         }
 
         // Format dates
@@ -882,27 +897,66 @@ class BehandelcentrumApp {
         // Find all teamleader placeholders
         const teamleaderElements = document.querySelectorAll('.teamleider-placeholder');
         
-        // Process each placeholder
-        for (const element of teamleaderElements) {
-            const username = element.getAttribute('data-username');
-            if (!username) {
-                element.textContent = '-';
-                continue;
-            }
+        // Check if the LinkInfo global variable is available
+        if (!window.LinkInfo) {
+            console.warn('LinkInfo service is not available. Team leader information cannot be loaded.');
+            teamleaderElements.forEach(element => {
+                element.textContent = 'Niet beschikbaar';
+                element.classList.add('teamleider-unavailable');
+            });
+            return;
+        }
+        
+        // Check if SharePoint configuration is available
+        if (!window.appConfiguratie || !window.appConfiguratie.instellingen || !window.appConfiguratie.instellingen.siteUrl) {
+            console.warn('SharePoint configuration is not available. Team leader information cannot be loaded.');
+            teamleaderElements.forEach(element => {
+                element.textContent = 'Niet beschikbaar';
+                element.classList.add('teamleider-unavailable');
+            });
+            return;
+        }
+        
+        // Check if Teams and Medewerkers lists are available
+        let teamsAvailable = true;
+        try {
+            // Try to fetch one team to check if the service is available
+            await window.LinkInfo.getAllTeams();
+        } catch (error) {
+            console.warn('Team information is not available. Skipping team leader lookup:', error.message);
+            teamsAvailable = false;
             
-            try {
-                // Get team leader information using linkInfo service
-                const teamLeader = await linkInfo.getTeamLeaderForEmployee(username);
+            // Update all placeholders with a consistent message
+            teamleaderElements.forEach(element => {
+                element.textContent = 'Niet beschikbaar';
+                element.classList.add('teamleider-unavailable');
+            });
+            return; // Exit early, no need to process individual elements
+        }
+        
+        // If teams are available, process each placeholder
+        if (teamsAvailable) {
+            for (const element of teamleaderElements) {
+                const username = element.getAttribute('data-username');
+                if (!username) {
+                    element.textContent = '-';
+                    continue;
+                }
                 
-                if (teamLeader && teamLeader.Title) {
-                    element.textContent = teamLeader.Title;
-                    element.classList.add('teamleider-loaded');
-                } else {
+                try {
+                    // Get team leader information using LinkInfo service
+                    const teamLeader = await window.LinkInfo.getTeamLeaderForEmployee(username);
+                    
+                    if (teamLeader && teamLeader.Title) {
+                        element.textContent = teamLeader.Title;
+                        element.classList.add('teamleider-loaded');
+                    } else {
+                        element.textContent = '-';
+                    }
+                } catch (error) {
+                    console.warn(`Unable to get team leader for ${username}:`, error.message);
                     element.textContent = '-';
                 }
-            } catch (error) {
-                console.error(`Error getting team leader for ${username}:`, error);
-                element.textContent = 'Niet gevonden';
             }
         }
     }

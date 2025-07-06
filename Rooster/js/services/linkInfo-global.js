@@ -22,6 +22,12 @@
         // If cache is older than the expiry time or doesn't exist, refresh it
         if (!teamsCache || !medewerkersCache || now - lastFetchTime > CACHE_EXPIRY_MS) {
             try {
+                // Check if SharePoint configuration exists before fetching
+                if (!window.appConfiguratie || !window.appConfiguratie.instellingen || !window.appConfiguratie.instellingen.siteUrl) {
+                    console.warn('SharePoint configuration not found. Team information will be unavailable.');
+                    return { teams: [], medewerkers: [] };
+                }
+                
                 // Fetch teams and employees data in parallel
                 const [teamsData, medewerkersData] = await Promise.all([
                     fetchSharePointList('Teams'),
@@ -38,7 +44,9 @@
                 console.error('Error refreshing team/employee cache:', error);
                 // If cache already exists, keep using it despite the error
                 if (!teamsCache || !medewerkersCache) {
-                    throw new Error('Failed to initialize team/employee data cache');
+                    // Return empty arrays instead of throwing an error
+                    console.warn('Failed to initialize team/employee data cache, returning empty lists');
+                    return { teams: [], medewerkers: [] };
                 }
             }
         }
@@ -155,12 +163,12 @@
     }
 
     /**
-     * Gets all team information
+     * Gets all teams from the cache
      * @returns {Promise<Array>} Array of all teams
      */
     async function getAllTeams() {
         const { teams } = await refreshCacheIfNeeded();
-        return [...teams]; // Return a copy to prevent cache modification
+        return teams;
     }
 
     /**
@@ -223,6 +231,52 @@
         teamsCache = null;
         medewerkersCache = null;
         lastFetchTime = 0;
+    }
+
+    /**
+     * Fetches a SharePoint list using the app configuration
+     * @param {string} lijstNaam - The name of the list as defined in appConfiguratie
+     * @returns {Promise<Array>} A Promise with the list items or an empty array on error
+     */
+    async function fetchSharePointList(lijstNaam) {
+        try {
+            if (!window.appConfiguratie || !window.appConfiguratie.instellingen) {
+                console.warn('App configuratie niet gevonden. Fallback naar lege lijst.');
+                return [];
+            }
+            
+            const siteUrl = window.appConfiguratie.instellingen.siteUrl;
+            if (!siteUrl) {
+                console.warn('SharePoint site URL niet gevonden. Fallback naar lege lijst.');
+                return [];
+            }
+            
+            const lijstConfig = window.appConfiguratie[lijstNaam];
+            if (!lijstConfig) {
+                console.warn(`Configuratie voor lijst '${lijstNaam}' niet gevonden. Fallback naar lege lijst.`);
+                return [];
+            }
+
+            const lijstTitel = lijstConfig.lijstTitel;
+            const apiUrl = `${siteUrl.replace(/\/$/, "")}/_api/web/lists/getbytitle('${lijstTitel}')/items?$top=5000`;
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json;odata=nometadata' },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                console.warn(`Fout bij ophalen van ${lijstNaam}: ${response.statusText}. Fallback naar lege lijst.`);
+                return [];
+            }
+            
+            const data = await response.json();
+            return data.value || [];
+        } catch (error) {
+            console.error(`Fout bij ophalen van lijst ${lijstNaam}:`, error);
+            console.warn('Fallback naar lege lijst vanwege fout.');
+            return [];
+        }
     }
 
     // Expose the functions to the global scope through the LinkInfo object

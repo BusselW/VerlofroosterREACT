@@ -23,6 +23,12 @@ async function refreshCacheIfNeeded() {
     // If cache is older than the expiry time or doesn't exist, refresh it
     if (!teamsCache || !medewerkersCache || now - lastFetchTime > CACHE_EXPIRY_MS) {
         try {
+            // Check if SharePoint configuration exists before fetching
+            if (!window.appConfiguratie || !window.appConfiguratie.instellingen || !window.appConfiguratie.instellingen.siteUrl) {
+                console.warn('SharePoint configuration not found. Team information will be unavailable.');
+                return { teams: [], medewerkers: [] };
+            }
+            
             // Fetch teams and employees data in parallel
             const [teamsData, medewerkersData] = await Promise.all([
                 fetchSharePointList('Teams'),
@@ -39,7 +45,9 @@ async function refreshCacheIfNeeded() {
             console.error('Error refreshing team/employee cache:', error);
             // If cache already exists, keep using it despite the error
             if (!teamsCache || !medewerkersCache) {
-                throw new Error('Failed to initialize team/employee data cache');
+                // Return empty arrays instead of throwing an error
+                console.warn('Failed to initialize team/employee data cache, returning empty lists');
+                return { teams: [], medewerkers: [] };
             }
         }
     }
@@ -170,7 +178,7 @@ export async function isTeamLeaderFor(potentialLeaderUsername, employeeUsername)
  */
 export async function getAllTeams() {
     const { teams } = await refreshCacheIfNeeded();
-    return [...teams]; // Return a copy to prevent cache modification
+    return teams;
 }
 
 /**
