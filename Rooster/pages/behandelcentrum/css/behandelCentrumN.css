@@ -299,6 +299,15 @@ body {
 }
 
 /* ==========================================================================
+   MAIN APP CONTAINER
+   ========================================================================== */
+.behandelcentrum-app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
    MAIN LAYOUT - FULL WIDTH
    ========================================================================== */
 .app-container {
@@ -311,6 +320,10 @@ body {
     flex-direction: column;
 }
 
+#behandelcentrum-root {
+    height: 100%;
+}
+
 .content-container {
     background-color: var(--bg-secondary);
     margin: var(--space-md) 0;
@@ -318,6 +331,9 @@ body {
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     border: 1px solid rgba(203, 213, 225, 0.2);
+    flex: 1; /* Take remaining space */
+    display: flex;
+    flex-direction: column;
 }
 
 /* ==========================================================================
