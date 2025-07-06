@@ -58,6 +58,8 @@
     </div>
     
     <!-- JS files -->
+    <script src="../../js/config/configLijst.js"></script>
+    <script src="../../js/services/sharepointService.js"></script>
     <script src="../../js/services/linkInfo-global.js"></script>
     <script type="module" src="js/app.js"></script>
 </body>

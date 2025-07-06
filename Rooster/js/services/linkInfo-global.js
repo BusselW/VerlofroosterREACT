@@ -291,4 +291,20 @@
         getEmployeesInTeam,
         invalidateCache
     };
+
+    // Initialize LinkInfo object if the module failed to do so
+    if (!window.LinkInfo) {
+        console.warn('LinkInfo not initialized, creating fallback object');
+        window.LinkInfo = {
+            getTeamForEmployee: async () => null,
+            getTeamLeaderForEmployee: async () => null,
+            getEmployeesForTeamLeader: async () => [],
+            isTeamLeaderFor: async () => false,
+            getAllTeams: async () => [],
+            getTeamNamesForTeamLeader: async () => [],
+            isTeamLeader: async () => false,
+            getEmployeesInTeam: async () => [],
+            invalidateCache: () => {}
+        };
+    }
 })();

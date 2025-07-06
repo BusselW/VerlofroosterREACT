@@ -568,7 +568,6 @@ th[data-column="Teamleider"] {
     max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-weight: 500;
 }
 
 /* ==========================================================================
@@ -606,21 +605,6 @@ body.dark-theme .teamleider-loaded {
 body.dark-theme .teamleider-unavailable {
     color: var(--text-muted);
     opacity: 0.6;
-}
-
-.teamleider-placeholder {
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-.teamleider-loaded {
-    color: var(--text-primary);
-    font-style: normal;
-}
-
-.teamleider-unavailable {
-    color: #94a3b8;
-    font-style: italic;
 }
 
 /* ==========================================================================

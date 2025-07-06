@@ -897,45 +897,43 @@ class BehandelcentrumApp {
         // Find all teamleader placeholders
         const teamleaderElements = document.querySelectorAll('.teamleider-placeholder');
         
-        // Check if the LinkInfo global variable is available
-        if (!window.LinkInfo) {
-            console.warn('LinkInfo service is not available. Team leader information cannot be loaded.');
+        if (teamleaderElements.length === 0) {
+            // No teamleader elements found, nothing to update
+            return;
+        }
+        
+        // Mark all placeholders as unavailable by default
+        const markUnavailable = () => {
             teamleaderElements.forEach(element => {
                 element.textContent = 'Niet beschikbaar';
                 element.classList.add('teamleider-unavailable');
             });
-            return;
-        }
+        };
         
-        // Check if SharePoint configuration is available
-        if (!window.appConfiguratie || !window.appConfiguratie.instellingen || !window.appConfiguratie.instellingen.siteUrl) {
-            console.warn('SharePoint configuration is not available. Team leader information cannot be loaded.');
-            teamleaderElements.forEach(element => {
-                element.textContent = 'Niet beschikbaar';
-                element.classList.add('teamleider-unavailable');
-            });
-            return;
-        }
-        
-        // Check if Teams and Medewerkers lists are available
-        let teamsAvailable = true;
         try {
-            // Try to fetch one team to check if the service is available
-            await window.LinkInfo.getAllTeams();
-        } catch (error) {
-            console.warn('Team information is not available. Skipping team leader lookup:', error.message);
-            teamsAvailable = false;
+            // Check if the LinkInfo global variable is available
+            if (!window.LinkInfo) {
+                console.warn('LinkInfo service is not available. Team leader information cannot be loaded.');
+                markUnavailable();
+                return;
+            }
             
-            // Update all placeholders with a consistent message
-            teamleaderElements.forEach(element => {
-                element.textContent = 'Niet beschikbaar';
-                element.classList.add('teamleider-unavailable');
-            });
-            return; // Exit early, no need to process individual elements
-        }
-        
-        // If teams are available, process each placeholder
-        if (teamsAvailable) {
+            // Check if SharePoint configuration is available
+            if (!window.appConfiguratie || !window.appConfiguratie.instellingen || !window.appConfiguratie.instellingen.siteUrl === "") {
+                console.warn('SharePoint configuration is not available. Team leader information cannot be loaded.');
+                markUnavailable();
+                return;
+            }
+            
+            // Get teams to check if the service is available
+            const teams = await window.LinkInfo.getAllTeams();
+            if (!teams || teams.length === 0) {
+                console.warn('No teams found or teams list is empty. Team leader information cannot be loaded.');
+                markUnavailable();
+                return;
+            }
+            
+            // If teams are available, process each placeholder
             for (const element of teamleaderElements) {
                 const username = element.getAttribute('data-username');
                 if (!username) {
@@ -958,8 +956,22 @@ class BehandelcentrumApp {
                     element.textContent = '-';
                 }
             }
+        } catch (error) {
+            console.error('Error in updateTeamLeaderInfo:', error);
+            markUnavailable();
         }
     }
+}
+
+// Create a fallback appConfiguratie if it doesn't exist
+if (typeof window.appConfiguratie === "undefined") {
+    console.warn("Creating fallback appConfiguratie object in app.js because it was not found");
+    window.appConfiguratie = {
+        instellingen: {
+            debounceTimer: 300,
+            siteUrl: ""  // Empty site URL will cause graceful fallbacks
+        }
+    };
 }
 
 const app = new BehandelcentrumApp();
