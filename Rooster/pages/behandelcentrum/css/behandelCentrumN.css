@@ -128,7 +128,7 @@ body {
     flex-direction: column;
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    /* Remove overflow hidden to allow natural scrolling */
 }
 
 .content-container {
@@ -372,11 +372,11 @@ body {
     margin: var(--space-md) 0;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
     border: 1px solid rgba(203, 213, 225, 0.2);
     flex: 1; /* Take remaining space */
     display: flex;
     flex-direction: column;
+    /* Allow natural content overflow */
 }
 
 /* ==========================================================================
@@ -510,14 +510,13 @@ body {
     padding: var(--space-sm) var(--space-md);
     display: flex;
     flex-direction: column;
-    flex: 1; /* Allow to grow and shrink as needed */
+    /* Allow natural sizing based on content */
 }
 
 .tab-content {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* Important for flex child to shrink */
+    /* Allow natural sizing based on content */
 }
 
 .content-header {
@@ -541,10 +540,9 @@ body {
     border: 1px solid #e2e8f0;
     margin-bottom: var(--space-sm);
     width: 100%;
-    flex: 1;
-    min-height: 500px; /* Space for 10 rows + header + pagination */
     display: flex;
     flex-direction: column;
+    /* Remove fixed heights to allow responsive sizing */
 }
 
 /* Ensure table headers are visible */
@@ -556,8 +554,7 @@ body {
     border: 1px solid #e2e8f0;
     table-layout: auto; /* Allow columns to size dynamically based on content */
     display: table; /* Ensure proper table display */
-    flex: 1;
-    min-height: 400px; /* Minimum space for table content */
+    /* Remove fixed heights to allow responsive sizing */
 }
 
 .data-table thead {
@@ -1533,4 +1530,66 @@ body.dark-theme .teamleider-unavailable {
     display: table-cell;
 }
 
-/* Team table adjustments */
+/* ==========================================================================
+   RESPONSIVE LAYOUT AND SCROLLING IMPROVEMENTS
+   ========================================================================== */
+
+/* Ensure body can always scroll when content exceeds viewport */
+html, body {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Page should respond to content height naturally */
+.behandelcentrum-app {
+    min-height: 100vh;
+    overflow: visible;
+}
+
+/* Table wrapper should grow/shrink with content */
+.table-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: var(--space-md);
+}
+
+/* Tables should be responsive to their content */
+.data-table-wrapper {
+    overflow-x: auto; /* Horizontal scroll for wide tables */
+    border-radius: var(--radius-md);
+    border: 1px solid #e2e8f0;
+}
+
+/* Ensure proper table behavior on small screens */
+@media (max-width: 1200px) {
+    .data-table {
+        min-width: 600px; /* Smaller minimum for mobile */
+        font-size: 0.8rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: var(--space-xs);
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .tab-content-container {
+        padding: var(--space-xs);
+    }
+    
+    .data-table {
+        min-width: 500px;
+        font-size: 0.75rem;
+    }
+}
+
+/* Pagination container should not affect table sizing */
+.pagination-container {
+    flex-shrink: 0;
+    margin-top: var(--space-sm);
+    padding: var(--space-sm);
+    border-top: 1px solid #e2e8f0;
+}
