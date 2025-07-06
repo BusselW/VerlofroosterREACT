@@ -490,7 +490,7 @@ class BehandelcentrumApp {
 
     getColumnsForType(type, includeActions = false) {
         const baseColumns = {
-            'verlof': ['Medewerker', 'Omschrijving', 'StartDatum', 'EindDatum', 'AanvraagTijdstip'],
+            'verlof': ['Medewerker', 'StartDatum', 'EindDatum', 'Omschrijving', 'AanvraagTijdstip'],
             'compensatie': ['Medewerker', 'Omschrijving', 'StartCompensatieUren', 'EindeCompensatieUren', 'UrenTotaal', 'AanvraagTijdstip'],
             'zittingsvrij': ['Gebruikersnaam', 'Opmerking', 'ZittingsVrijeDagTijdStart', 'ZittingsVrijeDagTijdEind', 'AanvraagTijdstip']
         };
