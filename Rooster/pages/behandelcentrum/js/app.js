@@ -293,6 +293,9 @@ class BehandelcentrumApp {
         }
         
         this.root.appendChild(app);
+        
+        // Load teamleider data after DOM is updated
+        setTimeout(() => this.loadTeamleiderData(), 0);
     }
     renderTabs() {
         return h('div', { class: 'navigation-container' },
@@ -1128,9 +1131,6 @@ class BehandelcentrumApp {
             button.removeEventListener('click', this.saveReactie);
             button.addEventListener('click', this.saveReactie.bind(this));
         });
-
-        // Load teamleider data asynchronously
-        this.loadTeamleiderData();
     }
 
     async loadTeamleiderData() {
