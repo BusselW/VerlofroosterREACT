@@ -567,21 +567,34 @@ body {
     padding: 0;
 }
 
-/* Specific widths for Medewerkers table (7 columns) */
+/* Specific widths for different table types */
 .data-table th:nth-child(1),
-.data-table td:nth-child(1) { width: 20%; } /* Naam */
+.data-table td:nth-child(1) { width: 20%; } /* First column (usually name/title) */
 .data-table th:nth-child(2),
-.data-table td:nth-child(2) { width: 15%; } /* Functie */
+.data-table td:nth-child(2) { width: 15%; } /* Second column */
 .data-table th:nth-child(3),
-.data-table td:nth-child(3) { width: 15%; } /* Team */
+.data-table td:nth-child(3) { width: 15%; } /* Third column */
 .data-table th:nth-child(4),
-.data-table td:nth-child(4) { width: 25%; } /* E-mail */
+.data-table td:nth-child(4) { width: 20%; } /* Fourth column */
 .data-table th:nth-child(5),
-.data-table td:nth-child(5) { width: 10%; } /* Uren p/w */
+.data-table td:nth-child(5) { width: 10%; } /* Fifth column */
 .data-table th:nth-child(6),
-.data-table td:nth-child(6) { width: 8%; } /* Actief */
+.data-table td:nth-child(6) { width: 10%; } /* Sixth column */
 .data-table th:nth-child(7),
-.data-table td:nth-child(7) { width: 7%; } /* Acties */
+.data-table td:nth-child(7) { width: 10%; } /* Actions column */
+
+/* Responsive adjustments for tables with fewer columns */
+.data-table th:last-child,
+.data-table td:last-child { 
+    width: 120px; /* Actions column always fixed width */
+    min-width: 120px;
+}
+
+/* For tables with 2-3 columns, make them wider */
+.data-table:has(th:nth-child(3):last-child) th:nth-child(1),
+.data-table:has(th:nth-child(3):last-child) td:nth-child(1) { width: 60%; }
+.data-table:has(th:nth-child(3):last-child) th:nth-child(2),
+.data-table:has(th:nth-child(3):last-child) td:nth-child(2) { width: 20%; }
 
 .data-table thead {
     background: linear-gradient(to bottom, var(--color-bg-surface-secondary), var(--color-bg-surface-tertiary));
@@ -627,6 +640,65 @@ body {
 }
 
 /* ===== ENHANCED DATA VISUALIZATION ===== */
+
+/* Color display in tables */
+.color-display {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-default);
+    display: inline-block;
+    flex-shrink: 0;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.color-value {
+    font-family: 'Courier New', monospace;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+}
+
+/* Enhanced color input in forms */
+.color-input-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.color-picker {
+    width: 50px;
+    height: 40px;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 0;
+}
+
+.color-text {
+    flex: 1;
+    min-width: 100px;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+}
+
+.color-preview {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-fast);
+}
+
+.color-preview:hover {
+    transform: scale(1.1);
+}
+
 .status-indicator {
     display: inline-flex;
     align-items: center;

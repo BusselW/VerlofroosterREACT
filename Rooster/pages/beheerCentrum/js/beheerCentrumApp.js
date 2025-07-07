@@ -70,9 +70,26 @@ const formatValue = (value, column) => {
     
     // Handle color values
     if (column.type === 'color' || column.accessor.toLowerCase().includes('kleur')) {
+        if (!value) return '';
+        
+        // Ensure the value starts with # for hex colors
+        const colorValue = value.startsWith('#') ? value : `#${value}`;
+        
         return h('div', { className: 'color-display' },
-            h('span', { className: 'color-swatch', style: { backgroundColor: value } }),
-            h('span', { className: 'color-value' }, value)
+            h('span', { 
+                className: 'color-swatch', 
+                style: { 
+                    backgroundColor: colorValue,
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '4px',
+                    display: 'inline-block',
+                    marginRight: '8px',
+                    border: '1px solid #ccc',
+                    verticalAlign: 'middle'
+                } 
+            }),
+            h('span', { className: 'color-value', style: { verticalAlign: 'middle' } }, colorValue.toUpperCase())
         );
     }
     

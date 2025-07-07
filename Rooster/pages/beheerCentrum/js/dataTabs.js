@@ -62,7 +62,7 @@ export const beheerTabs = [
         columns: [
             { Header: 'Naam', accessor: 'Naam' },
             { Header: 'Teamleider', accessor: 'Teamleider' },
-            { Header: 'Kleur', accessor: 'Kleur' },
+            { Header: 'Kleur', accessor: 'Kleur', type: 'color' },
             { Header: 'Actief', accessor: 'Actief' },
             { Header: 'Acties', accessor: 'actions', isAction: true },
         ],

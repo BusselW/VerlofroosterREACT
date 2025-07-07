@@ -122,8 +122,47 @@ export const GenericForm = ({ onSave, onCancel, initialData = {}, formFields = [
                 break;
             case 'color':
                 inputElement = h('div', { className: 'color-input-group' },
-                    h('input', { ...commonProps, type: 'color' }),
-                    h('input', { ...commonProps, type: 'text', className: 'color-text' })
+                    h('input', { 
+                        ...commonProps, 
+                        type: 'color',
+                        className: 'color-picker',
+                        onChange: (e) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                [field.name]: e.target.value
+                            }));
+                        }
+                    }),
+                    h('input', { 
+                        ...commonProps, 
+                        type: 'text', 
+                        className: 'color-text',
+                        placeholder: '#FFFFFF',
+                        pattern: '^#[0-9A-Fa-f]{6}$',
+                        onChange: (e) => {
+                            let value = e.target.value;
+                            // Auto-add # if not present
+                            if (value && !value.startsWith('#')) {
+                                value = '#' + value;
+                            }
+                            setFormData(prev => ({
+                                ...prev,
+                                [field.name]: value
+                            }));
+                        }
+                    }),
+                    h('div', { 
+                        className: 'color-preview',
+                        style: { 
+                            backgroundColor: formData[field.name] || '#ffffff',
+                            width: '30px',
+                            height: '30px',
+                            borderRadius: '4px',
+                            border: '1px solid #ccc',
+                            display: 'inline-block',
+                            marginLeft: '8px'
+                        }
+                    })
                 );
                 break;
             case 'select':
