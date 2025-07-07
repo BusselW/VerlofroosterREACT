@@ -547,7 +547,7 @@ body {
     border-collapse: collapse;
     border-spacing: 0;
     font-size: var(--font-size-sm);
-    table-layout: fixed; /* Force consistent column widths */
+    table-layout: auto; /* Allow flexible column sizing */
 }
 
 .data-table thead {
@@ -571,14 +571,36 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Specific column widths for better alignment */
-.data-table th:nth-child(1) { width: 20%; } /* Name/Title columns */
-.data-table th:nth-child(2) { width: 15%; } /* Secondary info */
-.data-table th:nth-child(3) { width: 15%; } /* Third column */
-.data-table th:nth-child(4) { width: 20%; } /* Email/longer text */
-.data-table th:nth-child(5) { width: 10%; } /* Numbers/short text */
-.data-table th:nth-child(6) { width: 10%; } /* Boolean/status */
-.data-table th:nth-child(7) { width: 10%; } /* Actions */
+/* Flexible column widths that adapt to different table structures */
+.data-table th {
+    min-width: 100px; /* Minimum width for readability */
+    width: auto; /* Let columns size naturally based on content */
+}
+
+/* Actions column should be consistently narrow */
+.data-table th:last-child {
+    width: 120px; /* Fixed width for actions column */
+    min-width: 120px;
+}
+
+/* First column (usually names/titles) should be wider */
+.data-table th:first-child {
+    min-width: 150px;
+}
+
+/* Ensure data cells match header widths */
+.data-table td {
+    min-width: 100px;
+}
+
+.data-table td:last-child {
+    width: 120px;
+    min-width: 120px;
+}
+
+.data-table td:first-child {
+    min-width: 150px;
+}
 
 .data-table tbody tr {
     border-bottom: 1px solid var(--color-border-default);
