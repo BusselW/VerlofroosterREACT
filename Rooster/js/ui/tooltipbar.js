@@ -6,6 +6,43 @@
 // Maak een singleton object om alle tooltip-logica te beheren.
 const TooltipManager = {
     tooltipElement: null,
+    currentUserGroups: null,
+    showTimeout: null,
+    hideTimeout: null,
+
+    /**
+     * Check if current user belongs to privileged groups that can see comments
+     * @returns {Promise<boolean>} - True if user can see comments
+     */
+    canSeeComments: async function() {
+        if (this.currentUserGroups === null) {
+            try {
+                // Import permission service and get user groups
+                if (typeof getCurrentUserGroups === 'function') {
+                    this.currentUserGroups = await getCurrentUserGroups();
+                } else {
+                    console.warn('getCurrentUserGroups not available, assuming no privileged access');
+                    this.currentUserGroups = [];
+                }
+            } catch (error) {
+                console.error('Error getting user groups:', error);
+                this.currentUserGroups = [];
+            }
+        }
+        
+        const privilegedGroups = [
+            '1. Sharepoint beheer',
+            '1.1. Mulder MT', 
+            '2.6 Roosteraars',
+            '2.3. Senioren beoordelen'
+        ];
+        
+        return this.currentUserGroups.some(group => 
+            privilegedGroups.some(privileged => 
+                group.Title && group.Title.includes(privileged)
+            )
+        );
+    },
 
     /**
      * Initialiseert de tooltip-manager. Creëert het tooltip-element en voegt het toe aan de body.
@@ -42,17 +79,38 @@ const TooltipManager = {
         }
 
         const showTooltip = (event) => {
-            const tooltipContent = typeof content === 'function' ? content() : content;
-            this.show(tooltipContent);
-            this.updatePosition(event);
+            // Clear any existing timeouts
+            clearTimeout(this.showTimeout);
+            clearTimeout(this.hideTimeout);
+            
+            // Add delay to prevent flicker
+            this.showTimeout = setTimeout(() => {
+                const tooltipContent = typeof content === 'function' ? content() : content;
+                if (tooltipContent && tooltipContent.trim()) {
+                    this.show(tooltipContent);
+                    this.updatePosition(event);
+                }
+            }, 300); // 300ms delay for better UX
         };
 
         const hideTooltip = () => {
-            this.hide();
+            clearTimeout(this.showTimeout);
+            clearTimeout(this.hideTimeout);
+            
+            // Add small delay before hiding
+            this.hideTimeout = setTimeout(() => {
+                this.hide();
+            }, 100);
         };
 
         const updateTooltipPosition = (event) => {
-            this.updatePosition(event);
+            // Throttle position updates for better performance
+            if (!this.updatePositionThrottle) {
+                this.updatePositionThrottle = setTimeout(() => {
+                    this.updatePosition(event);
+                    this.updatePositionThrottle = null;
+                }, 16); // ~60fps
+            }
         };
 
         element.addEventListener('mouseenter', showTooltip);
@@ -127,7 +185,7 @@ const TooltipManager = {
      * @param {Object} verlofItem - Het verlof item object
      * @returns {string} HTML voor de tooltip
      */
-    createVerlofTooltip: function(verlofItem) {
+    createVerlofTooltip: async function(verlofItem) {
         if (!verlofItem) return '';
         
         try {
@@ -160,6 +218,9 @@ const TooltipManager = {
             let startDatum = new Date(verlofItem.StartDatum);
             let eindDatum = new Date(verlofItem.EindDatum || verlofItem.StartDatum);
             
+            // Check if user can see comments
+            const canSeeComments = await this.canSeeComments();
+            
             return `
                 <div class="custom-tooltip-title">🌴 ${verlofItem.Titel || 'Verlof'}</div>
                 <div class="custom-tooltip-content">
@@ -168,21 +229,23 @@ const TooltipManager = {
                         <span class="custom-tooltip-value">${verlofItem.MedewerkerNaam || 'Onbekend'}</span>
                     </div>
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">📅 Periode:</span>
-                        <span class="custom-tooltip-value">
-                            ${startDatum.toLocaleDateString('nl-NL')} 
-                            ${startDatum.getTime() !== eindDatum.getTime() ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ''}
-                        </span>
+                        <span class="custom-tooltip-label">📅 Van:</span>
+                        <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
                     </div>
-                    ${verlofItem.Toelichting ? `
+                    <div class="custom-tooltip-info">
+                        <span class="custom-tooltip-label">📅 Tot:</span>
+                        <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')}</span>
+                    </div>
+                    <div class="custom-tooltip-info">
+                        <span class="custom-tooltip-label">� Status:</span>
+                        <span class="tooltip-status ${statusClass}">${statusText}</span>
+                    </div>
+                    ${(verlofItem.Toelichting && canSeeComments) ? `
                     <div class="custom-tooltip-info">
                         <span class="custom-tooltip-label">💬 Toelichting:</span>
                         <span class="custom-tooltip-value">${verlofItem.Toelichting}</span>
                     </div>
                     ` : ''}
-                    <div class="custom-tooltip-info">
-                        <span class="tooltip-status ${statusClass}">📊 ${statusText}</span>
-                    </div>
                 </div>
             `;
         } catch (error) {
@@ -224,7 +287,7 @@ const TooltipManager = {
      * @param {Object} compensatieItem - Het compensatie item object
      * @returns {string} HTML voor de tooltip
      */
-    createCompensatieTooltip: function(compensatieItem) {
+    createCompensatieTooltip: async function(compensatieItem) {
         if (!compensatieItem) return '';
         
         let urenTekst = '';
@@ -240,7 +303,12 @@ const TooltipManager = {
             urenIcon = '⚖️'; // Balance icon
         }
         
-        const datum = new Date(compensatieItem.Datum);
+        const startDatum = new Date(compensatieItem.StartDatum || compensatieItem.Datum);
+        const eindDatum = new Date(compensatieItem.EindDatum || compensatieItem.Datum);
+        const status = compensatieItem.Status || 'Actief';
+        
+        // Check if user can see comments
+        const canSeeComments = await this.canSeeComments();
         
         return `
             <div class="custom-tooltip-title">⏰ Compensatie Uren</div>
@@ -250,14 +318,22 @@ const TooltipManager = {
                     <span class="custom-tooltip-value">${compensatieItem.MedewerkerNaam || 'Onbekend'}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Datum:</span>
-                    <span class="custom-tooltip-value">${datum.toLocaleDateString('nl-NL')}</span>
+                    <span class="custom-tooltip-label">📅 Van:</span>
+                    <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
+                </div>
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">📅 Tot:</span>
+                    <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')}</span>
+                </div>
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">📊 Status:</span>
+                    <span class="custom-tooltip-value">${status}</span>
                 </div>
                 <div class="custom-tooltip-info">
                     <span class="custom-tooltip-label">${urenIcon} Uren:</span>
                     <span class="custom-tooltip-value">${urenTekst}</span>
                 </div>
-                ${compensatieItem.Toelichting ? `
+                ${(compensatieItem.Toelichting && canSeeComments) ? `
                 <div class="custom-tooltip-info">
                     <span class="custom-tooltip-label">💬 Toelichting:</span>
                     <span class="custom-tooltip-value">${compensatieItem.Toelichting}</span>
@@ -272,11 +348,15 @@ const TooltipManager = {
      * @param {Object} zittingsvrijItem - Het zittingsvrij item object
      * @returns {string} HTML voor de tooltip
      */
-    createZittingsvrijTooltip: function(zittingsvrijItem) {
+    createZittingsvrijTooltip: async function(zittingsvrijItem) {
         if (!zittingsvrijItem) return '';
         
         let startDatum = new Date(zittingsvrijItem.StartDatum);
         let eindDatum = new Date(zittingsvrijItem.EindDatum || zittingsvrijItem.StartDatum);
+        const status = zittingsvrijItem.Status || 'Actief';
+        
+        // Check if user can see comments
+        const canSeeComments = await this.canSeeComments();
         
         return `
             <div class="custom-tooltip-title">🏛️ Zittingsvrij</div>
@@ -286,13 +366,18 @@ const TooltipManager = {
                     <span class="custom-tooltip-value">${zittingsvrijItem.MedewerkerNaam || 'Onbekend'}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Periode:</span>
-                    <span class="custom-tooltip-value">
-                        ${startDatum.toLocaleDateString('nl-NL')} 
-                        ${startDatum.getTime() !== eindDatum.getTime() ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ''}
-                    </span>
+                    <span class="custom-tooltip-label">📅 Van:</span>
+                    <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
                 </div>
-                ${zittingsvrijItem.Toelichting ? `
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">📅 Tot:</span>
+                    <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')}</span>
+                </div>
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">📊 Status:</span>
+                    <span class="custom-tooltip-value">${status}</span>
+                </div>
+                ${(zittingsvrijItem.Toelichting && canSeeComments) ? `
                 <div class="custom-tooltip-info">
                     <span class="custom-tooltip-label">💬 Toelichting:</span>
                     <span class="custom-tooltip-value">${zittingsvrijItem.Toelichting}</span>
@@ -307,11 +392,15 @@ const TooltipManager = {
      * @param {Object} ziekteMeldingItem - Het ziekte melding item object
      * @returns {string} HTML voor de tooltip
      */
-    createZiekteTooltip: function(ziekteMeldingItem) {
+    createZiekteTooltip: async function(ziekteMeldingItem) {
         if (!ziekteMeldingItem) return '';
         
         let startDatum = new Date(ziekteMeldingItem.StartDatum);
         let eindDatum = ziekteMeldingItem.EindDatum ? new Date(ziekteMeldingItem.EindDatum) : null;
+        const status = ziekteMeldingItem.Status || 'Actief';
+        
+        // Check if user can see comments
+        const canSeeComments = await this.canSeeComments();
         
         return `
             <div class="custom-tooltip-title">🤒 Ziekmelding</div>
@@ -321,13 +410,18 @@ const TooltipManager = {
                     <span class="custom-tooltip-value">${ziekteMeldingItem.MedewerkerNaam || 'Onbekend'}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Periode:</span>
-                    <span class="custom-tooltip-value">
-                        ${startDatum.toLocaleDateString('nl-NL')} 
-                        ${eindDatum ? ' t/m ' + eindDatum.toLocaleDateString('nl-NL') : ' tot nader order'}
-                    </span>
+                    <span class="custom-tooltip-label">📅 Van:</span>
+                    <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
                 </div>
-                ${ziekteMeldingItem.Toelichting ? `
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">📅 Tot:</span>
+                    <span class="custom-tooltip-value">${eindDatum ? eindDatum.toLocaleDateString('nl-NL') : 'Tot nader order'}</span>
+                </div>
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">📊 Status:</span>
+                    <span class="custom-tooltip-value">${status}</span>
+                </div>
+                ${(ziekteMeldingItem.Toelichting && canSeeComments) ? `
                 <div class="custom-tooltip-info">
                     <span class="custom-tooltip-label">💬 Toelichting:</span>
                     <span class="custom-tooltip-value">${ziekteMeldingItem.Toelichting}</span>
@@ -350,22 +444,22 @@ const TooltipManager = {
         verlofBloks.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
             
-            this.attach(element, () => {
+            this.attach(element, async () => {
                 const verlofData = this.extractVerlofData(element);
-                return this.createVerlofTooltip(verlofData);
+                return await this.createVerlofTooltip(verlofData);
             });
             attachedCount++;
         });
         
         // Attach tooltips to compensatie-uren blocks
-        const compensatieBloks = document.querySelectorAll('.compensatie-uur-blok, .compensatie-uur-container');
+        const compensatieBloks = document.querySelectorAll('.compensatie-uur-blok, .compensatie-uur-container, [data-afkorting="CU"]');
         console.log(`Found ${compensatieBloks.length} compensatie blocks`);
         compensatieBloks.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
             
-            this.attach(element, () => {
+            this.attach(element, async () => {
                 const compensatieData = this.extractCompensatieData(element);
-                return this.createCompensatieTooltip(compensatieData);
+                return await this.createCompensatieTooltip(compensatieData);
             });
             attachedCount++;
         });
@@ -376,9 +470,9 @@ const TooltipManager = {
         zittingsvrijBloks.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
             
-            this.attach(element, () => {
+            this.attach(element, async () => {
                 const zittingsvrijData = this.extractZittingsvrijData(element);
-                return this.createZittingsvrijTooltip(zittingsvrijData);
+                return await this.createZittingsvrijTooltip(zittingsvrijData);
             });
             attachedCount++;
         });
@@ -389,29 +483,66 @@ const TooltipManager = {
         ziekteBloks.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
             
-            this.attach(element, () => {
+            this.attach(element, async () => {
                 const ziekteData = this.extractZiekteData(element);
-                return this.createZiekteTooltip(ziekteData);
+                return await this.createZiekteTooltip(ziekteData);
             });
             attachedCount++;
         });
         
-        // Attach tooltips to holiday elements
-        const feestdagElements = document.querySelectorAll('.feestdag, [data-feestdag]');
+        // Attach tooltips to holiday elements (improved selectors)
+        const feestdagElements = document.querySelectorAll('.feestdag, [data-feestdag], .dag-cel.feestdag, .feestdag-cel');
         console.log(`Found ${feestdagElements.length} feestdag elements`);
         feestdagElements.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
             
             this.attach(element, () => {
-                const feestdagNaam = element.dataset.feestdag || element.getAttribute('title') || 'Feestdag';
+                const feestdagNaam = element.dataset.feestdag || 
+                                    element.getAttribute('title') || 
+                                    element.getAttribute('data-original-title') ||
+                                    element.textContent?.trim() ||
+                                    'Feestdag';
                 const datum = element.dataset.datum ? new Date(element.dataset.datum) : new Date();
                 return this.createFeestdagTooltip(feestdagNaam, datum);
             });
             attachedCount++;
         });
         
-        // Attach tooltips to icons with titles
-        const iconElements = document.querySelectorAll('i[title], .icon[title], [data-tooltip], img[title], button[title]');
+        // Attach tooltips to buttons with improved descriptions
+        const buttonElements = document.querySelectorAll('button[title], button[data-tooltip], .btn[title], .btn[data-tooltip], [role="button"][title]');
+        console.log(`Found ${buttonElements.length} button elements`);
+        buttonElements.forEach(element => {
+            if (element.dataset.tooltipAttached === 'true') return;
+            
+            let tooltipText = element.dataset.tooltip || element.getAttribute('title') || '';
+            
+            // Enhance button descriptions based on class or content
+            if (element.classList.contains('verlof-btn') || element.textContent?.includes('Verlof')) {
+                tooltipText = tooltipText || 'Verlof aanvragen voor geselecteerde periode';
+            } else if (element.classList.contains('compensatie-btn') || element.textContent?.includes('Compensatie')) {
+                tooltipText = tooltipText || 'Compensatie-uren registreren voor geselecteerde periode';
+            } else if (element.classList.contains('ziek-btn') || element.textContent?.includes('Ziek')) {
+                tooltipText = tooltipText || 'Ziekmelding doen voor geselecteerde periode';
+            } else if (element.classList.contains('zittingsvrij-btn') || element.textContent?.includes('Zittingsvrij')) {
+                tooltipText = tooltipText || 'Zittingsvrije dag aanvragen voor geselecteerde periode';
+            } else if (element.classList.contains('save-btn') || element.textContent?.includes('Opslaan')) {
+                tooltipText = tooltipText || 'Wijzigingen opslaan';
+            } else if (element.classList.contains('cancel-btn') || element.textContent?.includes('Annuleren')) {
+                tooltipText = tooltipText || 'Wijzigingen annuleren';
+            } else if (element.classList.contains('delete-btn') || element.textContent?.includes('Verwijder')) {
+                tooltipText = tooltipText || 'Item verwijderen';
+            } else if (element.classList.contains('edit-btn') || element.textContent?.includes('Bewerk')) {
+                tooltipText = tooltipText || 'Item bewerken';
+            }
+            
+            if (tooltipText) {
+                this.attach(element, `<div class="custom-tooltip-title">${tooltipText}</div>`);
+                attachedCount++;
+            }
+        });
+        
+        // Attach tooltips to other icons and elements with titles
+        const iconElements = document.querySelectorAll('i[title]:not([data-tooltip-attached]), .icon[title]:not([data-tooltip-attached]), img[title]:not([data-tooltip-attached]), [data-tooltip]:not([data-tooltip-attached])');
         console.log(`Found ${iconElements.length} icon/title elements`);
         iconElements.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
@@ -497,6 +628,9 @@ const TooltipManager = {
     observeDOM: function() {
         if (this.observer) return; // Al actief
         
+        // Debounce function for better performance
+        let debounceTimer = null;
+        
         this.observer = new MutationObserver((mutations) => {
             let shouldReattach = false;
             
@@ -506,8 +640,8 @@ const TooltipManager = {
                     mutation.addedNodes.forEach((node) => {
                         if (node.nodeType === Node.ELEMENT_NODE) {
                             const hasTooltipElements = node.querySelectorAll ? 
-                                node.querySelectorAll('.verlof-blok, .compensatie-uur-blok, .ziekte-blok, .zittingsvrij-blok, [data-tooltip], [title], [data-feestdag]').length > 0 ||
-                                node.matches('.verlof-blok, .compensatie-uur-blok, .ziekte-blok, .zittingsvrij-blok, [data-tooltip], [title], [data-feestdag]') : false;
+                                node.querySelectorAll('.verlof-blok, .compensatie-uur-blok, .compensatie-uur-container, .ziekte-blok, .zittingsvrij-blok, [data-tooltip], [title], [data-feestdag], [data-afkorting], button').length > 0 ||
+                                node.matches('.verlof-blok, .compensatie-uur-blok, .compensatie-uur-container, .ziekte-blok, .zittingsvrij-blok, [data-tooltip], [title], [data-feestdag], [data-afkorting], button') : false;
                                 
                             if (hasTooltipElements) {
                                 shouldReattach = true;
@@ -518,17 +652,23 @@ const TooltipManager = {
             });
             
             if (shouldReattach) {
-                // Debounce de reattach functie
-                clearTimeout(this.reattachTimeout);
-                this.reattachTimeout = setTimeout(() => {
+                // Debounce de reattach functie voor betere performance
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    console.log('🔄 DOM changed, reattaching tooltips...');
                     this.autoAttachTooltips();
-                }, 100);
+                }, 500); // 500ms debounce
             }
         });
         
         this.observer.observe(document.body, {
             childList: true,
-            subtree: true
+            subtree: true,
+            // Don't observe attributes for better performance
+            attributes: false,
+            attributeOldValue: false,
+            characterData: false,
+            characterDataOldValue: false
         });
         
         console.log('👁️ DOM observer started for tooltips');
@@ -555,13 +695,15 @@ const TooltipManager = {
             initialized: !!this.tooltipElement,
             elementCount: {
                 verlof: document.querySelectorAll('.verlof-blok').length,
-                compensatie: document.querySelectorAll('.compensatie-uur-blok, .compensatie-uur-container').length,
+                compensatie: document.querySelectorAll('.compensatie-uur-blok, .compensatie-uur-container, [data-afkorting="CU"]').length,
                 zittingsvrij: document.querySelectorAll('.zittingsvrij-blok, [data-afkorting="ZV"]').length,
                 ziekte: document.querySelectorAll('.ziekte-blok, [data-afkorting="ZK"]').length,
-                feestdagen: document.querySelectorAll('.feestdag, [data-feestdag]').length,
-                icons: document.querySelectorAll('i[title], .icon[title], [data-tooltip], img[title], button[title]').length
+                feestdagen: document.querySelectorAll('.feestdag, [data-feestdag], .dag-cel.feestdag, .feestdag-cel').length,
+                buttons: document.querySelectorAll('button[title], button[data-tooltip], .btn[title], .btn[data-tooltip], [role="button"][title]').length,
+                icons: document.querySelectorAll('i[title], .icon[title], [data-tooltip], img[title]').length
             },
-            attachedCount: document.querySelectorAll('[data-tooltip-attached="true"]').length
+            attachedCount: document.querySelectorAll('[data-tooltip-attached="true"]').length,
+            userPermissions: this.currentUserGroups
         };
         
         console.log('📊 Tooltip test results:', testResults);
@@ -574,6 +716,13 @@ const TooltipManager = {
         
         console.log(`📋 Found ${Object.values(testResults.elementCount).reduce((a, b) => a + b, 0)} total elements that should have tooltips`);
         console.log(`🔗 Currently ${testResults.attachedCount} elements have tooltips attached`);
+        
+        // Test permission system
+        this.canSeeComments().then(canSee => {
+            console.log(`🔐 User can see comments: ${canSee}`);
+        }).catch(err => {
+            console.log(`🔐 Error checking comment permissions: ${err.message}`);
+        });
         
         return testResults;
     },
