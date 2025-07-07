@@ -2,7 +2,7 @@ import { beheerTabs } from './dataTabs.js';
 import { getListItems, createListItem, updateListItem, deleteListItem } from './dataService.js';
 import { initializeSharePointContext } from './sharepointContext.js';
 import { Modal } from './ui/Modal.js';
-import { GenericForm } from './forms/GenericForm.js';
+import { getFormComponent } from './forms/index.js';
 
 const { useState, useEffect, createElement: h, useCallback } = React;
 
@@ -284,16 +284,19 @@ const ContentContainer = () => {
             onDelete: handleDelete
         }),
         h(Modal, { isOpen: isModalOpen, onClose: handleCloseModal },
-            activeTab && h(GenericForm, {
-                onSave: handleSave,
-                onCancel: handleCloseModal,
-                initialData: editingItem || {},
-                formFields: activeTab.formFields || [],
-                title: editingItem ? 
-                    `${activeTab.label.slice(0, -1)} Bewerken` : 
-                    `Nieuwe ${activeTab.label.slice(0, -1)} Toevoegen`,
-                tabType: activeTab.id
-            })
+            activeTab && (() => {
+                const FormComponent = getFormComponent(activeTab.id);
+                return h(FormComponent, {
+                    onSave: handleSave,
+                    onCancel: handleCloseModal,
+                    initialData: editingItem || {},
+                    formFields: activeTab.formFields || [], // For GenericForm fallback
+                    title: editingItem ? 
+                        `${activeTab.label.slice(0, -1)} Bewerken` : 
+                        `Nieuwe ${activeTab.label.slice(0, -1)} Toevoegen`,
+                    tabType: activeTab.id
+                });
+            })()
         )
     );
 };

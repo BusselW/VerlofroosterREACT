@@ -666,7 +666,108 @@ body {
     text-transform: uppercase;
 }
 
-/* Enhanced color input in forms */
+/* Enhanced form styling */
+.enhanced-form {
+    max-width: 100%;
+}
+
+.form-section {
+    margin-bottom: var(--space-8);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    background: var(--color-bg-surface-secondary);
+}
+
+.form-section-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-4) 0;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border-muted);
+}
+
+.form-section-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.form-field.col-span-2 {
+    grid-column: span 2;
+}
+
+.form-field label {
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.form-field label .required {
+    color: var(--error-500);
+    font-weight: var(--font-weight-bold);
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+    background: var(--color-bg-surface);
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.form-field input.error,
+.form-field textarea.error,
+.form-field select.error {
+    border-color: var(--error-500);
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+.form-help {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    font-style: italic;
+}
+
+.form-error {
+    font-size: var(--font-size-xs);
+    color: var(--error-600);
+    font-weight: var(--font-weight-medium);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-default);
+    margin-top: var(--space-6);
+}
+
+/* Modal sizing */
+.modal-small { max-width: 400px; }
+.modal-medium { max-width: 600px; }
+.modal-large { max-width: 800px; }
+.modal-extra-large { max-width: 1000px; }
 .color-input-group {
     display: flex;
     align-items: center;
