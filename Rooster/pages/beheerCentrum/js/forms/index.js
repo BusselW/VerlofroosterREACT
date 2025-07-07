@@ -3,12 +3,15 @@
  * Central place to import all form components
  */
 
-export { BaseForm } from './BaseForm.js';
-export { MedewerkerForm } from './MedewerkerForm.js';
-export { TeamForm } from './TeamForm.js';
-export { VerlofredenenForm } from './VerlofredenenForm.js';
-export { DagIndicatorForm } from './DagIndicatorForm.js';
-export { GenericForm } from './GenericForm.js'; // Keep the existing generic form as fallback
+import { BaseForm } from './BaseForm.js';
+import { MedewerkerForm } from './MedewerkerForm.js';
+import { TeamForm } from './TeamForm.js';
+import { VerlofredenenForm } from './VerlofredenenForm.js';
+import { DagIndicatorForm } from './DagIndicatorForm.js';
+import { GenericForm } from './GenericForm.js';
+
+// Re-export all forms
+export { BaseForm, MedewerkerForm, TeamForm, VerlofredenenForm, DagIndicatorForm, GenericForm };
 
 // Form factory function to get the right form component
 export const getFormComponent = (tabType) => {
