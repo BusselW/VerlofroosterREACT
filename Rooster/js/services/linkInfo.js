@@ -246,22 +246,57 @@ export async function getEmployeesInTeam(teamName) {
 export async function getSeniorForEmployee(employeeUsername) {
     const { medewerkers, seniors } = await refreshCacheIfNeeded();
     
-    // Normalize the username for comparison
+    // Normalize the username for comparison - try multiple formats
     const normalizedUsername = employeeUsername.toLowerCase();
     
-    // Find the employee
-    const employee = medewerkers.find(m => 
+    console.log(`getSeniorForEmployee: Looking for employee "${employeeUsername}"`);
+    console.log(`getSeniorForEmployee: Available employees sample:`, medewerkers.slice(0, 3).map(m => ({ Username: m.Username, Naam: m.Naam, Team: m.Team })));
+    
+    // Find the employee - try exact match first, then partial matches
+    let employee = medewerkers.find(m => 
         m.Username && m.Username.toLowerCase() === normalizedUsername
     );
     
-    if (!employee || !employee.Team) {
+    // If not found, try without domain prefix
+    if (!employee && employeeUsername.includes('\\')) {
+        const usernameWithoutDomain = employeeUsername.split('\\')[1].toLowerCase();
+        console.log(`getSeniorForEmployee: Trying without domain: "${usernameWithoutDomain}"`);
+        employee = medewerkers.find(m => 
+            m.Username && (
+                m.Username.toLowerCase() === usernameWithoutDomain ||
+                m.Username.toLowerCase().endsWith(`\\${usernameWithoutDomain}`)
+            )
+        );
+    }
+    
+    // If still not found, try with som\ prefix
+    if (!employee && !employeeUsername.includes('\\')) {
+        const usernameWithDomain = `som\\${employeeUsername.toLowerCase()}`;
+        console.log(`getSeniorForEmployee: Trying with domain: "${usernameWithDomain}"`);
+        employee = medewerkers.find(m => 
+            m.Username && m.Username.toLowerCase() === usernameWithDomain
+        );
+    }
+    
+    if (!employee) {
+        console.log(`getSeniorForEmployee: Employee not found for "${employeeUsername}"`);
         return null;
     }
+    
+    if (!employee.Team) {
+        console.log(`getSeniorForEmployee: Employee "${employeeUsername}" has no team assigned`);
+        return null;
+    }
+    
+    console.log(`getSeniorForEmployee: Found employee:`, { Username: employee.Username, Naam: employee.Naam, Team: employee.Team });
+    console.log(`getSeniorForEmployee: Available seniors sample:`, seniors.slice(0, 3).map(s => ({ Team: s.Team, MedewerkerID: s.MedewerkerID })));
     
     // Find seniors in the same team
     const teamSeniors = seniors.filter(s => 
         s.Team && s.Team.toLowerCase() === employee.Team.toLowerCase()
     );
+    
+    console.log(`getSeniorForEmployee: Found ${teamSeniors.length} seniors in team "${employee.Team}"`);
     
     if (teamSeniors.length === 0) {
         return null;
@@ -270,17 +305,42 @@ export async function getSeniorForEmployee(employeeUsername) {
     // For each senior, find their employee information
     for (const senior of teamSeniors) {
         if (senior.MedewerkerID) {
-            const seniorEmployee = medewerkers.find(m => 
+            console.log(`getSeniorForEmployee: Checking senior with MedewerkerID: "${senior.MedewerkerID}"`);
+            
+            // Try multiple matching strategies for senior MedewerkerID
+            let seniorEmployee = medewerkers.find(m => 
                 m.Username && m.Username.toLowerCase() === senior.MedewerkerID.toLowerCase()
             );
             
+            // If not found, try without domain prefix on senior ID
+            if (!seniorEmployee && senior.MedewerkerID.includes('\\')) {
+                const seniorIdWithoutDomain = senior.MedewerkerID.split('\\')[1].toLowerCase();
+                seniorEmployee = medewerkers.find(m => 
+                    m.Username && (
+                        m.Username.toLowerCase() === seniorIdWithoutDomain ||
+                        m.Username.toLowerCase().endsWith(`\\${seniorIdWithoutDomain}`)
+                    )
+                );
+            }
+            
+            // If still not found, try with som\ prefix on senior ID
+            if (!seniorEmployee && !senior.MedewerkerID.includes('\\')) {
+                const seniorIdWithDomain = `som\\${senior.MedewerkerID.toLowerCase()}`;
+                seniorEmployee = medewerkers.find(m => 
+                    m.Username && m.Username.toLowerCase() === seniorIdWithDomain
+                );
+            }
+            
             if (seniorEmployee) {
+                console.log(`getSeniorForEmployee: Found senior employee:`, { Username: seniorEmployee.Username, Naam: seniorEmployee.Naam });
                 // Return the first matching senior with their employee details
                 return {
                     ...senior,
                     seniorInfo: seniorEmployee,
                     naam: seniorEmployee.Naam
                 };
+            } else {
+                console.log(`getSeniorForEmployee: No employee found for senior MedewerkerID: "${senior.MedewerkerID}"`);
             }
         }
     }

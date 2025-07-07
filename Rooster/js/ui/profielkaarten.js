@@ -141,19 +141,41 @@ const ProfielKaarten = (() => {
         try {
             console.log(`fetchSeniorData: Fetching senior for username "${username}"`);
             
-            // Get senior information using linkInfo service
-            const senior = await linkInfo.getSeniorForEmployee(username);
+            // Normalize username - try both formats
+            let normalizedUsername = username;
+            let alternativeUsername = null;
+            
+            if (username.includes('\\')) {
+                // If it has domain\username format, also try without domain
+                alternativeUsername = username.split('\\')[1];
+                console.log(`fetchSeniorData: Also trying alternative username "${alternativeUsername}"`);
+            } else {
+                // If it doesn't have domain, also try with som\ prefix
+                alternativeUsername = `som\\${username}`;
+                console.log(`fetchSeniorData: Also trying alternative username "${alternativeUsername}"`);
+            }
+            
+            // Try original username first
+            console.log(`fetchSeniorData: Trying original username "${normalizedUsername}"`);
+            let senior = await linkInfo.getSeniorForEmployee(normalizedUsername);
+            
+            // If not found, try alternative format
+            if (!senior && alternativeUsername) {
+                console.log(`fetchSeniorData: Original username failed, trying alternative "${alternativeUsername}"`);
+                senior = await linkInfo.getSeniorForEmployee(alternativeUsername);
+            }
             
             if (senior) {
                 console.log('fetchSeniorData: Found senior:', {
                     Username: senior.seniorInfo?.Username,
                     Naam: senior.naam,
-                    Team: senior.Team
+                    Team: senior.Team,
+                    MedewerkerID: senior.MedewerkerID
                 });
                 return senior;
             }
             
-            console.log(`fetchSeniorData: No senior found for "${username}"`);
+            console.log(`fetchSeniorData: No senior found for "${username}" (tried "${normalizedUsername}" and "${alternativeUsername || 'none'}")`);
             return null;
         } catch (error) {
             console.error('Error fetching senior data:', error);
