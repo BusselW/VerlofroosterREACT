@@ -80,13 +80,8 @@ const formatValue = (value, column) => {
 };
 
 const DataTable = ({ columns, data, onEdit, onDelete }) => {
-    // Debug: Log the data to see if there are empty rows
-    console.log('DataTable - columns:', columns);
-    console.log('DataTable - data:', data);
-    
     // Filter out any undefined or empty rows
     const filteredData = data.filter(row => row && Object.keys(row).length > 0);
-    console.log('DataTable - filtered data:', filteredData);
     
     return h('div', { className: 'table-container' },
         h('table', { className: 'data-table' },
