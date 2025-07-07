@@ -2,7 +2,7 @@ import { beheerTabs } from './dataTabs.js';
 import { getListItems, createListItem, updateListItem, deleteListItem } from './dataService.js';
 import { initializeSharePointContext } from './sharepointContext.js';
 import { Modal } from './ui/Modal.js';
-import { MedewerkerForm } from './forms/MedewerkerForm.js';
+import { GenericForm } from './forms/GenericForm.js';
 
 const { useState, useEffect, createElement: h, useCallback } = React;
 
@@ -260,11 +260,15 @@ const ContentContainer = () => {
             onDelete: handleDelete
         }),
         h(Modal, { isOpen: isModalOpen, onClose: handleCloseModal },
-            activeTab && activeTab.id === 'medewerkers' && h(MedewerkerForm, {
+            activeTab && h(GenericForm, {
                 onSave: handleSave,
                 onCancel: handleCloseModal,
                 initialData: editingItem || {},
-                columns: activeTab.columns
+                formFields: activeTab.formFields || [],
+                title: editingItem ? 
+                    `${activeTab.label.slice(0, -1)} Bewerken` : 
+                    `Nieuwe ${activeTab.label.slice(0, -1)} Toevoegen`,
+                tabType: activeTab.id
             })
         )
     );
