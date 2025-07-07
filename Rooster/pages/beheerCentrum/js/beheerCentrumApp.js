@@ -121,42 +121,49 @@ const formatValue = (value, column) => {
         }
     }
     
-    // Handle boolean values
-    if (typeof value === 'boolean') {
-        return h('span', { 
-            className: `boolean-indicator ${value ? 'true' : 'false'}`,
-            style: {
-                padding: '2px 6px',
-                borderRadius: '3px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                color: 'white',
-                backgroundColor: value ? '#28a745' : '#dc3545'
-            }
-        }, value ? 'Ja' : 'Nee');
+    // Handle boolean values with modern toggle switches
+    if (typeof value === 'boolean' || column.type === 'boolean') {
+        const boolValue = value === true || value === 'true' || value === 1;
+        
+        return h('div', { className: 'boolean-display', style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+            h('label', { className: 'toggle-switch' },
+                h('input', { 
+                    type: 'checkbox', 
+                    checked: boolValue,
+                    disabled: true,
+                    'aria-label': boolValue ? 'Ingeschakeld' : 'Uitgeschakeld'
+                }),
+                h('span', { className: 'toggle-slider' })
+            ),
+            h('span', { 
+                className: `status-indicator ${boolValue ? 'status-active' : 'status-inactive'}`,
+                style: { fontSize: '12px', fontWeight: '500' }
+            },
+                h('span', { className: 'status-dot' }),
+                boolValue ? 'Actief' : 'Inactief'
+            )
+        );
     }
     
-    // Handle color values
+    // Handle color values with enhanced color picker integration
     if (column.type === 'color' || column.accessor.toLowerCase().includes('kleur')) {
-        if (!value) return '';
+        if (!value) return h('span', { className: 'tag' }, 'Geen kleur');
         
         // Ensure the value starts with # for hex colors
         const colorValue = value.startsWith('#') ? value : `#${value}`;
         
-        return h('div', { className: 'color-display', style: { display: 'flex', alignItems: 'center' } },
-            h('span', { 
-                className: 'color-swatch', 
-                style: { 
-                    backgroundColor: colorValue,
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '4px',
-                    display: 'inline-block',
-                    marginRight: '8px',
-                    border: '1px solid #ccc',
-                    flexShrink: 0
-                } 
-            }),
+        return h('div', { className: 'color-display' },
+            h('div', { className: 'color-picker-container' },
+                h('span', { 
+                    className: 'color-swatch large', 
+                    style: { 
+                        backgroundColor: colorValue,
+                        cursor: 'pointer'
+                    },
+                    title: `Kleur: ${colorValue.toUpperCase()}`,
+                    'aria-label': `Kleurwaarde ${colorValue.toUpperCase()}`
+                })
+            ),
             h('span', { className: 'color-value' }, colorValue.toUpperCase())
         );
     }
@@ -165,10 +172,49 @@ const formatValue = (value, column) => {
     if (typeof value === 'string' && value.length > 50) {
         return h('span', { 
             title: value,
-            style: { cursor: 'help' }
+            style: { cursor: 'help' },
+            className: 'truncated-text'
         }, value.substring(0, 47) + '...');
     }
     
+    // Handle status-like fields with tags
+    if (column.accessor.toLowerCase().includes('status') || 
+        column.accessor.toLowerCase().includes('type') ||
+        column.accessor.toLowerCase().includes('categorie')) {
+        if (!value) return h('span', { className: 'tag' }, 'Onbekend');
+        
+        let tagClass = 'tag';
+        const lowerValue = value.toString().toLowerCase();
+        
+        if (lowerValue.includes('actief') || lowerValue.includes('goedgekeurd') || lowerValue.includes('success')) {
+            tagClass += ' tag-success';
+        } else if (lowerValue.includes('inactief') || lowerValue.includes('afgekeurd') || lowerValue.includes('error')) {
+            tagClass += ' tag-error';
+        } else if (lowerValue.includes('pending') || lowerValue.includes('wachten') || lowerValue.includes('warning')) {
+            tagClass += ' tag-warning';
+        } else if (lowerValue.includes('info') || lowerValue.includes('review')) {
+            tagClass += ' tag-info';
+        } else {
+            tagClass += ' tag-primary';
+        }
+        
+        return h('span', { className: tagClass }, value);
+    }
+    
+    // Handle ID fields with monospace font
+    if (column.accessor.toLowerCase().includes('id') || column.accessor.toLowerCase().includes('guid')) {
+        return h('code', { 
+            className: 'id-field',
+            style: {
+                fontSize: '12px',
+                padding: '2px 4px',
+                backgroundColor: 'var(--color-bg-surface-secondary)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--color-border-default)'
+            }
+        }, value);
+    }
+
     return value;
 };
 
