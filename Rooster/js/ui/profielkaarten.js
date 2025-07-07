@@ -479,22 +479,84 @@ const ProfielKaarten = (() => {
                     style: specialBackground ? { position: 'relative', zIndex: '1' } : {}
                 },
                     h('div', { className: 'profile-card-name' }, medewerker.Naam || medewerker.Title || 'Onbekend'),
-                    h('div', { className: 'profile-card-function' }, medewerker.Functie || '-'),
-                    teamLeader && h('div', { 
+                    // Check if this person is the senior or team leader themselves
+                    (() => {
+                        const isSenior = senior && (
+                            (senior.seniorInfo?.Username === medewerker.Username) ||
+                            (senior.seniorInfo?.Naam === medewerker.Naam) ||
+                            (senior.seniorInfo?.Title === medewerker.Naam)
+                        );
+                        const isTeamLeader = teamLeader && (
+                            (teamLeader.Username === medewerker.Username) ||
+                            (teamLeader.Naam === medewerker.Naam) ||
+                            (teamLeader.Title === medewerker.Naam)
+                        );
+                        
+                        // Style the function based on their role
+                        let functionStyle = {};
+                        if (isSenior) {
+                            functionStyle = {
+                                backgroundColor: '#ff8c00',
+                                color: 'white',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: 'bold',
+                                display: 'inline-block'
+                            };
+                        } else if (isTeamLeader) {
+                            functionStyle = {
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: 'bold',
+                                display: 'inline-block'
+                            };
+                        }
+                        
+                        return h('div', { 
+                            className: 'profile-card-function',
+                            style: Object.keys(functionStyle).length > 0 ? functionStyle : {}
+                        }, medewerker.Functie || '-');
+                    })(),
+                    // Only show team leader if this person is NOT the team leader themselves
+                    teamLeader && !(
+                        (teamLeader.Username === medewerker.Username) ||
+                        (teamLeader.Naam === medewerker.Naam) ||
+                        (teamLeader.Title === medewerker.Naam)
+                    ) && h('div', { 
                         className: 'profile-card-team-leader',
                         style: { 
                             fontSize: '0.85rem', 
-                            color: '#6c757d', 
-                            fontStyle: 'italic',
-                            marginTop: '4px'
+                            color: '#333',
+                            marginTop: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
                         }
-                    }, `TL: ${teamLeader.Title || teamLeader.Naam || teamLeader.Username}`),
-                    senior && h('div', { 
+                    }, 
+                        h('span', { 
+                            style: { 
+                                fontSize: '0.8rem',
+                                backgroundColor: '#ff8c00',
+                                color: 'white',
+                                padding: '1px 4px',
+                                borderRadius: '3px',
+                                fontWeight: 'bold'
+                            }
+                        }, 'TL'),
+                        `${teamLeader.Title || teamLeader.Naam || teamLeader.Username}`
+                    ),
+                    // Only show senior if this person is NOT the senior themselves
+                    senior && !(
+                        (senior.seniorInfo?.Username === medewerker.Username) ||
+                        (senior.seniorInfo?.Naam === medewerker.Naam) ||
+                        (senior.seniorInfo?.Title === medewerker.Naam)
+                    ) && h('div', { 
                         className: 'profile-card-senior',
                         style: { 
                             fontSize: '0.85rem', 
-                            color: '#28a745', 
-                            fontWeight: 'bold',
+                            color: '#333',
                             marginTop: '2px',
                             display: 'flex',
                             alignItems: 'center',
@@ -504,11 +566,11 @@ const ProfielKaarten = (() => {
                         h('span', { 
                             style: { 
                                 fontSize: '0.8rem',
-                                backgroundColor: '#28a745',
+                                backgroundColor: '#ff8c00',
                                 color: 'white',
                                 padding: '1px 4px',
                                 borderRadius: '3px',
-                                fontWeight: 'normal'
+                                fontWeight: 'bold'
                             }
                         }, 'SR'),
                         `${senior.naam || senior.seniorInfo?.Naam || 'Onbekende senior'}`
