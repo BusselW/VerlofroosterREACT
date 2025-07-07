@@ -342,21 +342,36 @@ const TabContent = ({ tab, data, loading, error, onAddNew, onEdit, onDelete, sho
                         fontWeight: 'normal'
                     } 
                 }, `Kolommen: ${displayedColumns}/${totalColumns}`),
-                h('label', { style: { fontSize: '14px' } }, 'Toon alle kolommen:'),
-                h('button', {
-                    className: `btn-secondary ${showAllColumns ? 'active' : ''}`,
-                    onClick: onToggleColumns,
-                    style: {
-                        padding: '6px 12px',
-                        fontSize: '12px',
-                        backgroundColor: showAllColumns ? '#2563eb' : '#6b7280',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s'
-                    }
-                }, showAllColumns ? 'Alle' : 'Basis')
+                h('div', { className: 'column-toggle-container', style: { display: 'flex', alignItems: 'center', gap: '12px' } },
+                    h('span', { style: { fontSize: '14px', fontWeight: '500', color: 'var(--color-text-secondary)' } }, 'Kolommen:'),
+                    h('div', { className: 'toggle-group', style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+                        h('span', { 
+                            style: { 
+                                fontSize: '12px', 
+                                color: showAllColumns ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
+                                fontWeight: showAllColumns ? '400' : '600',
+                                transition: 'all var(--transition-fast)'
+                            } 
+                        }, 'Basis'),
+                        h('label', { className: 'toggle-switch', style: { margin: '0' } },
+                            h('input', { 
+                                type: 'checkbox',
+                                checked: showAllColumns,
+                                onChange: onToggleColumns,
+                                'aria-label': showAllColumns ? 'Schakel over naar basis kolommen' : 'Toon alle kolommen'
+                            }),
+                            h('span', { className: 'toggle-slider' })
+                        ),
+                        h('span', { 
+                            style: { 
+                                fontSize: '12px', 
+                                color: showAllColumns ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                                fontWeight: showAllColumns ? '600' : '400',
+                                transition: 'all var(--transition-fast)'
+                            } 
+                        }, 'Alle')
+                    )
+                )
             )
         ),
         h(DataTable, { 
