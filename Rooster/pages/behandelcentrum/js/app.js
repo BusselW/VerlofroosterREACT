@@ -72,6 +72,9 @@ class BehandelcentrumApp {
             totalPages: 0
         };
         this.teamPagination = new Map(); // Per-team pagination state
+
+        // Team selection filter
+        this.selectedTeam = null; // null means "all teams", or specific team ID
     }
 
     async init() {
@@ -263,6 +266,23 @@ class BehandelcentrumApp {
                             }),
                             h('span', { className: 'toggle-slider' })
                         )
+                    )
+                )
+            ),
+            // Team selection dropdown - only show for "lopende" view
+            this.viewMode === 'lopend' && h('div', { className: 'team-selection-container' },
+                h('label', { className: 'team-selection-label' }, 'Filter op team:'),
+                h('select', {
+                    className: 'team-selection-dropdown',
+                    value: this.selectedTeam || '',
+                    onChange: (e) => this.handleTeamSelection(e)
+                },
+                    h('option', { value: '' }, 'Alle teams'),
+                    ...this.getAvailableTeams().map(team =>
+                        h('option', { 
+                            key: team.ID || team.Id,
+                            value: team.ID || team.Id 
+                        }, team.Naam)
                     )
                 )
             ),
@@ -1100,22 +1120,33 @@ class BehandelcentrumApp {
     }
 
     filterDataForCurrentUser(data) {
+        let filteredData = data;
+
+        // First apply existing team leader/super user filters
         if (this.isSuperUser && this.emulatingTeamLeader) {
             // Filter by emulated team leader's teams
-            return data.filter(item => {
+            filteredData = filteredData.filter(item => {
                 const teamInfo = this.getTeamInfoForRequest(item);
                 return teamInfo.teamleiderId === this.emulatingTeamLeader.teamleiderId;
             });
         } else if (this.showOnlyOwnTeam && this.isTeamLeader) {
             // Filter by current user's teams
             const userTeamNames = this.currentUserTeams.map(t => t.Naam.toLowerCase());
-            return data.filter(item => {
+            filteredData = filteredData.filter(item => {
                 const teamInfo = this.getTeamInfoForRequest(item);
                 return userTeamNames.includes(teamInfo.teamNaam.toLowerCase());
             });
         }
+
+        // Then apply team selection filter if a specific team is selected
+        if (this.selectedTeam) {
+            filteredData = filteredData.filter(item => {
+                const teamInfo = this.getTeamInfoForRequest(item);
+                return teamInfo.teamId === this.selectedTeam;
+            });
+        }
         
-        return data; // Show all data
+        return filteredData;
     }
 
     debugTeamMapping(request) {
@@ -1214,6 +1245,53 @@ class BehandelcentrumApp {
         const newValue = e.target.checked;
         this.showOnlyOwnTeam = newValue;
         this.render();
+    }
+
+    handleTeamSelection(e) {
+        const teamId = e.target.value;
+        this.selectedTeam = teamId || null; // null means "all teams"
+        this.render();
+    }
+
+    getAvailableTeams() {
+        // Return teams that have requests in the current data
+        if (!this.allTeams || this.allTeams.length === 0) {
+            return [];
+        }
+
+        // Get current data set based on view mode and type
+        let currentData = [];
+        if (this.viewMode === 'lopend') {
+            if (this.selectedType === 'verlof') {
+                currentData = this.verlofLopend;
+            } else if (this.selectedType === 'compensatie') {
+                currentData = this.compensatieLopend;
+            }
+        } else {
+            if (this.selectedType === 'verlof') {
+                currentData = this.verlofArchief;
+            } else if (this.selectedType === 'compensatie') {
+                currentData = this.compensatieArchief;
+            } else if (this.selectedType === 'ziekte') {
+                currentData = this.ziekteArchief;
+            } else if (this.selectedType === 'zittingsvrij') {
+                currentData = this.zittingsvrijArchief;
+            }
+        }
+
+        // Extract unique team IDs from current data
+        const teamIds = new Set();
+        currentData.forEach(item => {
+            const teamInfo = this.getTeamInfoForRequest(item);
+            if (teamInfo && teamInfo.teamId) {
+                teamIds.add(teamInfo.teamId);
+            }
+        });
+
+        // Return teams that have requests, sorted by name
+        return this.allTeams
+            .filter(team => teamIds.has(team.ID || team.Id))
+            .sort((a, b) => (a.Naam || '').localeCompare(b.Naam || ''));
     }
 
     handleModeToggle(e) {

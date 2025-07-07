@@ -1050,6 +1050,48 @@ body.dark-theme .teamleider-unavailable {
     transform: translateX(20px);
 }
 
+/* Team selection container */
+.team-selection-container {
+    margin-bottom: var(--space-sm);
+    padding: var(--space-sm);
+    background: #f1f5f9;
+    border-radius: var(--radius-md);
+    border: 1px solid #d1d5db;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.team-selection-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.team-selection-dropdown {
+    flex: 1;
+    max-width: 200px;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.team-selection-dropdown:hover {
+    border-color: var(--brand-primary);
+}
+
+.team-selection-dropdown:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
 /* Main toggle buttons */
 .main-toggle {
     display: flex;
@@ -1288,6 +1330,23 @@ body.dark-theme .teamleider-unavailable {
 .team-filter-container {
     padding: var(--space-xs) var(--space-md) !important;
     margin-bottom: var(--space-xs) !important;
+}
+
+/* Compactere team selection */
+.team-selection-container {
+    padding: var(--space-xs) var(--space-md) !important;
+    margin-bottom: var(--space-xs) !important;
+    gap: var(--space-sm) !important;
+}
+
+.team-selection-label {
+    font-size: 0.7rem !important;
+}
+
+.team-selection-dropdown {
+    padding: 0.15rem 0.3rem !important;
+    font-size: 0.65rem !important;
+    max-width: 150px !important;
 }
 
 /* Compactere toggle switches */
@@ -1586,6 +1645,22 @@ html, body {
     .data-table {
         min-width: 500px;
         font-size: 0.75rem;
+    }
+    
+    /* Stack team selection vertically on mobile */
+    .team-selection-container {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: var(--space-xs) !important;
+    }
+    
+    .team-selection-label {
+        text-align: center;
+    }
+    
+    .team-selection-dropdown {
+        max-width: none !important;
+        width: 100%;
     }
 }
 
