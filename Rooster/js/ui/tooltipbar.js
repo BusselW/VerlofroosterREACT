@@ -1,6 +1,17 @@
 /**
  * @file tooltipbar.js
  * @description Beheert het maken en weergeven van aangepaste tooltips.
+ * 
+ * Features:
+ * - Responsive tooltips voor VER/ZV/Compensatie/Ziekte/Feestdagen/Buttons
+ * - Permission-aware comment visibility
+ * - Feestdag inspection capabilities
+ * 
+ * Developer utilities:
+ * - window.inspectFeestdag(date|element) - Inspect feestdag by date or element
+ * - window.feestdagVandaag() - Check if today is a feestdag
+ * - window.feestdagenDezeMaand() - Get all feestdagen this month
+ * - window.TooltipManager.testTooltipSystem() - Test all tooltip functionality
  */
 
 // Maak een singleton object om alle tooltip-logica te beheren.
@@ -271,14 +282,27 @@ const TooltipManager = {
             ? datum.toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
             : '';
             
+        // Add emoji based on feestdag type
+        let emoji = '🎉';
+        const naam = feestdagNaam.toLowerCase();
+        if (naam.includes('kerst')) emoji = '🎄';
+        else if (naam.includes('nieuwjaar')) emoji = '🎊';
+        else if (naam.includes('paas')) emoji = '🐣';
+        else if (naam.includes('konings')) emoji = '👑';
+        else if (naam.includes('bevrijding')) emoji = '🕊️';
+        else if (naam.includes('hemelvaart')) emoji = '☁️';
+        else if (naam.includes('pinster')) emoji = '🔥';
+            
         return `
             <div class="custom-tooltip tooltip-holiday">
-                <div class="custom-tooltip-title">${feestdagNaam}</div>
+                <div class="custom-tooltip-title">${emoji} ${feestdagNaam}</div>
                 <div class="custom-tooltip-content">
                     <div class="custom-tooltip-info">
+                        <span class="custom-tooltip-label">📅 Datum:</span>
                         <span class="custom-tooltip-value">${datumFormatted}</span>
                     </div>
                     <div class="custom-tooltip-info">
+                        <span class="custom-tooltip-label">🏛️ Type:</span>
                         <span class="custom-tooltip-value">Officiële feestdag</span>
                     </div>
                 </div>
@@ -501,13 +525,22 @@ const TooltipManager = {
             if (element.dataset.tooltipAttached === 'true') return;
             
             this.attach(element, () => {
-                const feestdagNaam = element.dataset.feestdag || 
-                                    element.getAttribute('title') || 
-                                    element.getAttribute('data-original-title') ||
-                                    element.textContent?.trim() ||
-                                    'Feestdag';
-                const datum = element.dataset.datum ? new Date(element.dataset.datum) : new Date();
-                return this.createFeestdagTooltip(feestdagNaam, datum);
+                // Use improved inspection method
+                const feestdagInfo = this.inspectFeestdagByElement(element);
+                
+                if (feestdagInfo) {
+                    const datum = feestdagInfo.datum ? new Date(feestdagInfo.datum) : new Date();
+                    return this.createFeestdagTooltip(feestdagInfo.naam, datum);
+                } else {
+                    // Fallback to old method
+                    const feestdagNaam = element.dataset.feestdag || 
+                                        element.getAttribute('title') || 
+                                        element.getAttribute('data-original-title') ||
+                                        element.textContent?.trim() ||
+                                        'Feestdag';
+                    const datum = element.dataset.datum ? new Date(element.dataset.datum) : new Date();
+                    return this.createFeestdagTooltip(feestdagNaam, datum);
+                }
             });
             attachedCount++;
         });
@@ -695,6 +728,197 @@ const TooltipManager = {
     },
     
     /**
+     * Inspecteer welke feestdag actief is op een gegeven datum
+     * @param {Date|string} datum - De datum om te inspecteren (Date object of YYYY-MM-DD string)
+     * @returns {Object|null} Feestdag informatie of null als geen feestdag gevonden
+     */
+    inspectFeestdagByDate: function(datum) {
+        if (!datum) datum = new Date();
+        
+        // Converteer naar Date object indien nodig
+        let targetDate;
+        if (typeof datum === 'string') {
+            targetDate = new Date(datum);
+        } else if (datum instanceof Date) {
+            targetDate = datum;
+        } else {
+            console.warn('Invalid date format provided to inspectFeestdagByDate');
+            return null;
+        }
+        
+        // Maak datum string in YYYY-MM-DD formaat voor vergelijking
+        const dateString = targetDate.toISOString().split('T')[0];
+        
+        // Zoek naar feestdag elementen die overeenkomen met deze datum
+        const feestdagElements = document.querySelectorAll('.feestdag, [data-feestdag], .dag-cel.feestdag, .feestdag-cel');
+        
+        for (const element of feestdagElements) {
+            const elementDate = this.extractDateFromElement(element);
+            if (elementDate && elementDate === dateString) {
+                return this.extractFeestdagInfo(element);
+            }
+        }
+        
+        console.log(`No feestdag found for date: ${dateString}`);
+        return null;
+    },
+    
+    /**
+     * Inspecteer feestdag informatie van een DOM element
+     * @param {HTMLElement} element - Het element om te inspecteren
+     * @returns {Object|null} Feestdag informatie of null als geen feestdag
+     */
+    inspectFeestdagByElement: function(element) {
+        if (!element) {
+            console.warn('No element provided to inspectFeestdagByElement');
+            return null;
+        }
+        
+        // Check of het element een feestdag element is
+        const isFeestdag = element.classList.contains('feestdag') || 
+                          element.hasAttribute('data-feestdag') ||
+                          element.classList.contains('feestdag-cel') ||
+                          (element.classList.contains('dag-cel') && element.classList.contains('feestdag'));
+        
+        if (!isFeestdag) {
+            console.log('Element is not a feestdag element');
+            return null;
+        }
+        
+        return this.extractFeestdagInfo(element);
+    },
+    
+    /**
+     * Haal datum uit een DOM element
+     * @param {HTMLElement} element - Het element
+     * @returns {string|null} Datum in YYYY-MM-DD formaat of null
+     */
+    extractDateFromElement: function(element) {
+        // Probeer verschillende manieren om de datum te extraheren
+        let dateStr = element.dataset.datum || 
+                     element.dataset.date ||
+                     element.getAttribute('data-datum') ||
+                     element.getAttribute('data-date');
+        
+        if (dateStr) {
+            // Normaliseer datum naar YYYY-MM-DD formaat
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0];
+            }
+        }
+        
+        // Probeer datum te extraheren uit parent element of grid structuur
+        const parent = element.closest('[data-datum], [data-date], .dag-cel, .calendar-day');
+        if (parent) {
+            dateStr = parent.dataset.datum || 
+                     parent.dataset.date ||
+                     parent.getAttribute('data-datum') ||
+                     parent.getAttribute('data-date');
+            
+            if (dateStr) {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().split('T')[0];
+                }
+            }
+        }
+        
+        // Als laatste poging, probeer datum te extraheren uit ID of class namen
+        const idMatch = element.id.match(/(\d{4}-\d{2}-\d{2})/);
+        if (idMatch) {
+            return idMatch[1];
+        }
+        
+        return null;
+    },
+    
+    /**
+     * Extraheer feestdag informatie uit een element
+     * @param {HTMLElement} element - Het feestdag element
+     * @returns {Object} Feestdag informatie
+     */
+    extractFeestdagInfo: function(element) {
+        const naam = element.dataset.feestdag || 
+                    element.getAttribute('title') || 
+                    element.getAttribute('data-original-title') ||
+                    element.textContent?.trim() ||
+                    'Onbekende feestdag';
+        
+        const datum = this.extractDateFromElement(element);
+        let formattedDate = null;
+        
+        if (datum) {
+            const dateObj = new Date(datum);
+            if (!isNaN(dateObj.getTime())) {
+                formattedDate = dateObj.toLocaleDateString('nl-NL', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            }
+        }
+        
+        return {
+            naam: naam,
+            datum: datum,
+            datumFormatted: formattedDate,
+            element: element,
+            type: 'feestdag',
+            isOfficialHoliday: true
+        };
+    },
+    
+    /**
+     * Krijg alle actieve feestdagen in een bepaalde periode
+     * @param {Date} startDate - Startdatum (optioneel, default: vandaag)
+     * @param {Date} endDate - Einddatum (optioneel, default: einde van het jaar)
+     * @returns {Array} Array van feestdag objecten
+     */
+    getAllFeestdagenInPeriod: function(startDate = null, endDate = null) {
+        if (!startDate) startDate = new Date();
+        if (!endDate) {
+            endDate = new Date(startDate.getFullYear(), 11, 31); // Einde van het jaar
+        }
+        
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+        
+        const feestdagElements = document.querySelectorAll('.feestdag, [data-feestdag], .dag-cel.feestdag, .feestdag-cel');
+        const feestdagen = [];
+        
+        feestdagElements.forEach(element => {
+            const elementDate = this.extractDateFromElement(element);
+            if (elementDate && elementDate >= startDateStr && elementDate <= endDateStr) {
+                const feestdagInfo = this.extractFeestdagInfo(element);
+                if (feestdagInfo) {
+                    feestdagen.push(feestdagInfo);
+                }
+            }
+        });
+        
+        // Sorteer op datum
+        feestdagen.sort((a, b) => a.datum.localeCompare(b.datum));
+        
+        return feestdagen;
+    },
+    
+    /**
+     * Developer utility: Log alle feestdagen in console
+     */
+    logAllFeestdagen: function() {
+        const feestdagen = this.getAllFeestdagenInPeriod();
+        console.log('🎉 Alle feestdagen gevonden:', feestdagen);
+        
+        feestdagen.forEach(feestdag => {
+            console.log(`📅 ${feestdag.datum} (${feestdag.datumFormatted}): ${feestdag.naam}`);
+        });
+        
+        return feestdagen;
+    },
+
+    /**
      * Test functie om tooltip systeem te verifiëren
      */
     testTooltipSystem: function() {
@@ -712,7 +936,8 @@ const TooltipManager = {
                 icons: document.querySelectorAll('i[title], .icon[title], [data-tooltip], img[title]').length
             },
             attachedCount: document.querySelectorAll('[data-tooltip-attached="true"]').length,
-            userPermissions: this.currentUserGroups
+            userPermissions: this.currentUserGroups,
+            feestdagenDetails: this.getAllFeestdagenInPeriod()
         };
         
         console.log('📊 Tooltip test results:', testResults);
@@ -725,6 +950,16 @@ const TooltipManager = {
         
         console.log(`📋 Found ${Object.values(testResults.elementCount).reduce((a, b) => a + b, 0)} total elements that should have tooltips`);
         console.log(`🔗 Currently ${testResults.attachedCount} elements have tooltips attached`);
+        
+        // Show feestdagen details
+        if (testResults.feestdagenDetails.length > 0) {
+            console.log(`🎉 Found ${testResults.feestdagenDetails.length} feestdagen:`);
+            testResults.feestdagenDetails.forEach(feestdag => {
+                console.log(`   📅 ${feestdag.datum}: ${feestdag.naam}`);
+            });
+        } else {
+            console.log('🎉 No feestdagen found in current view');
+        }
         
         // Test permission system
         this.canSeeComments().then(canSee => {
@@ -769,4 +1004,54 @@ if (typeof window !== 'undefined') {
             TooltipManager.autoAttachTooltips();
         }, 50);
     });
+    
+    // Add developer utilities to window object for easy debugging
+    window.TooltipManager = TooltipManager;
+    
+    // Global helper functions for feestdag inspection
+    window.inspectFeestdag = function(dateOrElement) {
+        if (!dateOrElement) {
+            // Show all feestdagen for current period
+            return TooltipManager.logAllFeestdagen();
+        } else if (typeof dateOrElement === 'string' || dateOrElement instanceof Date) {
+            // Inspect by date
+            return TooltipManager.inspectFeestdagByDate(dateOrElement);
+        } else if (dateOrElement instanceof HTMLElement) {
+            // Inspect by element
+            return TooltipManager.inspectFeestdagByElement(dateOrElement);
+        } else {
+            console.warn('Invalid parameter for inspectFeestdag. Use a date string, Date object, or HTMLElement.');
+            return null;
+        }
+    };
+    
+    // Quick function to check feestdag for today
+    window.feestdagVandaag = function() {
+        const today = new Date();
+        const feestdag = TooltipManager.inspectFeestdagByDate(today);
+        if (feestdag) {
+            console.log(`🎉 Vandaag is ${feestdag.naam} (${feestdag.datumFormatted})`);
+            return feestdag;
+        } else {
+            console.log('📅 Vandaag is geen feestdag');
+            return null;
+        }
+    };
+    
+    // Function to get all feestdagen this month
+    window.feestdagenDezeMaand = function() {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        const feestdagen = TooltipManager.getAllFeestdagenInPeriod(startOfMonth, endOfMonth);
+        console.log(`🎉 Feestdagen deze maand (${startOfMonth.toLocaleDateString('nl-NL', {month: 'long', year: 'numeric'})}):`, feestdagen);
+        return feestdagen;
+    };
+    
+    console.log('🔧 Developer utilities added to window:');
+    console.log('   - window.inspectFeestdag(date|element) - Inspect feestdag by date or element');
+    console.log('   - window.feestdagVandaag() - Check if today is a feestdag');
+    console.log('   - window.feestdagenDezeMaand() - Get all feestdagen this month');
+    console.log('   - window.TooltipManager - Access full TooltipManager object');
 }
