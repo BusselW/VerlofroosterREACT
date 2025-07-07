@@ -1381,6 +1381,7 @@ body.dark-theme .teamleider-unavailable {
     gap: var(--space-sm) !important;
     margin-bottom: var(--space-md) !important;
     padding: var(--space-xs) !important;
+    max-width: 400px !important;
 }
 
 .main-toggle .toggle-btn {
