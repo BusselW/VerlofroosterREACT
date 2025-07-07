@@ -237,27 +237,40 @@ const TooltipManager = {
             const canSeeComments = await this.canSeeComments();
             
             return `
-                <div class="custom-tooltip-title">🌴 ${verlofItem.Titel || 'Verlof'}</div>
+                <div class="custom-tooltip-title">
+                    <svg class="tooltip-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                    </svg>
+                    Verlof
+                </div>
                 <div class="custom-tooltip-content">
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">👤 Medewerker:</span>
-                        <span class="custom-tooltip-value">${verlofItem.MedewerkerNaam || 'Onbekend'}</span>
-                    </div>
-                    <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">📅 Van:</span>
+                        <span class="custom-tooltip-label">Start datum:</span>
                         <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
                     </div>
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">📅 Tot:</span>
+                        <span class="custom-tooltip-label">Eind datum:</span>
                         <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')}</span>
                     </div>
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">� Status:</span>
+                        <span class="custom-tooltip-label">Status:</span>
                         <span class="tooltip-status ${statusClass}">${statusText}</span>
                     </div>
+                    ${verlofItem.Teamleider ? `
+                    <div class="custom-tooltip-info">
+                        <span class="custom-tooltip-label">Teamleider:</span>
+                        <span class="custom-tooltip-value">${verlofItem.Teamleider}</span>
+                    </div>
+                    ` : ''}
+                    ${verlofItem.Creator ? `
+                    <div class="custom-tooltip-info">
+                        <span class="custom-tooltip-label">Aangemaakt door:</span>
+                        <span class="custom-tooltip-value">${verlofItem.Creator}</span>
+                    </div>
+                    ` : ''}
                     ${(verlofItem.Toelichting && canSeeComments) ? `
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">💬 Toelichting:</span>
+                        <span class="custom-tooltip-label">Toelichting:</span>
                         <span class="custom-tooltip-value">${verlofItem.Toelichting}</span>
                     </div>
                     ` : ''}
@@ -282,27 +295,35 @@ const TooltipManager = {
             ? datum.toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
             : '';
             
-        // Add emoji based on feestdag type
-        let emoji = '🎉';
+        // Select appropriate SVG icon based on feestdag type
+        let iconPath = 'M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M15,17H9V15H15V17M13,13H11V7H13V13Z'; // Default celebration icon
         const naam = feestdagNaam.toLowerCase();
-        if (naam.includes('kerst')) emoji = '🎄';
-        else if (naam.includes('nieuwjaar')) emoji = '🎊';
-        else if (naam.includes('paas')) emoji = '🐣';
-        else if (naam.includes('konings')) emoji = '👑';
-        else if (naam.includes('bevrijding')) emoji = '🕊️';
-        else if (naam.includes('hemelvaart')) emoji = '☁️';
-        else if (naam.includes('pinster')) emoji = '🔥';
+        
+        if (naam.includes('kerst')) {
+            iconPath = 'M10,21V18H3L8,13H5L10,8H7L12,3L17,8H14L19,13H16L21,18H14V21H10Z'; // Christmas tree
+        } else if (naam.includes('nieuwjaar')) {
+            iconPath = 'M4,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M4,6V18H11V6H4M20,18V6H18V16H15V18H20Z'; // Calendar
+        } else if (naam.includes('paas')) {
+            iconPath = 'M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17C9.24,17 7,14.76 7,12S9.24,7 12,7 17,9.24 17,12 14.76,17 12,17Z'; // Easter egg
+        } else if (naam.includes('konings')) {
+            iconPath = 'M5,16L3,5H5.5L6.5,10.5L9,5H15L17.5,10.5L18.5,5H21L19,16H5M12,7L11.25,9H12.75L12,7Z'; // Crown
+        }
             
         return `
             <div class="custom-tooltip tooltip-holiday">
-                <div class="custom-tooltip-title">${emoji} ${feestdagNaam}</div>
+                <div class="custom-tooltip-title">
+                    <svg class="tooltip-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="${iconPath}"/>
+                    </svg>
+                    ${feestdagNaam}
+                </div>
                 <div class="custom-tooltip-content">
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">📅 Datum:</span>
+                        <span class="custom-tooltip-label">Datum:</span>
                         <span class="custom-tooltip-value">${datumFormatted}</span>
                     </div>
                     <div class="custom-tooltip-info">
-                        <span class="custom-tooltip-label">🏛️ Type:</span>
+                        <span class="custom-tooltip-label">Type:</span>
                         <span class="custom-tooltip-value">Officiële feestdag</span>
                     </div>
                 </div>
@@ -318,52 +339,58 @@ const TooltipManager = {
     createCompensatieTooltip: async function(compensatieItem) {
         if (!compensatieItem) return '';
         
-        let urenTekst = '';
-        let urenIcon = '';
-        if (compensatieItem.AantalUren > 0) {
-            urenTekst = `+${compensatieItem.AantalUren} uur`;
-            urenIcon = '⬆️'; // Plus icon
-        } else if (compensatieItem.AantalUren < 0) {
-            urenTekst = `${compensatieItem.AantalUren} uur`;
-            urenIcon = '⬇️'; // Minus icon
-        } else {
-            urenTekst = 'Neutraal';
-            urenIcon = '⚖️'; // Balance icon
-        }
-        
-        const startDatum = new Date(compensatieItem.StartDatum || compensatieItem.Datum);
-        const eindDatum = new Date(compensatieItem.EindDatum || compensatieItem.Datum);
-        const status = compensatieItem.Status || 'Actief';
+        const startDatum = new Date(compensatieItem.StartCompensatieUren || compensatieItem.StartDatum || compensatieItem.Datum);
+        const eindDatum = new Date(compensatieItem.EindeCompensatieUren || compensatieItem.EindDatum || compensatieItem.Datum);
         
         // Check if user can see comments
         const canSeeComments = await this.canSeeComments();
         
+        // Check if it's a ruildag (swap day)
+        const isRuildag = compensatieItem.Ruildag === true || compensatieItem.Ruildag === 'true';
+        let ruildagInfo = '';
+        if (isRuildag && compensatieItem.ruildagStart && compensatieItem.ruildagEinde) {
+            const ruildagStart = new Date(compensatieItem.ruildagStart);
+            const ruildagEinde = new Date(compensatieItem.ruildagEinde);
+            ruildagInfo = `
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">Geruild met:</span>
+                    <span class="custom-tooltip-value">${ruildagStart.toLocaleDateString('nl-NL')} - ${ruildagEinde.toLocaleDateString('nl-NL')}</span>
+                </div>
+            `;
+        }
+        
         return `
-            <div class="custom-tooltip-title">⏰ Compensatie Uren</div>
+            <div class="custom-tooltip-title">
+                <svg class="tooltip-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z"/>
+                </svg>
+                Compensatie Uren
+            </div>
             <div class="custom-tooltip-content">
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">👤 Medewerker:</span>
-                    <span class="custom-tooltip-value">${compensatieItem.MedewerkerNaam || 'Onbekend'}</span>
+                    <span class="custom-tooltip-label">Start:</span>
+                    <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')} ${startDatum.toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'})}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Van:</span>
-                    <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
+                    <span class="custom-tooltip-label">Einde:</span>
+                    <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')} ${eindDatum.toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'})}</span>
                 </div>
+                ${compensatieItem.Teamleider ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Tot:</span>
-                    <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')}</span>
+                    <span class="custom-tooltip-label">Teamleider:</span>
+                    <span class="custom-tooltip-value">${compensatieItem.Teamleider}</span>
                 </div>
+                ` : ''}
+                ${compensatieItem.Creator ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📊 Status:</span>
-                    <span class="custom-tooltip-value">${status}</span>
+                    <span class="custom-tooltip-label">Aangemaakt door:</span>
+                    <span class="custom-tooltip-value">${compensatieItem.Creator}</span>
                 </div>
-                <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">${urenIcon} Uren:</span>
-                    <span class="custom-tooltip-value">${urenTekst}</span>
-                </div>
+                ` : ''}
+                ${ruildagInfo}
                 ${(compensatieItem.Toelichting && canSeeComments) ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">💬 Toelichting:</span>
+                    <span class="custom-tooltip-label">Opmerking:</span>
                     <span class="custom-tooltip-value">${compensatieItem.Toelichting}</span>
                 </div>
                 ` : ''}
@@ -387,27 +414,36 @@ const TooltipManager = {
         const canSeeComments = await this.canSeeComments();
         
         return `
-            <div class="custom-tooltip-title">🏛️ Zittingsvrij</div>
+            <div class="custom-tooltip-title">
+                <svg class="tooltip-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M17,13H16V18H13V13H11L15,9L19,13H17Z"/>
+                </svg>
+                Zittingsvrij
+            </div>
             <div class="custom-tooltip-content">
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">👤 Medewerker:</span>
-                    <span class="custom-tooltip-value">${zittingsvrijItem.MedewerkerNaam || 'Onbekend'}</span>
+                    <span class="custom-tooltip-label">Start:</span>
+                    <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')} ${startDatum.toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'})}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Van:</span>
-                    <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
+                    <span class="custom-tooltip-label">Einde:</span>
+                    <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')} ${eindDatum.toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'})}</span>
                 </div>
+                ${zittingsvrijItem.Teamleider ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Tot:</span>
-                    <span class="custom-tooltip-value">${eindDatum.toLocaleDateString('nl-NL')}</span>
+                    <span class="custom-tooltip-label">Teamleider:</span>
+                    <span class="custom-tooltip-value">${zittingsvrijItem.Teamleider}</span>
                 </div>
+                ` : ''}
+                ${zittingsvrijItem.Creator ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📊 Status:</span>
-                    <span class="custom-tooltip-value">${status}</span>
+                    <span class="custom-tooltip-label">Aangemaakt door:</span>
+                    <span class="custom-tooltip-value">${zittingsvrijItem.Creator}</span>
                 </div>
+                ` : ''}
                 ${(zittingsvrijItem.Toelichting && canSeeComments) ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">💬 Toelichting:</span>
+                    <span class="custom-tooltip-label">Opmerking:</span>
                     <span class="custom-tooltip-value">${zittingsvrijItem.Toelichting}</span>
                 </div>
                 ` : ''}
@@ -431,27 +467,36 @@ const TooltipManager = {
         const canSeeComments = await this.canSeeComments();
         
         return `
-            <div class="custom-tooltip-title">🤒 Ziekmelding</div>
+            <div class="custom-tooltip-title">
+                <svg class="tooltip-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V19H19V9Z"/>
+                </svg>
+                Ziekmelding
+            </div>
             <div class="custom-tooltip-content">
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">👤 Medewerker:</span>
-                    <span class="custom-tooltip-value">${ziekteMeldingItem.MedewerkerNaam || 'Onbekend'}</span>
-                </div>
-                <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Van:</span>
+                    <span class="custom-tooltip-label">Start datum:</span>
                     <span class="custom-tooltip-value">${startDatum.toLocaleDateString('nl-NL')}</span>
                 </div>
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📅 Tot:</span>
+                    <span class="custom-tooltip-label">Eind datum:</span>
                     <span class="custom-tooltip-value">${eindDatum ? eindDatum.toLocaleDateString('nl-NL') : 'Tot nader order'}</span>
                 </div>
+                ${ziekteMeldingItem.Teamleider ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">📊 Status:</span>
-                    <span class="custom-tooltip-value">${status}</span>
+                    <span class="custom-tooltip-label">Teamleider:</span>
+                    <span class="custom-tooltip-value">${ziekteMeldingItem.Teamleider}</span>
                 </div>
+                ` : ''}
+                ${ziekteMeldingItem.Creator ? `
+                <div class="custom-tooltip-info">
+                    <span class="custom-tooltip-label">Aangemaakt door:</span>
+                    <span class="custom-tooltip-value">${ziekteMeldingItem.Creator}</span>
+                </div>
+                ` : ''}
                 ${(ziekteMeldingItem.Toelichting && canSeeComments) ? `
                 <div class="custom-tooltip-info">
-                    <span class="custom-tooltip-label">💬 Toelichting:</span>
+                    <span class="custom-tooltip-label">Opmerking:</span>
                     <span class="custom-tooltip-value">${ziekteMeldingItem.Toelichting}</span>
                 </div>
                 ` : ''}
@@ -518,62 +563,190 @@ const TooltipManager = {
             attachedCount++;
         });
         
-        // Attach tooltips to holiday elements (improved selectors)
-        const feestdagElements = document.querySelectorAll('.feestdag, [data-feestdag], .dag-cel.feestdag, .feestdag-cel');
+        // Attach tooltips to holiday elements (enhanced detection)
+        const feestdagElements = document.querySelectorAll('.feestdag, [data-feestdag], .dag-cel.feestdag, .feestdag-cel, .holiday, [title*="feestdag"], [title*="Feestdag"], [title*="kerst"], [title*="nieuwjaar"], [title*="paas"], [title*="konings"], [class*="holiday"], [class*="feest"]');
         console.log(`Found ${feestdagElements.length} feestdag elements`);
         feestdagElements.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
             
             this.attach(element, () => {
-                // Use improved inspection method
-                const feestdagInfo = this.inspectFeestdagByElement(element);
+                // Try multiple methods to extract feestdag information
+                let feestdagNaam = null;
+                let datum = null;
                 
-                if (feestdagInfo) {
-                    const datum = feestdagInfo.datum ? new Date(feestdagInfo.datum) : new Date();
-                    return this.createFeestdagTooltip(feestdagInfo.naam, datum);
-                } else {
-                    // Fallback to old method
-                    const feestdagNaam = element.dataset.feestdag || 
-                                        element.getAttribute('title') || 
-                                        element.getAttribute('data-original-title') ||
-                                        element.textContent?.trim() ||
-                                        'Feestdag';
-                    const datum = element.dataset.datum ? new Date(element.dataset.datum) : new Date();
-                    return this.createFeestdagTooltip(feestdagNaam, datum);
+                // Method 1: Use improved inspection method
+                const feestdagInfo = this.inspectFeestdagByElement(element);
+                if (feestdagInfo && feestdagInfo.naam) {
+                    feestdagNaam = feestdagInfo.naam;
+                    datum = feestdagInfo.datum ? new Date(feestdagInfo.datum) : new Date();
                 }
+                
+                // Method 2: Extract from data attributes
+                if (!feestdagNaam) {
+                    feestdagNaam = element.dataset.feestdag || 
+                                  element.dataset.holiday ||
+                                  element.getAttribute('data-feestdag') ||
+                                  element.getAttribute('data-holiday');
+                }
+                
+                // Method 3: Extract from title attribute
+                if (!feestdagNaam) {
+                    const title = element.getAttribute('title') || element.getAttribute('data-original-title');
+                    if (title && (title.toLowerCase().includes('feestdag') || 
+                                 title.toLowerCase().includes('kerst') ||
+                                 title.toLowerCase().includes('nieuwjaar') ||
+                                 title.toLowerCase().includes('paas') ||
+                                 title.toLowerCase().includes('konings'))) {
+                        feestdagNaam = title;
+                    }
+                }
+                
+                // Method 4: Extract from element content
+                if (!feestdagNaam) {
+                    const content = element.textContent?.trim();
+                    if (content && content.length > 0 && content.length < 50) {
+                        feestdagNaam = content;
+                    }
+                }
+                
+                // Method 5: Extract from parent elements
+                if (!feestdagNaam) {
+                    const parent = element.closest('[data-feestdag], [title*="feestdag"], [title*="kerst"], [title*="nieuwjaar"]');
+                    if (parent) {
+                        feestdagNaam = parent.dataset.feestdag || parent.getAttribute('title');
+                    }
+                }
+                
+                // Method 6: Check for common holiday patterns in classes
+                if (!feestdagNaam) {
+                    const classList = element.className.toLowerCase();
+                    if (classList.includes('kerst')) feestdagNaam = 'Kerstdag';
+                    else if (classList.includes('nieuwjaar')) feestdagNaam = 'Nieuwjaarsdag';
+                    else if (classList.includes('paas')) feestdagNaam = 'Paasdag';
+                    else if (classList.includes('konings')) feestdagNaam = 'Koningsdag';
+                    else if (classList.includes('bevrijding')) feestdagNaam = 'Bevrijdingsdag';
+                    else if (classList.includes('hemelvaart')) feestdagNaam = 'Hemelvaart';
+                    else if (classList.includes('pinster')) feestdagNaam = 'Pinksterdag';
+                }
+                
+                // Final fallback
+                if (!feestdagNaam) {
+                    feestdagNaam = 'Feestdag';
+                }
+                
+                // Extract datum if not found
+                if (!datum) {
+                    datum = element.dataset.datum ? new Date(element.dataset.datum) : new Date();
+                }
+                
+                return this.createFeestdagTooltip(feestdagNaam, datum);
             });
             attachedCount++;
         });
         
-        // Attach tooltips to buttons with improved descriptions
-        const buttonElements = document.querySelectorAll('button[title], button[data-tooltip], .btn[title], .btn[data-tooltip], [role="button"][title]');
+        // Attach tooltips to buttons with enhanced descriptions (including all verlofrooster buttons)
+        const buttonElements = document.querySelectorAll(`
+            button, .btn, [role="button"],
+            .floating-action-button, .fab-button,
+            .tooltip-trigger, .action-button,
+            .nav-button, .control-button,
+            [title]:not([data-tooltip-attached]),
+            [data-tooltip]:not([data-tooltip-attached])
+        `.replace(/\s+/g, ' ').trim());
         console.log(`Found ${buttonElements.length} button elements`);
         buttonElements.forEach(element => {
             if (element.dataset.tooltipAttached === 'true') return;
             
             let tooltipText = element.dataset.tooltip || element.getAttribute('title') || '';
             
-            // Enhance button descriptions based on class or content
-            if (element.classList.contains('verlof-btn') || element.textContent?.includes('Verlof')) {
+            // Enhanced button descriptions based on class, content, and context
+            const classList = element.className.toLowerCase();
+            const textContent = element.textContent?.toLowerCase()?.trim() || '';
+            const id = element.id?.toLowerCase() || '';
+            
+            // Verlofrooster specific buttons
+            if (classList.includes('verlof') || textContent.includes('verlof') || id.includes('verlof')) {
                 tooltipText = tooltipText || 'Verlof aanvragen voor geselecteerde periode';
-            } else if (element.classList.contains('compensatie-btn') || element.textContent?.includes('Compensatie')) {
+            } else if (classList.includes('compensatie') || textContent.includes('compensatie') || id.includes('compensatie')) {
                 tooltipText = tooltipText || 'Compensatie-uren registreren voor geselecteerde periode';
-            } else if (element.classList.contains('ziek-btn') || element.textContent?.includes('Ziek')) {
+            } else if (classList.includes('ziek') || textContent.includes('ziek') || id.includes('ziek')) {
                 tooltipText = tooltipText || 'Ziekmelding doen voor geselecteerde periode';
-            } else if (element.classList.contains('zittingsvrij-btn') || element.textContent?.includes('Zittingsvrij')) {
+            } else if (classList.includes('zittingsvrij') || textContent.includes('zittingsvrij') || id.includes('zittingsvrij')) {
                 tooltipText = tooltipText || 'Zittingsvrije dag aanvragen voor geselecteerde periode';
-            } else if (element.classList.contains('save-btn') || element.textContent?.includes('Opslaan')) {
+            } 
+            
+            // Navigation and control buttons
+            else if (classList.includes('prev') || textContent.includes('vorig') || textContent.includes('←')) {
+                tooltipText = tooltipText || 'Ga naar vorige periode';
+            } else if (classList.includes('next') || textContent.includes('volg') || textContent.includes('→')) {
+                tooltipText = tooltipText || 'Ga naar volgende periode';
+            } else if (classList.includes('today') || textContent.includes('vandaag') || textContent.includes('heden')) {
+                tooltipText = tooltipText || 'Ga naar vandaag';
+            } else if (classList.includes('refresh') || textContent.includes('ververs') || textContent.includes('herladen')) {
+                tooltipText = tooltipText || 'Gegevens opnieuw laden';
+            }
+            
+            // Action buttons
+            else if (classList.includes('save') || textContent.includes('opslaan') || textContent.includes('bewaren')) {
                 tooltipText = tooltipText || 'Wijzigingen opslaan';
-            } else if (element.classList.contains('cancel-btn') || element.textContent?.includes('Annuleren')) {
-                tooltipText = tooltipText || 'Wijzigingen annuleren';
-            } else if (element.classList.contains('delete-btn') || element.textContent?.includes('Verwijder')) {
+            } else if (classList.includes('cancel') || textContent.includes('annuleren') || textContent.includes('afbreken')) {
+                tooltipText = tooltipText || 'Actie annuleren';
+            } else if (classList.includes('delete') || classList.includes('remove') || textContent.includes('verwijder') || textContent.includes('wissen')) {
                 tooltipText = tooltipText || 'Item verwijderen';
-            } else if (element.classList.contains('edit-btn') || element.textContent?.includes('Bewerk')) {
+            } else if (classList.includes('edit') || textContent.includes('bewerk') || textContent.includes('wijzig')) {
                 tooltipText = tooltipText || 'Item bewerken';
+            } else if (classList.includes('add') || classList.includes('create') || textContent.includes('toevoegen') || textContent.includes('nieuw')) {
+                tooltipText = tooltipText || 'Nieuw item toevoegen';
+            } 
+            
+            // View and filter buttons
+            else if (classList.includes('filter') || textContent.includes('filter')) {
+                tooltipText = tooltipText || 'Gegevens filteren';
+            } else if (classList.includes('search') || textContent.includes('zoek')) {
+                tooltipText = tooltipText || 'Zoeken in gegevens';
+            } else if (classList.includes('export') || textContent.includes('export')) {
+                tooltipText = tooltipText || 'Gegevens exporteren';
+            } else if (classList.includes('print') || textContent.includes('print')) {
+                tooltipText = tooltipText || 'Pagina afdrukken';
+            } else if (classList.includes('settings') || classList.includes('config') || textContent.includes('instellingen')) {
+                tooltipText = tooltipText || 'Instellingen openen';
+            }
+            
+            // FAB and floating buttons
+            else if (classList.includes('fab') || classList.includes('floating')) {
+                if (classList.includes('menu')) {
+                    tooltipText = tooltipText || 'Actiemenu openen';
+                } else {
+                    tooltipText = tooltipText || 'Snelle actie uitvoeren';
+                }
+            }
+            
+            // Close buttons
+            else if (classList.includes('close') || textContent.includes('sluiten') || textContent.includes('×')) {
+                tooltipText = tooltipText || 'Venster sluiten';
+            }
+            
+            // Help buttons
+            else if (classList.includes('help') || classList.includes('info') || textContent.includes('help') || textContent.includes('info')) {
+                tooltipText = tooltipText || 'Help en informatie';
+            }
+            
+            // Generic fallbacks based on common patterns
+            else if (element.type === 'submit') {
+                tooltipText = tooltipText || 'Formulier verzenden';
+            } else if (element.type === 'reset') {
+                tooltipText = tooltipText || 'Formulier resetten';
             }
             
             if (tooltipText) {
-                this.attach(element, `<div class="custom-tooltip-title">${tooltipText}</div>`);
+                this.attach(element, `
+                    <div class="custom-tooltip-title">
+                        <svg class="tooltip-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V19H19V9Z"/>
+                        </svg>
+                        ${tooltipText}
+                    </div>
+                `);
                 attachedCount++;
             }
         });
@@ -606,7 +779,9 @@ const TooltipManager = {
             StartDatum: element.dataset.startdatum || new Date().toISOString(),
             EindDatum: element.dataset.einddatum || null,
             Status: element.dataset.status || 'Onbekend',
-            Toelichting: element.dataset.toelichting || ''
+            Teamleider: element.dataset.teamleider || element.dataset.teamlead || element.dataset.manager || '',
+            Creator: element.dataset.creator || element.dataset.aangemaakt || element.dataset.createdby || '',
+            Toelichting: element.dataset.toelichting || element.dataset.comment || element.dataset.opmerking || ''
         };
         
         // Try to extract from CSS classes
@@ -628,9 +803,16 @@ const TooltipManager = {
             Datum: element.dataset.datum || new Date().toISOString(),
             StartDatum: element.dataset.startdatum || element.dataset.datum || new Date().toISOString(),
             EindDatum: element.dataset.einddatum || element.dataset.datum || null,
+            StartCompensatieUren: element.dataset.startcompensatieuren || element.dataset.startdatum || element.dataset.datum || new Date().toISOString(),
+            EindeCompensatieUren: element.dataset.eindecompensatieuren || element.dataset.einddatum || element.dataset.datum || null,
             AantalUren: parseFloat(element.dataset.uren) || 0,
             Status: element.dataset.status || 'Actief',
-            Toelichting: element.dataset.toelichting || element.getAttribute('title') || ''
+            Teamleider: element.dataset.teamleider || element.dataset.teamlead || element.dataset.manager || '',
+            Creator: element.dataset.creator || element.dataset.aangemaakt || element.dataset.createdby || '',
+            Ruildag: element.dataset.ruildag || element.dataset.swap || false,
+            ruildagStart: element.dataset.ruildagstart || element.dataset.swapstart || null,
+            ruildagEinde: element.dataset.ruildageinde || element.dataset.swapend || null,
+            Toelichting: element.dataset.toelichting || element.dataset.comment || element.dataset.opmerking || element.getAttribute('title') || ''
         };
     },
     
@@ -645,7 +827,9 @@ const TooltipManager = {
             StartDatum: element.dataset.startdatum || new Date().toISOString(),
             EindDatum: element.dataset.einddatum || null,
             Status: element.dataset.status || 'Actief',
-            Toelichting: element.dataset.toelichting || ''
+            Teamleider: element.dataset.teamleider || element.dataset.teamlead || element.dataset.manager || '',
+            Creator: element.dataset.creator || element.dataset.aangemaakt || element.dataset.createdby || '',
+            Toelichting: element.dataset.toelichting || element.dataset.comment || element.dataset.opmerking || ''
         };
     },
     
@@ -660,7 +844,9 @@ const TooltipManager = {
             StartDatum: element.dataset.startdatum || new Date().toISOString(),
             EindDatum: element.dataset.einddatum || null,
             Status: element.dataset.status || 'Actief',
-            Toelichting: element.dataset.toelichting || ''
+            Teamleider: element.dataset.teamleider || element.dataset.teamlead || element.dataset.manager || '',
+            Creator: element.dataset.creator || element.dataset.aangemaakt || element.dataset.createdby || '',
+            Toelichting: element.dataset.toelichting || element.dataset.comment || element.dataset.opmerking || ''
         };
     },
     
