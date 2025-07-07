@@ -27,7 +27,7 @@
     </style>
 </head>
 <body class="light-theme">
-    <div id="page-banner" class="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-gray-800 dark:to-gray-900 text-white p-6 md:p-8 shadow-lg">
+    <div id="page-banner" class="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-gray-800 dark:to-gray-900 text-white p-7 md:p-10 shadow-lg">
         <div class="container mx-auto max-w-4xl">
             <div class="flex justify-between items-center">
                 <h1 class="text-3xl md:text-4xl font-bold">Profielbeheer</h1>

@@ -21,7 +21,10 @@
     <div class="header">
         <div class="header-content">
             <div class="header-left">
-                <h1>Verlofaanvragen Behandelcentrum</h1>
+                <div>
+                    <h1>Verlofaanvragen Behandelcentrum</h1>
+                    <p class="header-subtitle">Goedkeuring en behandeling van verlofaanvragen</p>
+                </div>
             </div>
             <div class="header-acties">
                 <!-- Emulation dropdown for super user -->

@@ -12,7 +12,7 @@
 </head>
 <body>
     <!-- Hoofdbanner -->
-    <div id="page-banner" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 md:p-8 shadow-lg relative">
+    <div id="page-banner" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-7 md:p-10 shadow-lg relative">
         <a href="../../verlofRooster.aspx" class="btn-back">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
