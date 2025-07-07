@@ -80,47 +80,59 @@ const formatValue = (value, column) => {
 };
 
 const DataTable = ({ columns, data, onEdit, onDelete }) => {
-    return h('table', { className: 'data-table' },
-        h('thead',
-            null,
-            h('tr', null, columns.map(col => h('th', { key: col.accessor }, col.Header)))
-        ),
-        h('tbody',
-            null,
-            data.map((row, index) => h('tr', { key: row.Id || index },
-                columns.map(col => {
-                    if (col.isAction) {
-                        // Render action buttons
-                        return h('td', { key: col.accessor, className: 'actions-cell' },
-                            h('div', { className: 'action-buttons' },
-                                h('button', { 
-                                    className: 'btn-action btn-edit',
-                                    onClick: () => onEdit && onEdit(row),
-                                    title: 'Bewerken'
-                                }, 
-                                    h('svg', { width: '16', height: '16', fill: 'currentColor', viewBox: '0 0 20 20' },
-                                        h('path', { d: 'M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z' })
+    // Debug: Log the data to see if there are empty rows
+    console.log('DataTable - columns:', columns);
+    console.log('DataTable - data:', data);
+    
+    // Filter out any undefined or empty rows
+    const filteredData = data.filter(row => row && Object.keys(row).length > 0);
+    console.log('DataTable - filtered data:', filteredData);
+    
+    return h('div', { className: 'table-container' },
+        h('table', { className: 'data-table' },
+            h('thead',
+                null,
+                h('tr', null, columns.map(col => h('th', { key: col.accessor }, col.Header)))
+            ),
+            h('tbody',
+                null,
+                filteredData.length === 0 ? 
+                    h('tr', null, h('td', { colSpan: columns.length, style: { textAlign: 'center', padding: '20px' } }, 'Geen data beschikbaar')) :
+                    filteredData.map((row, index) => h('tr', { key: row.Id || index },
+                        columns.map(col => {
+                            if (col.isAction) {
+                                // Render action buttons
+                                return h('td', { key: col.accessor, className: 'actions-cell' },
+                                    h('div', { className: 'action-buttons' },
+                                        h('button', { 
+                                            className: 'btn-action btn-edit',
+                                            onClick: () => onEdit && onEdit(row),
+                                            title: 'Bewerken'
+                                        }, 
+                                            h('svg', { width: '16', height: '16', fill: 'currentColor', viewBox: '0 0 20 20' },
+                                                h('path', { d: 'M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z' })
+                                            )
+                                        ),
+                                        h('button', { 
+                                            className: 'btn-action btn-delete',
+                                            onClick: () => onDelete && onDelete(row),
+                                            title: 'Verwijderen'
+                                        }, 
+                                            h('svg', { width: '16', height: '16', fill: 'currentColor', viewBox: '0 0 20 20' },
+                                                h('path', { fillRule: 'evenodd', d: 'M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v3a1 1 0 11-2 0V9zm4 0a1 1 0 10-2 0v3a1 1 0 102 0V9z', clipRule: 'evenodd' })
+                                            )
+                                        )
                                     )
-                                ),
-                                h('button', { 
-                                    className: 'btn-action btn-delete',
-                                    onClick: () => onDelete && onDelete(row),
-                                    title: 'Verwijderen'
-                                }, 
-                                    h('svg', { width: '16', height: '16', fill: 'currentColor', viewBox: '0 0 20 20' },
-                                        h('path', { fillRule: 'evenodd', d: 'M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v3a1 1 0 11-2 0V9zm4 0a1 1 0 10-2 0v3a1 1 0 102 0V9z', clipRule: 'evenodd' })
-                                    )
-                                )
-                            )
-                        );
-                    } else {
-                        // Render data cell with proper formatting
-                        const value = row[col.accessor];
-                        const formattedValue = formatValue(value, col);
-                        return h('td', { key: col.accessor }, formattedValue);
-                    }
-                })
-            ))
+                                );
+                            } else {
+                                // Render data cell with proper formatting
+                                const value = row[col.accessor];
+                                const formattedValue = formatValue(value, col);
+                                return h('td', { key: col.accessor }, formattedValue);
+                            }
+                        })
+                    ))
+            )
         )
     );
 };
