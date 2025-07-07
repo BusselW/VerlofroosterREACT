@@ -331,9 +331,32 @@ const TabContent = ({ tab, data, loading, error, onAddNew, onEdit, onDelete, sho
             marginBottom: '20px'
         }},
             h('button', { 
-                className: 'btn-primary',
-                onClick: onAddNew
-            }, `Nieuwe ${tab.label} toevoegen`),
+                className: 'btn-primary btn-with-icon',
+                onClick: onAddNew,
+                style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    padding: '12px 20px'
+                }
+            }, 
+                h('svg', { 
+                    className: 'icon icon-add', 
+                    width: '16', 
+                    height: '16', 
+                    fill: 'currentColor', 
+                    viewBox: '0 0 20 20' 
+                },
+                    h('path', { 
+                        fillRule: 'evenodd', 
+                        d: 'M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z',
+                        clipRule: 'evenodd' 
+                    })
+                ),
+                `Nieuwe ${tab.label.slice(0, -1)} toevoegen`
+            ),
             h('div', { style: { display: 'flex', gap: '15px', alignItems: 'center' } },
                 h('span', { 
                     style: { 
