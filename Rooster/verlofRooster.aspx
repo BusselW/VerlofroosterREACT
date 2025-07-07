@@ -29,6 +29,7 @@
         import { fetchSharePointList, getUserInfo, getCurrentUser, createSharePointListItem, updateSharePointListItem, deleteSharePointListItem, trimLoginNaamPrefix } from './js/services/sharepointService.js';
         import { getCurrentUserGroups, isUserInAnyGroup } from './js/services/permissionService.js';
         import * as linkInfo from './js/services/linkInfo.js';
+        import LoadingLogic, { loadFilteredData, shouldReloadData, updateCacheKey, clearAllCache, logLoadingStatus } from './js/services/loadingLogic.js';
         import ContextMenu, { canManageOthersEvents, canUserModifyItem } from './js/ui/ContextMenu.js';
         import FAB from './js/ui/FloatingActionButton.js';
         import Modal from './js/ui/Modal.js';
@@ -1428,7 +1429,7 @@
                     setIsZittingsvrijModalOpen(true);
                 }
 
-                const refreshData = useCallback(async () => {
+                const refreshData = useCallback(async (forceReload = false) => {
                     try {
                         console.log('🔄 Starting refreshData...');
                         setLoading(true);
@@ -1450,17 +1451,49 @@
                         const userInfo = await getCurrentUser();
                         setCurrentUser(userInfo);
 
+                        // Check if we need to reload data for the current period
+                        const needsReload = forceReload || shouldReloadData(weergaveType, huidigJaar, weergaveType === 'week' ? huidigWeek : huidigMaand);
+                        
+                        if (needsReload) {
+                            console.log('📊 Loading data for new period...');
+                            // Update cache key for current period
+                            updateCacheKey(weergaveType, huidigJaar, weergaveType === 'week' ? huidigWeek : huidigMaand);
+                        } else {
+                            console.log('✅ Using cached data for current period');
+                        }
+
                         console.log('📊 Fetching SharePoint lists...');
-                        const [medewerkersData, teamsData, verlofredenenData, verlofData, zittingsvrijData, compensatieUrenData, urenPerWeekData, dagenIndicatorsData] = await Promise.all([
+                        
+                        // Always load static data (these are small lists and don't change often)
+                        const [medewerkersData, teamsData, verlofredenenData, urenPerWeekData, dagenIndicatorsData] = await Promise.all([
                             fetchSharePointList('Medewerkers'),
                             fetchSharePointList('Teams'),
                             fetchSharePointList('Verlofredenen'),
-                            fetchSharePointList('Verlof'),
-                            fetchSharePointList('IncidenteelZittingVrij'),
-                            fetchSharePointList('CompensatieUren'),
                             fetchSharePointList('UrenPerWeek'),
                             fetchSharePointList('DagenIndicators')
                         ]);
+
+                        // Load period-specific data with smart filtering
+                        let verlofData, zittingsvrijData, compensatieUrenData;
+                        
+                        if (needsReload) {
+                            console.log('🔍 Loading period-specific data with filtering...');
+                            [verlofData, zittingsvrijData, compensatieUrenData] = await Promise.all([
+                                loadFilteredData(fetchSharePointList, 'Verlof', 'verlof', weergaveType, huidigJaar, weergaveType === 'week' ? huidigWeek : huidigMaand),
+                                loadFilteredData(fetchSharePointList, 'IncidenteelZittingVrij', 'zittingsvrij', weergaveType, huidigJaar, weergaveType === 'week' ? huidigWeek : huidigMaand),
+                                loadFilteredData(fetchSharePointList, 'CompensatieUren', 'compensatie', weergaveType, huidigJaar, weergaveType === 'week' ? huidigWeek : huidigMaand)
+                            ]);
+                            
+                            // Log loading statistics
+                            logLoadingStatus();
+                        } else {
+                            // Use cached data
+                            verlofData = LoadingLogic.getCachedData('verlof') || [];
+                            zittingsvrijData = LoadingLogic.getCachedData('zittingsvrij') || [];
+                            compensatieUrenData = LoadingLogic.getCachedData('compensatie') || [];
+                            
+                            console.log(`📁 Using cached data: ${verlofData.length} verlof, ${zittingsvrijData.length} zittingsvrij, ${compensatieUrenData.length} compensatie items`);
+                        }
 
                         console.log('✅ Data fetched successfully, processing...');
                         const teamsMapped = (teamsData || []).map(item => ({ id: item.Title || item.ID?.toString(), naam: item.Naam || item.Title, kleur: item.Kleur || '#cccccc' }));
@@ -1586,7 +1619,7 @@
                         console.log('🏁 refreshData complete, setting loading to false');
                         setLoading(false);
                     }
-                }, []);
+                }, [weergaveType, huidigJaar, huidigMaand, huidigWeek]);
 
                 const handleVerlofSubmit = useCallback(async (formData) => {
                     try {
@@ -1686,6 +1719,21 @@
                         refreshData();
                     }
                 }, [refreshData, isUserValidated]);
+
+                // Effect to reload data when period changes (maand/week navigation)
+                useEffect(() => {
+                    if (isUserValidated) {
+                        console.log(`📅 Period changed to ${weergaveType}: ${weergaveType === 'week' ? `week ${huidigWeek}` : maandNamenVolledig[huidigMaand]} ${huidigJaar}`);
+                        
+                        // Check if we need to reload data for the new period
+                        if (shouldReloadData(weergaveType, huidigJaar, weergaveType === 'week' ? huidigWeek : huidigMaand)) {
+                            console.log('🔄 Triggering data reload for new period...');
+                            refreshData(false); // Don't force reload, let loadingLogic decide
+                        } else {
+                            console.log('✅ Data already cached for this period');
+                        }
+                    }
+                }, [weergaveType, huidigJaar, huidigMaand, huidigWeek, isUserValidated, refreshData]);
 
                 // Handle escape key to clear selection
                 useEffect(() => {
@@ -2451,6 +2499,18 @@
             window.getProfilePhotoUrl = getProfilePhotoUrl;
             window.fetchSharePointList = fetchSharePointList;
             window.TooltipManager = TooltipManager; // Expose TooltipManager for debugging
+            
+            // Expose loading logic functions for debugging and manual control
+            window.LoadingLogic = LoadingLogic;
+            window.clearLoadingCache = clearAllCache;
+            window.getLoadingStats = LoadingLogic.getCacheStats;
+            window.logLoadingStatus = logLoadingStatus;
+            
+            console.log('🔧 LoadingLogic utilities added to window:');
+            console.log('   - window.LoadingLogic - Full LoadingLogic object');
+            console.log('   - window.clearLoadingCache() - Clear all cached data');
+            console.log('   - window.getLoadingStats() - Get cache statistics');
+            console.log('   - window.logLoadingStatus() - Log current loading status');
     </script>
 </body>
 </html>
