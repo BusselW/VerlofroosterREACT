@@ -29,8 +29,42 @@ const ProfielKaarten = (() => {
             const medewerkers = await fetchSharePointList('Medewerkers');
             console.log(`fetchMedewerkerData: Received ${medewerkers.length} medewerkers`);
             
-            // Find the medewerker with the matching username
-            const medewerker = medewerkers.find(m => m.Username === username);
+            // First try exact match
+            let medewerker = medewerkers.find(m => m.Username === username);
+            
+            // If not found, try different username formats
+            if (!medewerker) {
+                console.log(`fetchMedewerkerData: Exact match failed, trying alternative formats for "${username}"`);
+                
+                // Normalize username - try both formats
+                let alternativeUsername = null;
+                
+                if (username.includes('\\')) {
+                    // If it has domain\username format, also try without domain
+                    alternativeUsername = username.split('\\')[1];
+                    console.log(`fetchMedewerkerData: Trying without domain: "${alternativeUsername}"`);
+                    medewerker = medewerkers.find(m => 
+                        m.Username === alternativeUsername ||
+                        (m.Username && m.Username.toLowerCase() === alternativeUsername.toLowerCase())
+                    );
+                } else {
+                    // If it doesn't have domain, also try with som\ prefix
+                    alternativeUsername = `som\\${username}`;
+                    console.log(`fetchMedewerkerData: Trying with domain: "${alternativeUsername}"`);
+                    medewerker = medewerkers.find(m => 
+                        m.Username === alternativeUsername ||
+                        (m.Username && m.Username.toLowerCase() === alternativeUsername.toLowerCase())
+                    );
+                }
+                
+                // Also try case-insensitive matching
+                if (!medewerker) {
+                    console.log(`fetchMedewerkerData: Trying case-insensitive match for "${username}"`);
+                    medewerker = medewerkers.find(m => 
+                        m.Username && m.Username.toLowerCase() === username.toLowerCase()
+                    );
+                }
+            }
             
             if (medewerker) {
                 console.log('fetchMedewerkerData: Found matching medewerker:', {
@@ -45,6 +79,9 @@ const ProfielKaarten = (() => {
             }
             
             console.warn(`fetchMedewerkerData: No medewerker found with username "${username}"`);
+            console.log('fetchMedewerkerData: Available usernames sample:', 
+                medewerkers.slice(0, 5).map(m => m.Username).filter(u => u)
+            );
             return null;
         } catch (error) {
             console.error('Error fetching employee data:', error);
@@ -112,8 +149,29 @@ const ProfielKaarten = (() => {
         try {
             console.log(`fetchTeamLeaderData: Fetching team leader for username "${username}"`);
             
-            // Get team leader information using linkInfo service
-            const teamLeader = await linkInfo.getTeamLeaderForEmployee(username);
+            // Normalize username - try both formats (same logic as fetchSeniorData)
+            let normalizedUsername = username;
+            let alternativeUsername = null;
+            
+            if (username.includes('\\')) {
+                // If it has domain\username format, also try without domain
+                alternativeUsername = username.split('\\')[1];
+                console.log(`fetchTeamLeaderData: Also trying alternative username "${alternativeUsername}"`);
+            } else {
+                // If it doesn't have domain, also try with som\ prefix
+                alternativeUsername = `som\\${username}`;
+                console.log(`fetchTeamLeaderData: Also trying alternative username "${alternativeUsername}"`);
+            }
+            
+            // Try original username first
+            console.log(`fetchTeamLeaderData: Trying original username "${normalizedUsername}"`);
+            let teamLeader = await linkInfo.getTeamLeaderForEmployee(normalizedUsername);
+            
+            // If not found, try alternative format
+            if (!teamLeader && alternativeUsername) {
+                console.log(`fetchTeamLeaderData: Original username failed, trying alternative "${alternativeUsername}"`);
+                teamLeader = await linkInfo.getTeamLeaderForEmployee(alternativeUsername);
+            }
             
             if (teamLeader) {
                 console.log('fetchTeamLeaderData: Found team leader:', {
@@ -124,7 +182,7 @@ const ProfielKaarten = (() => {
                 return teamLeader;
             }
             
-            console.log(`fetchTeamLeaderData: No team leader found for "${username}"`);
+            console.log(`fetchTeamLeaderData: No team leader found for "${username}" (tried "${normalizedUsername}" and "${alternativeUsername || 'none'}")`);
             return null;
         } catch (error) {
             console.error('Error fetching team leader data:', error);
