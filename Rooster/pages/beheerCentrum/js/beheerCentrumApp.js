@@ -31,6 +31,50 @@ const PageBanner = () => {
     );
 };
 
+// Function to auto-generate columns from config fields
+const generateColumnsFromConfig = (listConfig) => {
+    if (!listConfig || !listConfig.velden) return [];
+    
+    const columns = listConfig.velden
+        .filter(field => field.interneNaam !== 'ID' && field.interneNaam !== 'Title') // Skip system fields
+        .map(field => {
+            let columnType = 'text';
+            
+            // Map SharePoint field types to our display types
+            switch (field.type) {
+                case 'DateTime':
+                    columnType = field.interneNaam.toLowerCase().includes('tijdstip') ? 'datetime' : 'date';
+                    break;
+                case 'Boolean':
+                    columnType = 'boolean';
+                    break;
+                case 'Number':
+                    columnType = 'number';
+                    break;
+                case 'Text':
+                    // Check if it's a color field
+                    if (field.interneNaam.toLowerCase().includes('kleur')) {
+                        columnType = 'color';
+                    }
+                    break;
+                case 'Note':
+                    columnType = 'text';
+                    break;
+            }
+            
+            return {
+                Header: field.titel,
+                accessor: field.interneNaam,
+                type: columnType
+            };
+        });
+    
+    // Add actions column at the end
+    columns.push({ Header: 'Acties', accessor: 'actions', isAction: true });
+    
+    return columns;
+};
+
 // Utility function to format dates
 const formatValue = (value, column) => {
     if (!value) return '';
@@ -61,11 +105,35 @@ const formatValue = (value, column) => {
         }
     }
     
+    // Handle time formatting for time fields
+    if (column.type === 'time' || column.accessor.toLowerCase().includes('start') || column.accessor.toLowerCase().includes('eind')) {
+        // If it's just a time string like "09:00"
+        if (typeof value === 'string' && /^\d{1,2}:\d{2}$/.test(value)) {
+            return value;
+        }
+        // If it's a datetime, extract just the time
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+            return date.toLocaleTimeString('nl-NL', { 
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    }
+    
     // Handle boolean values
     if (typeof value === 'boolean') {
-        return h('span', { className: `boolean-indicator ${value ? 'true' : 'false'}` }, 
-            value ? 'Ja' : 'Nee'
-        );
+        return h('span', { 
+            className: `boolean-indicator ${value ? 'true' : 'false'}`,
+            style: {
+                padding: '2px 6px',
+                borderRadius: '3px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                color: 'white',
+                backgroundColor: value ? '#28a745' : '#dc3545'
+            }
+        }, value ? 'Ja' : 'Nee');
     }
     
     // Handle color values
@@ -75,7 +143,7 @@ const formatValue = (value, column) => {
         // Ensure the value starts with # for hex colors
         const colorValue = value.startsWith('#') ? value : `#${value}`;
         
-        return h('div', { className: 'color-display' },
+        return h('div', { className: 'color-display', style: { display: 'flex', alignItems: 'center' } },
             h('span', { 
                 className: 'color-swatch', 
                 style: { 
@@ -86,35 +154,72 @@ const formatValue = (value, column) => {
                     display: 'inline-block',
                     marginRight: '8px',
                     border: '1px solid #ccc',
-                    verticalAlign: 'middle'
+                    flexShrink: 0
                 } 
             }),
-            h('span', { className: 'color-value', style: { verticalAlign: 'middle' } }, colorValue.toUpperCase())
+            h('span', { className: 'color-value' }, colorValue.toUpperCase())
         );
+    }
+    
+    // Handle long text values - truncate but show full text in title
+    if (typeof value === 'string' && value.length > 50) {
+        return h('span', { 
+            title: value,
+            style: { cursor: 'help' }
+        }, value.substring(0, 47) + '...');
     }
     
     return value;
 };
 
-const DataTable = ({ columns, data, onEdit, onDelete }) => {
+const DataTable = ({ columns, data, onEdit, onDelete, listConfig }) => {
     // Filter out any undefined or empty rows
     const filteredData = data.filter(row => row && Object.keys(row).length > 0);
     
-    return h('div', { className: 'table-container' },
-        h('table', { className: 'data-table' },
+    // Use auto-generated columns if no columns provided or if we want to show all data
+    const displayColumns = columns && columns.length > 0 ? columns : generateColumnsFromConfig(listConfig);
+    
+    return h('div', { className: 'table-container', style: { 
+        maxHeight: '70vh', 
+        overflow: 'auto',
+        border: '1px solid #ddd',
+        borderRadius: '4px'
+    }},
+        h('table', { className: 'data-table', style: { minWidth: '100%' } },
             h('thead',
-                null,
-                h('tr', null, columns.map(col => h('th', { key: col.accessor }, col.Header)))
+                { style: { position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 1 } },
+                h('tr', null, displayColumns.map(col => h('th', { 
+                    key: col.accessor,
+                    style: { 
+                        padding: '12px 8px',
+                        borderBottom: '2px solid #dee2e6',
+                        whiteSpace: 'nowrap',
+                        minWidth: col.isAction ? '120px' : '150px'
+                    }
+                }, col.Header)))
             ),
             h('tbody',
                 null,
                 filteredData.length === 0 ? 
-                    h('tr', null, h('td', { colSpan: columns.length, style: { textAlign: 'center', padding: '20px' } }, 'Geen data beschikbaar')) :
-                    filteredData.map((row, index) => h('tr', { key: row.Id || index },
-                        columns.map(col => {
+                    h('tr', null, h('td', { 
+                        colSpan: displayColumns.length, 
+                        style: { textAlign: 'center', padding: '40px' } 
+                    }, 'Geen data beschikbaar')) :
+                    filteredData.map((row, index) => h('tr', { 
+                        key: row.Id || index,
+                        style: { 
+                            borderBottom: '1px solid #dee2e6',
+                            '&:hover': { backgroundColor: '#f8f9fa' }
+                        }
+                    },
+                        displayColumns.map(col => {
                             if (col.isAction) {
                                 // Render action buttons
-                                return h('td', { key: col.accessor, className: 'actions-cell' },
+                                return h('td', { 
+                                    key: col.accessor, 
+                                    className: 'actions-cell',
+                                    style: { padding: '8px', whiteSpace: 'nowrap' }
+                                },
                                     h('div', { className: 'action-buttons' },
                                         h('button', { 
                                             className: 'btn-action btn-edit',
@@ -140,7 +245,18 @@ const DataTable = ({ columns, data, onEdit, onDelete }) => {
                                 // Render data cell with proper formatting
                                 const value = row[col.accessor];
                                 const formattedValue = formatValue(value, col);
-                                return h('td', { key: col.accessor }, formattedValue);
+                                return h('td', { 
+                                    key: col.accessor,
+                                    style: { 
+                                        padding: '8px',
+                                        verticalAlign: 'top',
+                                        maxWidth: '200px',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap'
+                                    },
+                                    title: typeof value === 'string' && value.length > 30 ? value : undefined
+                                }, formattedValue);
                             }
                         })
                     ))
@@ -149,7 +265,7 @@ const DataTable = ({ columns, data, onEdit, onDelete }) => {
     );
 };
 
-const TabContent = ({ tab, data, loading, error, onAddNew, onEdit, onDelete }) => {
+const TabContent = ({ tab, data, loading, error, onAddNew, onEdit, onDelete, showAllColumns, onToggleColumns }) => {
     if (loading) {
         return h('div', { className: 'loading-spinner' }, 'Laden...');
     }
@@ -158,16 +274,49 @@ const TabContent = ({ tab, data, loading, error, onAddNew, onEdit, onDelete }) =
         return h('div', { className: 'error-message' }, `Fout bij laden: ${error.message}`);
     }
 
+    const totalColumns = tab.listConfig ? tab.listConfig.velden.length - 2 : 0; // -2 for ID and Title
+    const displayedColumns = showAllColumns ? totalColumns : (tab.columns ? tab.columns.length - 1 : 0); // -1 for actions
+
     return h('div', { className: 'tab-content active' },
-        h('div', { className: 'tab-actions' },
+        h('div', { className: 'tab-actions', style: { 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '20px'
+        }},
             h('button', { 
                 className: 'btn-primary',
                 onClick: onAddNew
-            }, `Nieuwe ${tab.label} toevoegen`)
+            }, `Nieuwe ${tab.label} toevoegen`),
+            h('div', { style: { display: 'flex', gap: '15px', alignItems: 'center' } },
+                h('span', { 
+                    style: { 
+                        fontSize: '13px', 
+                        color: '#6b7280',
+                        fontWeight: 'normal'
+                    } 
+                }, `Kolommen: ${displayedColumns}/${totalColumns}`),
+                h('label', { style: { fontSize: '14px' } }, 'Toon alle kolommen:'),
+                h('button', {
+                    className: `btn-secondary ${showAllColumns ? 'active' : ''}`,
+                    onClick: onToggleColumns,
+                    style: {
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        backgroundColor: showAllColumns ? '#2563eb' : '#6b7280',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                    }
+                }, showAllColumns ? 'Alle' : 'Basis')
+            )
         ),
         h(DataTable, { 
-            columns: tab.columns, 
+            columns: showAllColumns ? null : tab.columns, // null = auto-generate all
             data,
+            listConfig: tab.listConfig,
             onEdit,
             onDelete
         })
@@ -182,6 +331,7 @@ const ContentContainer = () => {
     const [contextInitialized, setContextInitialized] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
+    const [showAllColumns, setShowAllColumns] = useState(true); // Default to showing all columns
 
     const activeTab = beheerTabs.find(tab => tab.id === activeTabId);
 
@@ -281,7 +431,9 @@ const ContentContainer = () => {
             error, 
             onAddNew: handleAddNew,
             onEdit: handleEdit,
-            onDelete: handleDelete
+            onDelete: handleDelete,
+            showAllColumns,
+            onToggleColumns: () => setShowAllColumns(!showAllColumns)
         }),
         h(Modal, { isOpen: isModalOpen, onClose: handleCloseModal },
             activeTab && (() => {

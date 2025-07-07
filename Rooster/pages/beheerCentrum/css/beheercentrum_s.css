@@ -537,9 +537,33 @@ body {
     background: var(--color-bg-surface);
     border-radius: var(--radius-xl);
     border: 1px solid var(--color-border-default);
-    overflow: hidden;
+    overflow: auto;
     box-shadow: var(--shadow-md);
     position: relative;
+    max-height: 70vh;
+    min-height: 400px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--neutral-400) var(--neutral-100);
+}
+
+/* Custom scrollbar for webkit browsers */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--neutral-400);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--neutral-500);
 }
 
 .data-table {
@@ -547,9 +571,10 @@ body {
     border-collapse: collapse;
     border-spacing: 0;
     font-size: var(--font-size-sm);
-    table-layout: fixed; /* Force consistent column widths */
+    table-layout: auto; /* Allow columns to size naturally for wide tables */
     margin: 0;
     padding: 0;
+    min-width: max-content; /* Ensure table doesn't compress below content width */
 }
 
 /* Reset any default margins/padding on table elements */
@@ -567,40 +592,63 @@ body {
     padding: 0;
 }
 
-/* Specific widths for different table types */
-.data-table th:nth-child(1),
-.data-table td:nth-child(1) { width: 20%; } /* First column (usually name/title) */
-.data-table th:nth-child(2),
-.data-table td:nth-child(2) { width: 15%; } /* Second column */
-.data-table th:nth-child(3),
-.data-table td:nth-child(3) { width: 15%; } /* Third column */
-.data-table th:nth-child(4),
-.data-table td:nth-child(4) { width: 20%; } /* Fourth column */
-.data-table th:nth-child(5),
-.data-table td:nth-child(5) { width: 10%; } /* Fifth column */
-.data-table th:nth-child(6),
-.data-table td:nth-child(6) { width: 10%; } /* Sixth column */
-.data-table th:nth-child(7),
-.data-table td:nth-child(7) { width: 10%; } /* Actions column */
-
-/* Responsive adjustments for tables with fewer columns */
-.data-table th:last-child,
-.data-table td:last-child { 
-    width: 120px; /* Actions column always fixed width */
-    min-width: 120px;
+/* Dynamic column sizing for wide tables */
+.data-table th,
+.data-table td {
+    min-width: 120px; /* Minimum column width */
+    max-width: 300px; /* Maximum column width */
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
-/* For tables with 2-3 columns, make them wider */
-.data-table:has(th:nth-child(3):last-child) th:nth-child(1),
-.data-table:has(th:nth-child(3):last-child) td:nth-child(1) { width: 60%; }
-.data-table:has(th:nth-child(3):last-child) th:nth-child(2),
-.data-table:has(th:nth-child(3):last-child) td:nth-child(2) { width: 20%; }
+/* Special sizing for specific column types */
+.data-table th[data-type="actions"],
+.data-table td.actions-cell { 
+    width: 120px; 
+    min-width: 120px;
+    max-width: 120px;
+}
 
+.data-table th[data-type="color"],
+.data-table td:has(.color-display) { 
+    width: 150px; 
+    min-width: 150px;
+}
+
+.data-table th[data-type="boolean"],
+.data-table td:has(.boolean-indicator) { 
+    width: 80px; 
+    min-width: 80px;
+    text-align: center;
+}
+
+.data-table th[data-type="date"],
+.data-table th[data-type="datetime"],
+.data-table th[data-type="time"] { 
+    width: 140px; 
+    min-width: 140px;
+}
+
+/* For ID fields and codes */
+.data-table th[data-field*="id"],
+.data-table th[data-field*="Id"],
+.data-table td[data-field*="id"],
+.data-table td[data-field*="Id"] {
+    width: 100px;
+    min-width: 100px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* Sticky header */
 .data-table thead {
     background: linear-gradient(to bottom, var(--color-bg-surface-secondary), var(--color-bg-surface-tertiary));
     position: sticky;
     top: 0;
-    z-index: var(--z-sticky);
+    z-index: 10;
 }
 
 .data-table th {
