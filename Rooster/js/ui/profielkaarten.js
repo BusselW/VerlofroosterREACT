@@ -133,6 +133,35 @@ const ProfielKaarten = (() => {
     };
 
     /**
+     * Fetch senior data by username
+     * @param {string} username - The employee's username
+     * @returns {Promise<Object|null>} - Senior data or null if not found
+     */
+    const fetchSeniorData = async (username) => {
+        try {
+            console.log(`fetchSeniorData: Fetching senior for username "${username}"`);
+            
+            // Get senior information using linkInfo service
+            const senior = await linkInfo.getSeniorForEmployee(username);
+            
+            if (senior) {
+                console.log('fetchSeniorData: Found senior:', {
+                    Username: senior.seniorInfo?.Username,
+                    Naam: senior.naam,
+                    Team: senior.Team
+                });
+                return senior;
+            }
+            
+            console.log(`fetchSeniorData: No senior found for "${username}"`);
+            return null;
+        } catch (error) {
+            console.error('Error fetching senior data:', error);
+            return null;
+        }
+    };
+
+    /**
      * Get profile photo URL using the same logic as userinfo.js
      * @param {string} username - The employee's username
      * @param {Object} medewerker - The employee data object
@@ -271,9 +300,10 @@ const ProfielKaarten = (() => {
      * @param {Object} medewerker - Employee data
      * @param {Object} werkrooster - Working hours data
      * @param {Object} teamLeader - Team leader data
+     * @param {Object} senior - Senior data
      * @returns {HTMLElement} - The card element
      */
-    const createProfileCard = (medewerker, werkrooster, teamLeader) => {
+    const createProfileCard = (medewerker, werkrooster, teamLeader, senior) => {
         if (!medewerker) return null;
         
         // Get base URL for icons
@@ -379,6 +409,30 @@ const ProfielKaarten = (() => {
                             marginTop: '4px'
                         }
                     }, `TL: ${teamLeader.Title || teamLeader.Naam || teamLeader.Username}`),
+                    senior && h('div', { 
+                        className: 'profile-card-senior',
+                        style: { 
+                            fontSize: '0.85rem', 
+                            color: '#28a745', 
+                            fontWeight: 'bold',
+                            marginTop: '2px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                        }
+                    }, 
+                        h('span', { 
+                            style: { 
+                                fontSize: '0.8rem',
+                                backgroundColor: '#28a745',
+                                color: 'white',
+                                padding: '1px 4px',
+                                borderRadius: '3px',
+                                fontWeight: 'normal'
+                            }
+                        }, 'SR'),
+                        `${senior.naam || senior.seniorInfo?.Naam || 'Onbekende senior'}`
+                    ),
                     h('div', { className: 'profile-card-email' }, 
                         h('a', { 
                             href: `mailto:${medewerker.E_x002d_mail || ''}`,
@@ -510,10 +564,22 @@ const ProfielKaarten = (() => {
         
         console.log(`ProfielKaarten: Fetching werkrooster data for "${medewerkerData.Username}"`);
         const werkroosterData = await fetchWerkroosterData(medewerkerData.Username);
-        console.log('ProfielKaarten: Data fetched:', { medewerker: medewerkerData, werkrooster: werkroosterData });
+        
+        console.log(`ProfielKaarten: Fetching team leader data for "${medewerkerData.Username}"`);
+        const teamLeaderData = await fetchTeamLeaderData(medewerkerData.Username);
+        
+        console.log(`ProfielKaarten: Fetching senior data for "${medewerkerData.Username}"`);
+        const seniorData = await fetchSeniorData(medewerkerData.Username);
+        
+        console.log('ProfielKaarten: Data fetched:', { 
+            medewerker: medewerkerData, 
+            werkrooster: werkroosterData, 
+            teamLeader: teamLeaderData,
+            senior: seniorData
+        });
         
         // Create card element
-        const cardElement = createProfileCard(medewerkerData, werkroosterData);
+        const cardElement = createProfileCard(medewerkerData, werkroosterData, teamLeaderData, seniorData);
         if (!cardElement) {
             console.warn(`ProfielKaarten: Failed to create card for "${username}"`);
             return;

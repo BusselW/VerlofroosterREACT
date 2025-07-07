@@ -1,58 +1,61 @@
 /**
  * @file linkInfo.js
- * @description Utility functions to match employees to their team leaders through team membership.
- * This file provides functions to establish relationships between employees and team leaders
- * based on the team structure defined in SharePoint lists.
+ * @description Utility functions to match employees to their team leaders and seniors through team membership.
+ * This file provides functions to establish relationships between employees, team leaders, and seniors
+ * based on the team structure defined in SharePoint lists (Teams, Medewerkers, Seniors).
  */
 
 import { fetchSharePointList } from './sharepointService.js';
 
-// Cache for teams and employees data to avoid repeated fetching
+// Cache for teams, employees and seniors data to avoid repeated fetching
 let teamsCache = null;
 let medewerkersCache = null;
+let seniorsCache = null;
 let lastFetchTime = 0;
 const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Refreshes the cache if it's expired or doesn't exist
- * @returns {Promise<{teams: Array, medewerkers: Array}>} The cached teams and employees data
+ * @returns {Promise<{teams: Array, medewerkers: Array, seniors: Array}>} The cached teams, employees and seniors data
  */
 async function refreshCacheIfNeeded() {
     const now = Date.now();
     
     // If cache is older than the expiry time or doesn't exist, refresh it
-    if (!teamsCache || !medewerkersCache || now - lastFetchTime > CACHE_EXPIRY_MS) {
+    if (!teamsCache || !medewerkersCache || !seniorsCache || now - lastFetchTime > CACHE_EXPIRY_MS) {
         try {
             // Check if SharePoint configuration exists before fetching
             if (!window.appConfiguratie || !window.appConfiguratie.instellingen || !window.appConfiguratie.instellingen.siteUrl) {
                 console.warn('SharePoint configuration not found. Team information will be unavailable.');
-                return { teams: [], medewerkers: [] };
+                return { teams: [], medewerkers: [], seniors: [] };
             }
             
-            // Fetch teams and employees data in parallel
-            const [teamsData, medewerkersData] = await Promise.all([
+            // Fetch teams, employees and seniors data in parallel
+            const [teamsData, medewerkersData, seniorsData] = await Promise.all([
                 fetchSharePointList('Teams'),
-                fetchSharePointList('Medewerkers')
+                fetchSharePointList('Medewerkers'),
+                fetchSharePointList('Seniors')
             ]);
             
             // Filter out inactive teams
             teamsCache = teamsData.filter(team => team.Actief !== false);
             medewerkersCache = medewerkersData;
+            seniorsCache = seniorsData;
             lastFetchTime = now;
             
-            console.log(`Cache refreshed with ${teamsCache.length} teams and ${medewerkersCache.length} employees`);
+            console.log(`Cache refreshed with ${teamsCache.length} teams, ${medewerkersCache.length} employees, and ${seniorsCache.length} seniors`);
         } catch (error) {
-            console.error('Error refreshing team/employee cache:', error);
+            console.error('Error refreshing team/employee/senior cache:', error);
             // If cache already exists, keep using it despite the error
-            if (!teamsCache || !medewerkersCache) {
+            if (!teamsCache || !medewerkersCache || !seniorsCache) {
                 // Return empty arrays instead of throwing an error
-                console.warn('Failed to initialize team/employee data cache, returning empty lists');
-                return { teams: [], medewerkers: [] };
+                console.warn('Failed to initialize team/employee/senior data cache, returning empty lists');
+                return { teams: [], medewerkers: [], seniors: [] };
             }
         }
     }
     
-    return { teams: teamsCache, medewerkers: medewerkersCache };
+    return { teams: teamsCache, medewerkers: medewerkersCache, seniors: seniorsCache };
 }
 
 /**
@@ -61,6 +64,7 @@ async function refreshCacheIfNeeded() {
 export function invalidateCache() {
     teamsCache = null;
     medewerkersCache = null;
+    seniorsCache = null;
     lastFetchTime = 0;
 }
 
@@ -234,6 +238,236 @@ export async function getEmployeesInTeam(teamName) {
     );
 }
 
+/**
+ * Gets the senior information for a given employee
+ * @param {string} employeeUsername - The username of the employee (domain\username format)
+ * @returns {Promise<Object|null>} Senior information or null if not found
+ */
+export async function getSeniorForEmployee(employeeUsername) {
+    const { medewerkers, seniors } = await refreshCacheIfNeeded();
+    
+    // Normalize the username for comparison
+    const normalizedUsername = employeeUsername.toLowerCase();
+    
+    // Find the employee
+    const employee = medewerkers.find(m => 
+        m.Username && m.Username.toLowerCase() === normalizedUsername
+    );
+    
+    if (!employee || !employee.Team) {
+        return null;
+    }
+    
+    // Find seniors in the same team
+    const teamSeniors = seniors.filter(s => 
+        s.Team && s.Team.toLowerCase() === employee.Team.toLowerCase()
+    );
+    
+    if (teamSeniors.length === 0) {
+        return null;
+    }
+    
+    // For each senior, find their employee information
+    for (const senior of teamSeniors) {
+        if (senior.MedewerkerID) {
+            const seniorEmployee = medewerkers.find(m => 
+                m.Username && m.Username.toLowerCase() === senior.MedewerkerID.toLowerCase()
+            );
+            
+            if (seniorEmployee) {
+                // Return the first matching senior with their employee details
+                return {
+                    ...senior,
+                    seniorInfo: seniorEmployee,
+                    naam: seniorEmployee.Naam
+                };
+            }
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Gets all seniors for a given team
+ * @param {string} teamName - The name of the team
+ * @returns {Promise<Array>} Array of seniors in this team with their employee information
+ */
+export async function getSeniorsInTeam(teamName) {
+    const { medewerkers, seniors } = await refreshCacheIfNeeded();
+    
+    // Normalize the team name for comparison
+    const normalizedTeamName = teamName.toLowerCase();
+    
+    // Find seniors in this team
+    const teamSeniors = seniors.filter(s => 
+        s.Team && s.Team.toLowerCase() === normalizedTeamName
+    );
+    
+    // Map seniors to their employee information
+    const seniorsWithInfo = [];
+    
+    for (const senior of teamSeniors) {
+        if (senior.MedewerkerID) {
+            const seniorEmployee = medewerkers.find(m => 
+                m.Username && m.Username.toLowerCase() === senior.MedewerkerID.toLowerCase()
+            );
+            
+            if (seniorEmployee) {
+                seniorsWithInfo.push({
+                    ...senior,
+                    seniorInfo: seniorEmployee,
+                    naam: seniorEmployee.Naam
+                });
+            }
+        }
+    }
+    
+    return seniorsWithInfo;
+}
+
+/**
+ * Gets all employees that have a specific person as their senior
+ * @param {string} seniorUsername - The username of the senior (domain\username format)
+ * @returns {Promise<Array>} Array of employees that have this person as their senior
+ */
+export async function getEmployeesForSenior(seniorUsername) {
+    const { medewerkers, seniors } = await refreshCacheIfNeeded();
+    
+    // Normalize the senior username for comparison
+    const normalizedSeniorUsername = seniorUsername.toLowerCase();
+    
+    // Find all senior records for this person
+    const seniorRecords = seniors.filter(s => 
+        s.MedewerkerID && s.MedewerkerID.toLowerCase() === normalizedSeniorUsername
+    );
+    
+    if (seniorRecords.length === 0) {
+        return [];
+    }
+    
+    // Get team names where this person is a senior
+    const seniorTeams = seniorRecords.map(s => s.Team.toLowerCase());
+    
+    // Find all employees in these teams (excluding the senior themselves)
+    const teamEmployees = medewerkers.filter(m => 
+        m.Team && seniorTeams.includes(m.Team.toLowerCase()) &&
+        m.Username.toLowerCase() !== normalizedSeniorUsername
+    );
+    
+    return teamEmployees;
+}
+
+/**
+ * Checks if one employee is a senior for another
+ * @param {string} potentialSeniorUsername - Username of the potential senior
+ * @param {string} employeeUsername - Username of the employee
+ * @returns {Promise<boolean>} True if the potential senior is a senior for the employee
+ */
+export async function isSeniorFor(potentialSeniorUsername, employeeUsername) {
+    // Don't check if they are the same person
+    if (potentialSeniorUsername.toLowerCase() === employeeUsername.toLowerCase()) {
+        return false;
+    }
+    
+    const senior = await getSeniorForEmployee(employeeUsername);
+    
+    if (!senior || !senior.seniorInfo || !senior.seniorInfo.Username) {
+        return false;
+    }
+    
+    return senior.seniorInfo.Username.toLowerCase() === potentialSeniorUsername.toLowerCase();
+}
+
+/**
+ * Checks if a user is a senior for any team
+ * @param {string} username - The username to check
+ * @returns {Promise<boolean>} True if the user is a senior for any team
+ */
+export async function isSenior(username) {
+    const { seniors } = await refreshCacheIfNeeded();
+    
+    // Normalize the username for comparison
+    const normalizedUsername = username.toLowerCase();
+    
+    // Check if this person is a senior for any team
+    return seniors.some(s => 
+        s.MedewerkerID && s.MedewerkerID.toLowerCase() === normalizedUsername
+    );
+}
+
+/**
+ * Gets team names where a person serves as senior
+ * @param {string} seniorUsername - The username of the senior
+ * @returns {Promise<Array>} Array of team names where this person is a senior
+ */
+export async function getTeamNamesForSenior(seniorUsername) {
+    const { seniors } = await refreshCacheIfNeeded();
+    
+    // Normalize the senior username for comparison
+    const normalizedSeniorUsername = seniorUsername.toLowerCase();
+    
+    // Find all teams where this person is a senior
+    const seniorTeams = seniors.filter(s => 
+        s.MedewerkerID && s.MedewerkerID.toLowerCase() === normalizedSeniorUsername
+    );
+    
+    return seniorTeams.map(s => s.Team);
+}
+
+/**
+ * Global constant for storing current user's senior information
+ * This will be populated when the user's profile is loaded
+ */
+export let currentUserSenior = null;
+
+/**
+ * Sets the current user's senior information for global use
+ * @param {Object|null} seniorInfo - The senior information object or null
+ */
+export function setCurrentUserSenior(seniorInfo) {
+    currentUserSenior = seniorInfo;
+}
+
+/**
+ * Gets the current user's senior information
+ * @returns {Object|null} The current user's senior information or null
+ */
+export function getCurrentUserSenior() {
+    return currentUserSenior;
+}
+
+/*
+USAGE EXAMPLES for Senior Functions:
+
+// Get senior for a specific employee
+const senior = await getSeniorForEmployee('som\\john.doe');
+if (senior) {
+    console.log('Senior name:', senior.naam);
+    console.log('Senior team:', senior.Team);
+}
+
+// Get all seniors in a team
+const teamSeniors = await getSeniorsInTeam('IT Support');
+teamSeniors.forEach(senior => {
+    console.log('Senior in team:', senior.naam);
+});
+
+// Check if someone is a senior
+const isSeniorUser = await isSenior('som\\jane.senior');
+console.log('Is senior:', isSeniorUser);
+
+// Set current user's senior for global use
+const currentUserSeniorInfo = await getSeniorForEmployee(currentUser.LoginName);
+setCurrentUserSenior(currentUserSeniorInfo);
+
+// Later, get current user's senior from global constant
+const mySenior = getCurrentUserSenior();
+if (mySenior) {
+    console.log('My senior is:', mySenior.naam);
+}
+*/
+
 export default {
     getTeamForEmployee,
     getTeamLeaderForEmployee,
@@ -243,5 +477,14 @@ export default {
     getTeamNamesForTeamLeader,
     isTeamLeader,
     getEmployeesInTeam,
+    // New senior-related functions
+    getSeniorForEmployee,
+    getSeniorsInTeam,
+    getEmployeesForSenior,
+    isSeniorFor,
+    isSenior,
+    getTeamNamesForSenior,
+    setCurrentUserSenior,
+    getCurrentUserSenior,
     invalidateCache
 };
