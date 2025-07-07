@@ -850,6 +850,10 @@ const ProfielKaarten = (() => {
                             const teamLeaderData = await fetchTeamLeaderData(medewerkerData.Username);
                             console.log('Team leader data received:', teamLeaderData);
                             
+                            console.log(`Fetching senior data for: "${medewerkerData.Username}"`);
+                            const seniorData = await fetchSeniorData(medewerkerData.Username);
+                            console.log('Senior data received:', seniorData);
+                            
                             // Check if card is still active after async operations
                             if (activeCard !== cardContainer) {
                                 console.log('Card was hidden during data fetch');
@@ -857,7 +861,7 @@ const ProfielKaarten = (() => {
                             }
                             
                             // Create the actual card content
-                            const cardElement = createProfileCard(medewerkerData, werkroosterData, teamLeaderData);
+                            const cardElement = createProfileCard(medewerkerData, werkroosterData, teamLeaderData, seniorData);
                             if (!cardElement) {
                                 console.warn(`Failed to create card for "${username}"`);
                                 return hideProfileCard();
