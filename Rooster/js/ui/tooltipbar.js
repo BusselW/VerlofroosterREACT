@@ -84,11 +84,15 @@ const TooltipManager = {
             clearTimeout(this.hideTimeout);
             
             // Add delay to prevent flicker
-            this.showTimeout = setTimeout(() => {
-                const tooltipContent = typeof content === 'function' ? content() : content;
-                if (tooltipContent && tooltipContent.trim()) {
-                    this.show(tooltipContent);
-                    this.updatePosition(event);
+            this.showTimeout = setTimeout(async () => {
+                try {
+                    const tooltipContent = typeof content === 'function' ? await content() : content;
+                    if (tooltipContent && typeof tooltipContent === 'string' && tooltipContent.trim()) {
+                        this.show(tooltipContent);
+                        this.updatePosition(event);
+                    }
+                } catch (error) {
+                    console.error('Error generating tooltip content:', error);
                 }
             }, 300); // 300ms delay for better UX
         };
@@ -589,7 +593,10 @@ const TooltipManager = {
         return {
             MedewerkerNaam: element.dataset.medewerker || 'Onbekend',
             Datum: element.dataset.datum || new Date().toISOString(),
+            StartDatum: element.dataset.startdatum || element.dataset.datum || new Date().toISOString(),
+            EindDatum: element.dataset.einddatum || element.dataset.datum || null,
             AantalUren: parseFloat(element.dataset.uren) || 0,
+            Status: element.dataset.status || 'Actief',
             Toelichting: element.dataset.toelichting || element.getAttribute('title') || ''
         };
     },
@@ -604,6 +611,7 @@ const TooltipManager = {
             MedewerkerNaam: element.dataset.medewerker || 'Onbekend',
             StartDatum: element.dataset.startdatum || new Date().toISOString(),
             EindDatum: element.dataset.einddatum || null,
+            Status: element.dataset.status || 'Actief',
             Toelichting: element.dataset.toelichting || ''
         };
     },
@@ -618,6 +626,7 @@ const TooltipManager = {
             MedewerkerNaam: element.dataset.medewerker || 'Onbekend',
             StartDatum: element.dataset.startdatum || new Date().toISOString(),
             EindDatum: element.dataset.einddatum || null,
+            Status: element.dataset.status || 'Actief',
             Toelichting: element.dataset.toelichting || ''
         };
     },
