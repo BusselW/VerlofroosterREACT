@@ -77,7 +77,54 @@ const generateColumnsFromConfig = (listConfig) => {
 
 // Utility function to format dates
 const formatValue = (value, column) => {
-    if (!value) return '';
+    // Handle boolean values first (before checking for !value)
+    if (typeof value === 'boolean' || column.type === 'boolean' || 
+        (value !== null && value !== undefined && typeof value === 'string' && 
+         ['true', 'false', 'ja', 'nee', 'yes', 'no', '1', '0', 'actief', 'inactief'].includes(value.toLowerCase()))) {
+        
+        // Enhanced boolean value detection to handle various formats
+        let boolValue = false;
+        
+        if (typeof value === 'boolean') {
+            boolValue = value;
+        } else if (value === null || value === undefined) {
+            boolValue = false; // Default to false for null/undefined
+        } else if (typeof value === 'string') {
+            const lowerValue = value.toLowerCase();
+            boolValue = lowerValue === 'true' || lowerValue === 'ja' || lowerValue === 'yes' || lowerValue === '1' || lowerValue === 'actief';
+        } else if (typeof value === 'number') {
+            boolValue = value === 1;
+        }
+        
+        return h('div', { 
+            className: 'boolean-display', 
+            style: { display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' } 
+        },
+            h('label', { className: 'toggle-switch' },
+                h('input', { 
+                    type: 'checkbox', 
+                    checked: boolValue,
+                    disabled: true,
+                    'aria-label': boolValue ? 'Ingeschakeld' : 'Uitgeschakeld'
+                }),
+                h('span', { className: 'toggle-slider' })
+            ),
+            h('span', { 
+                className: `status-indicator ${boolValue ? 'status-active' : 'status-inactive'}`,
+                style: { 
+                    fontSize: '12px', 
+                    fontWeight: '500',
+                    color: boolValue ? 'var(--success-700)' : 'var(--neutral-600)'
+                }
+            },
+                h('span', { className: 'status-dot' }),
+                boolValue ? 'Actief' : 'Inactief'
+            )
+        );
+    }
+    
+    // Handle empty/null values for non-boolean fields
+    if (!value && column.type !== 'boolean') return '';
     
     // Handle date formatting
     if (column.type === 'date' || column.accessor.toLowerCase().includes('datum') || column.accessor.toLowerCase().includes('date')) {
@@ -119,47 +166,6 @@ const formatValue = (value, column) => {
                 minute: '2-digit'
             });
         }
-    }
-    
-    // Handle boolean values with modern toggle switches
-    if (typeof value === 'boolean' || column.type === 'boolean') {
-        // Enhanced boolean value detection to handle various formats
-        let boolValue = false;
-        
-        if (typeof value === 'boolean') {
-            boolValue = value;
-        } else if (typeof value === 'string') {
-            const lowerValue = value.toLowerCase();
-            boolValue = lowerValue === 'true' || lowerValue === 'ja' || lowerValue === 'yes' || lowerValue === '1' || lowerValue === 'actief';
-        } else if (typeof value === 'number') {
-            boolValue = value === 1;
-        }
-        
-        return h('div', { 
-            className: 'boolean-display', 
-            style: { display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' } 
-        },
-            h('label', { className: 'toggle-switch' },
-                h('input', { 
-                    type: 'checkbox', 
-                    checked: boolValue,
-                    disabled: true,
-                    'aria-label': boolValue ? 'Ingeschakeld' : 'Uitgeschakeld'
-                }),
-                h('span', { className: 'toggle-slider' })
-            ),
-            h('span', { 
-                className: `status-indicator ${boolValue ? 'status-active' : 'status-inactive'}`,
-                style: { 
-                    fontSize: '12px', 
-                    fontWeight: '500',
-                    color: boolValue ? 'var(--success-700)' : 'var(--neutral-600)'
-                }
-            },
-                h('span', { className: 'status-dot' }),
-                boolValue ? 'Actief' : 'Inactief'
-            )
-        );
     }
     
     // Handle color values with enhanced color picker integration
