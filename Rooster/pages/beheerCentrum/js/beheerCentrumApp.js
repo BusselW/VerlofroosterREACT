@@ -1,7 +1,7 @@
 import { beheerTabs } from './dataTabs.js';
 import { getListItems, createListItem, updateListItem, deleteListItem } from './dataService.js';
 import { initializeSharePointContext } from './sharepointContext.js';
-import { Modal } from './ui/Modal.js';
+import Modal from '../../js/ui/Modal.js';
 import { getFormComponent } from './forms/index.js';
 
 const { useState, useEffect, createElement: h, useCallback } = React;
@@ -499,6 +499,8 @@ const ContentContainer = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingItem(null);
+        // Remove modal-open class from body
+        document.body.classList.remove('modal-open');
     };
 
     const handleSave = async (formData) => {
@@ -518,6 +520,20 @@ const ContentContainer = () => {
             // Optionally, show an error message to the user in the form
         }
     };
+
+    // Add modal-open class when modal opens
+    React.useEffect(() => {
+        if (isModalOpen) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+        
+        // Cleanup on unmount
+        return () => {
+            document.body.classList.remove('modal-open');
+        };
+    }, [isModalOpen]);
 
     return h('div', { className: 'content-container' },
         h('nav', { className: 'tab-navigation' },
