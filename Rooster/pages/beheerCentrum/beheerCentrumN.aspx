@@ -12,6 +12,7 @@
     
     <!-- CSS files -->
     <link rel="stylesheet" href="css/beheercentrum_s.css">
+    <link rel="stylesheet" href="css/modalFormatting.css">
     
     <!-- SharePoint Config -->
     <script src="../../js/config/configLijst.js"></script>
