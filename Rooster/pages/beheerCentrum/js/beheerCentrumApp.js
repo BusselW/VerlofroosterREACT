@@ -177,6 +177,25 @@ const formatValue = (value, column) => {
         }, value.substring(0, 47) + '...');
     }
     
+    // Handle domain\username fields with tag styling
+    if (column.accessor.toLowerCase() === 'username' || 
+        (typeof value === 'string' && value.includes('\\') && value.match(/^[a-zA-Z0-9.-]+\\[a-zA-Z0-9._-]+$/))) {
+        if (!value) return h('span', { className: 'tag tag-error' }, 'Geen gebruiker');
+        
+        const parts = value.split('\\');
+        if (parts.length === 2) {
+            const [domain, username] = parts;
+            return h('div', { className: 'username-display', style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+                h('span', { className: 'tag tag-info domain-tag' }, domain),
+                h('span', { className: 'username-separator' }, '\\'),
+                h('span', { className: 'tag tag-primary username-tag' }, username)
+            );
+        } else {
+            // Fallback for malformed usernames
+            return h('span', { className: 'tag tag-warning' }, value);
+        }
+    }
+    
     // Handle status-like fields with tags
     if (column.accessor.toLowerCase().includes('status') || 
         column.accessor.toLowerCase().includes('type') ||

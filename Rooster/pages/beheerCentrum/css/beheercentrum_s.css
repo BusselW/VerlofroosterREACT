@@ -2012,3 +2012,87 @@ body {
         opacity: 0.6; 
     }
 }
+
+/* === USERNAME DISPLAY STYLING === */
+.username-display {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    max-width: 200px;
+    overflow: hidden;
+}
+
+.domain-tag {
+    background: var(--info-50);
+    color: var(--info-700);
+    border-color: var(--info-200);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.username-tag {
+    background: var(--primary-50);
+    color: var(--primary-700);
+    border-color: var(--primary-200);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.username-separator {
+    color: var(--color-text-tertiary);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-sm);
+    opacity: 0.6;
+}
+
+/* Hover effects for username tags */
+.username-display:hover .domain-tag {
+    background: var(--info-100);
+    color: var(--info-800);
+    border-color: var(--info-300);
+    transform: scale(1.02);
+}
+
+.username-display:hover .username-tag {
+    background: var(--primary-100);
+    color: var(--primary-800);
+    border-color: var(--primary-300);
+    transform: scale(1.02);
+}
+
+.username-display:hover .username-separator {
+    opacity: 1;
+    color: var(--color-text-secondary);
+}
+
+/* Alternative compact layout for smaller screens */
+@media (max-width: 768px) {
+    .username-display {
+        flex-direction: column;
+        gap: var(--space-1);
+        align-items: flex-start;
+    }
+    
+    .domain-tag,
+    .username-tag {
+        font-size: 10px;
+        padding: 2px var(--space-1);
+    }
+    
+    .username-separator {
+        display: none;
+    }
+}
