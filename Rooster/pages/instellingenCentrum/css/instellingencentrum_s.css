@@ -361,6 +361,51 @@ body {
     box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
 }
 
+/* Validation error styles */
+.form-input.error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.form-input.error:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Required field indicator */
+.form-label .required {
+    color: #dc2626;
+    margin-left: 4px;
+}
+
+/* Registration mode specific styles */
+.registration-form .form-group {
+    position: relative;
+}
+
+.registration-form .form-input:invalid {
+    border-color: #fbbf24;
+}
+
+.registration-form .form-input:valid:not(:placeholder-shown) {
+    border-color: #10b981;
+}
+
+/* Auto-fill indicator styles */
+.form-label .auto-fill-indicator {
+    color: #64748b;
+    font-size: 0.7rem;
+    margin-left: 4px;
+    font-weight: 400;
+}
+
 /* Read-only and disabled form input styles */
 .form-input:read-only,
 .form-input[readonly] {

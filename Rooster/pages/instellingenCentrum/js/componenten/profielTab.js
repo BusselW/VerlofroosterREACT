@@ -26,6 +26,7 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
         team: '',
         functie: ''
     });
+    const [validationErrors, setValidationErrors] = useState({});
 
     // Helper function to get full domain\username format
     const getFullLoginName = (loginName) => {
@@ -227,17 +228,62 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
             ...prev,
             [field]: value
         }));
+        
+        // Clear validation error for this field when user starts typing
+        if (validationErrors[field]) {
+            setValidationErrors(prev => ({
+                ...prev,
+                [field]: undefined
+            }));
+        }
+    };
+
+    // Comprehensive validation function
+    const validateForm = () => {
+        const errors = {};
+        
+        // In registration mode, all fields except username and email are required
+        if (isRegistration) {
+            if (!formData.naam || formData.naam.trim() === '') {
+                errors.naam = 'Volledige naam is verplicht';
+            }
+            
+            if (!formData.geboortedatum || formData.geboortedatum.trim() === '') {
+                errors.geboortedatum = 'Geboortedatum is verplicht';
+            }
+            
+            if (!formData.team || formData.team.trim() === '') {
+                errors.team = 'Team selectie is verplicht';
+            }
+            
+            if (!formData.functie || formData.functie.trim() === '') {
+                errors.functie = 'Functie selectie is verplicht';
+            }
+        } else {
+            // In settings mode, only naam is required
+            if (!formData.naam || formData.naam.trim() === '') {
+                errors.naam = 'Volledige naam is verplicht';
+            }
+        }
+
+        // Username is always required but auto-filled
+        if (!formData.username || formData.username.trim() === '') {
+            errors.username = 'Gebruikersnaam ontbreekt (automatisch ingevuld)';
+        }
+        
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSave = async () => {
-        // Validation
-        if (!formData.naam || formData.naam.trim() === '' || formData.naam === 'Bijv. Jan de Vries') {
-            setSaveMessage({ type: 'error', text: 'Naam is verplicht.' });
-            return;
-        }
-
-        if (!formData.username || formData.username.trim() === '') {
-            setSaveMessage({ type: 'error', text: 'Gebruikersnaam is verplicht.' });
+        // Validate form first
+        if (!validateForm()) {
+            setSaveMessage({ 
+                type: 'error', 
+                text: isRegistration 
+                    ? 'Vul alle verplichte velden in om door te gaan.' 
+                    : 'Controleer de invoer en probeer opnieuw.' 
+            });
             return;
         }
 
@@ -317,9 +363,26 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
         }
     };
 
-    return h('div', null,
+    return h('div', { className: isRegistration ? 'registration-form' : '' },
         // Combined Profile and Data Card
         h('div', { className: 'card' },
+            // Registration instructions (only show in registration mode)
+            isRegistration && h('div', { 
+                className: 'registration-instructions',
+                style: {
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    marginBottom: '20px',
+                    fontSize: '0.85rem',
+                    color: '#1e40af'
+                }
+            },
+                h('div', { style: { fontWeight: '600', marginBottom: '4px' } }, '📝 Profiel instellen'),
+                h('div', null, 'Vul alle verplichte velden (gemarkeerd met *) in om je registratie te voltooien. Gebruikersnaam en e-mail worden automatisch ingevuld.')
+            ),
+            
             // Profile section with avatar
             h('div', { className: 'profile-avatar-section' },
                 h('h3', { className: 'card-title', style: { marginBottom: '16px' } }, 'Jouw gegevens'),
@@ -356,16 +419,36 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
             // Form fields - Updated layout: Volledige naam | Gebruikersnaam
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Volledige naam'),
+                    h('label', { className: 'form-label' }, 
+                        'Volledige naam',
+                        isRegistration && h('span', { 
+                            style: { color: '#dc2626', marginLeft: '4px' } 
+                        }, '*')
+                    ),
                     h('input', {
                         type: 'text',
-                        className: 'form-input',
+                        className: `form-input ${validationErrors.naam ? 'error' : ''}`,
                         value: formData.naam,
-                        onChange: (e) => handleInputChange('naam', e.target.value)
-                    })
+                        onChange: (e) => handleInputChange('naam', e.target.value),
+                        placeholder: isRegistration ? 'Bijv. Jan de Vries' : '',
+                        style: validationErrors.naam ? { borderColor: '#dc2626' } : {}
+                    }),
+                    validationErrors.naam && h('div', { 
+                        className: 'error-message',
+                        style: { 
+                            color: '#dc2626', 
+                            fontSize: '0.75rem', 
+                            marginTop: '4px' 
+                        }
+                    }, validationErrors.naam)
                 ),
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Gebruikersnaam'),
+                    h('label', { className: 'form-label' }, 
+                        'Gebruikersnaam',
+                        h('span', { 
+                            style: { color: '#64748b', marginLeft: '4px', fontSize: '0.7rem' } 
+                        }, '(automatisch)')
+                    ),
                     h('input', {
                         type: 'text',
                         className: 'form-input',
@@ -373,19 +456,33 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                         readOnly: true,
                         style: { backgroundColor: '#f8fafc', color: '#64748b' },
                         title: 'Automatisch ingevuld vanuit SharePoint'
-                    })
+                    }),
+                    validationErrors.username && h('div', { 
+                        className: 'error-message',
+                        style: { 
+                            color: '#dc2626', 
+                            fontSize: '0.75rem', 
+                            marginTop: '4px' 
+                        }
+                    }, validationErrors.username)
                 )
             ),
             // E-mailadres - full width
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group', style: { gridColumn: '1 / -1' } },
-                    h('label', { className: 'form-label' }, 'E-mailadres'),
+                    h('label', { className: 'form-label' }, 
+                        'E-mailadres',
+                        h('span', { 
+                            style: { color: '#64748b', marginLeft: '4px', fontSize: '0.7rem' } 
+                        }, '(automatisch)')
+                    ),
                     h('input', {
                         type: 'email',
                         className: 'form-input',
                         value: formData.email,
                         readOnly: true,
-                        style: { backgroundColor: '#f8fafc', color: '#64748b' }
+                        style: { backgroundColor: '#f8fafc', color: '#64748b' },
+                        title: 'Automatisch ingevuld vanuit SharePoint'
                     })
                 )
             ),
@@ -399,27 +496,47 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                             fontWeight: '500',
                             fontSize: 'inherit'
                         }
-                    }, 'Geboortedatum'),
+                    }, 
+                        'Geboortedatum',
+                        isRegistration && h('span', { 
+                            style: { color: '#dc2626', marginLeft: '4px' } 
+                        }, '*')
+                    ),
                     h('input', {
                         type: 'date',
-                        className: 'form-input',
+                        className: `form-input ${validationErrors.geboortedatum ? 'error' : ''}`,
                         value: formData.geboortedatum,
-                        onChange: (e) => handleInputChange('geboortedatum', e.target.value)
-                    })
+                        onChange: (e) => handleInputChange('geboortedatum', e.target.value),
+                        style: validationErrors.geboortedatum ? { borderColor: '#dc2626' } : {}
+                    }),
+                    validationErrors.geboortedatum && h('div', { 
+                        className: 'error-message',
+                        style: { 
+                            color: '#dc2626', 
+                            fontSize: '0.75rem', 
+                            marginTop: '4px' 
+                        }
+                    }, validationErrors.geboortedatum)
                 )
             ),
             // Team | Functie
             h('div', { className: 'form-row' },
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Team'),
+                    h('label', { className: 'form-label' }, 
+                        'Team',
+                        isRegistration && h('span', { 
+                            style: { color: '#dc2626', marginLeft: '4px' } 
+                        }, '*')
+                    ),
                     h('select', {
-                        className: 'form-input',
+                        className: `form-input ${validationErrors.team ? 'error' : ''}`,
                         value: formData.team,
                         onChange: (e) => handleInputChange('team', e.target.value),
                         style: { 
                             backgroundColor: '#ffffff', 
                             color: '#1f2937',
-                            opacity: 1 
+                            opacity: 1,
+                            ...(validationErrors.team ? { borderColor: '#dc2626' } : {})
                         }
                     },
                         h('option', { value: '' }, loading ? 'Laden...' : 'Selecteer team...'),
@@ -429,18 +546,32 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                                 value: team.Naam 
                             }, team.Naam)
                         )
-                    )
+                    ),
+                    validationErrors.team && h('div', { 
+                        className: 'error-message',
+                        style: { 
+                            color: '#dc2626', 
+                            fontSize: '0.75rem', 
+                            marginTop: '4px' 
+                        }
+                    }, validationErrors.team)
                 ),
                 h('div', { className: 'form-group' },
-                    h('label', { className: 'form-label' }, 'Functie'),
+                    h('label', { className: 'form-label' }, 
+                        'Functie',
+                        isRegistration && h('span', { 
+                            style: { color: '#dc2626', marginLeft: '4px' } 
+                        }, '*')
+                    ),
                     h('select', {
-                        className: 'form-input',
+                        className: `form-input ${validationErrors.functie ? 'error' : ''}`,
                         value: formData.functie,
                         onChange: (e) => handleInputChange('functie', e.target.value),
                         style: { 
                             backgroundColor: '#ffffff', 
                             color: '#1f2937',
-                            opacity: 1 
+                            opacity: 1,
+                            ...(validationErrors.functie ? { borderColor: '#dc2626' } : {})
                         }
                     },
                         h('option', { value: '' }, loading ? 'Laden...' : 'Selecteer functie...'),
@@ -450,7 +581,15 @@ export const ProfileTab = ({ user, data, isRegistration = false, onDataUpdate, o
                                 value: functie.Title 
                             }, functie.Title)
                         )
-                    )
+                    ),
+                    validationErrors.functie && h('div', { 
+                        className: 'error-message',
+                        style: { 
+                            color: '#dc2626', 
+                            fontSize: '0.75rem', 
+                            marginTop: '4px' 
+                        }
+                    }, validationErrors.functie)
                 )
             ),
             

@@ -1,4 +1,9 @@
 <!DOCTYPE html>
+<!--
+    Registration Wizard for VerlofroosterREACT
+    Following project instructions: .github/instructions/Code.instructions.md
+    Pure HTML with React CDN, ES6 modules, and semantic accessibility standards
+-->
 <html lang="nl">
 
 <head>
