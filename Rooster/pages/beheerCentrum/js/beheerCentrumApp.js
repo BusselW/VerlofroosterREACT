@@ -123,9 +123,22 @@ const formatValue = (value, column) => {
     
     // Handle boolean values with modern toggle switches
     if (typeof value === 'boolean' || column.type === 'boolean') {
-        const boolValue = value === true || value === 'true' || value === 1;
+        // Enhanced boolean value detection to handle various formats
+        let boolValue = false;
         
-        return h('div', { className: 'boolean-display', style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+        if (typeof value === 'boolean') {
+            boolValue = value;
+        } else if (typeof value === 'string') {
+            const lowerValue = value.toLowerCase();
+            boolValue = lowerValue === 'true' || lowerValue === 'ja' || lowerValue === 'yes' || lowerValue === '1' || lowerValue === 'actief';
+        } else if (typeof value === 'number') {
+            boolValue = value === 1;
+        }
+        
+        return h('div', { 
+            className: 'boolean-display', 
+            style: { display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' } 
+        },
             h('label', { className: 'toggle-switch' },
                 h('input', { 
                     type: 'checkbox', 
@@ -137,7 +150,11 @@ const formatValue = (value, column) => {
             ),
             h('span', { 
                 className: `status-indicator ${boolValue ? 'status-active' : 'status-inactive'}`,
-                style: { fontSize: '12px', fontWeight: '500' }
+                style: { 
+                    fontSize: '12px', 
+                    fontWeight: '500',
+                    color: boolValue ? 'var(--success-700)' : 'var(--neutral-600)'
+                }
             },
                 h('span', { className: 'status-dot' }),
                 boolValue ? 'Actief' : 'Inactief'
