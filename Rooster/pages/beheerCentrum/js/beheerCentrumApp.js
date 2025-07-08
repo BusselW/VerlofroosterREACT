@@ -239,6 +239,51 @@ const formatValue = (value, column) => {
         }
     }
     
+    // Handle functie (function/role) fields with metal-tier colored tags
+    if (column.accessor.toLowerCase().includes('functie') || 
+        column.Header.toLowerCase().includes('functie') ||
+        column.accessor === 'Functie' || column.accessor === 'Rol') {
+        if (!value) return h('span', { className: 'tag tag-neutral' }, 'Geen functie');
+        
+        // Determine color based on function hierarchy or keywords
+        let functieClass = 'tag tag-functie';
+        const lowerValue = value.toString().toLowerCase();
+        
+        // Gold tier - Leadership/Management roles
+        if (lowerValue.includes('directeur') || lowerValue.includes('manager') || 
+            lowerValue.includes('hoofd') || lowerValue.includes('leider') ||
+            lowerValue.includes('lead') || lowerValue.includes('chef')) {
+            functieClass += ' tag-functie-gold';
+        }
+        // Silver tier - Senior/Specialist roles  
+        else if (lowerValue.includes('senior') || lowerValue.includes('specialist') ||
+                 lowerValue.includes('expert') || lowerValue.includes('architect') ||
+                 lowerValue.includes('coördinator') || lowerValue.includes('coordinator')) {
+            functieClass += ' tag-functie-silver';
+        }
+        // Bronze tier - Standard professional roles
+        else if (lowerValue.includes('medewerker') || lowerValue.includes('adviseur') ||
+                 lowerValue.includes('consultant') || lowerValue.includes('analist') ||
+                 lowerValue.includes('developer') || lowerValue.includes('engineer')) {
+            functieClass += ' tag-functie-bronze';
+        }
+        // Copper tier - Junior/Support roles
+        else if (lowerValue.includes('junior') || lowerValue.includes('trainee') ||
+                 lowerValue.includes('stagiair') || lowerValue.includes('assistent') ||
+                 lowerValue.includes('support') || lowerValue.includes('helpdesk')) {
+            functieClass += ' tag-functie-copper';
+        }
+        // Default to bronze for unclassified functions
+        else {
+            functieClass += ' tag-functie-bronze';
+        }
+        
+        return h('span', { 
+            className: functieClass,
+            title: `Functie: ${value}`
+        }, value);
+    }
+    
     // Handle team fields with colored tags based on Teams.Kleur
     if (column.accessor.toLowerCase().includes('team') || 
         column.Header.toLowerCase().includes('team') ||
