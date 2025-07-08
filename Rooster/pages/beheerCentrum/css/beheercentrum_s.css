@@ -222,36 +222,37 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, var(--neutral-300) 0%, var(--neutral-400) 100%);
-    border: 1px solid var(--color-border-default);
+    background: linear-gradient(135deg, var(--neutral-200) 0%, var(--neutral-300) 100%);
+    border: 2px solid var(--neutral-400);
     transition: all var(--transition-base);
     border-radius: var(--radius-full);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
-    left: 2px;
-    bottom: 2px;
-    background: linear-gradient(135deg, var(--neutral-0) 0%, var(--neutral-100) 100%);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: linear-gradient(135deg, var(--neutral-0) 0%, var(--neutral-50) 100%);
+    border: 2px solid var(--neutral-300);
     transition: all var(--transition-base);
     border-radius: var(--radius-full);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-switch input:checked + .toggle-slider {
     background: linear-gradient(135deg, var(--success-500) 0%, var(--success-600) 100%);
     border-color: var(--success-600);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(34, 197, 94, 0.1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(34, 197, 94, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
-    transform: translateX(20px);
+    transform: translateX(18px);
     background: linear-gradient(135deg, var(--neutral-0) 0%, var(--success-50) 100%);
+    border-color: var(--success-200);
 }
 
 .toggle-switch input:focus + .toggle-slider {
@@ -896,9 +897,9 @@ body {
     background: transparent;
 }
 
-/* Modern header styling */
+/* Modern header styling - improved contrast */
 .data-table thead {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 50%, var(--primary-900) 100%);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -912,7 +913,7 @@ body {
     font-size: 13px;
     letter-spacing: 0.025em;
     text-transform: uppercase;
-    color: #f8fafc;
+    color: var(--neutral-0);
     border: none;
     position: relative;
     background: transparent;
@@ -2398,15 +2399,17 @@ body.modal-open {
     line-height: 1;
 }
 
-/* Toggle switch inactive state enhancement */
+/* Toggle switch inactive state enhancement - more visible */
 .toggle-switch input:not(:checked) + .toggle-slider {
-    background: linear-gradient(135deg, var(--neutral-300) 0%, var(--neutral-400) 100%);
-    border-color: var(--neutral-400);
+    background: linear-gradient(135deg, var(--neutral-400) 0%, var(--neutral-500) 100%);
+    border-color: var(--neutral-500);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-switch input:not(:checked) + .toggle-slider:before {
-    background: linear-gradient(135deg, var(--neutral-0) 0%, var(--neutral-100) 100%);
-    border-color: var(--neutral-300);
+    background: linear-gradient(135deg, var(--neutral-0) 0%, var(--neutral-50) 100%);
+    border-color: var(--neutral-400);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Active state confirmation */
