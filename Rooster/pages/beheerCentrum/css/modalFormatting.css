@@ -208,183 +208,163 @@
     border-bottom: 1px solid #cbd5e1;
 }
 
-.form-section-fields {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 12px;
-    align-items: start;
+/* ===== TOGGLE SECTION STYLING ===== */
+.form-section.toggle-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
-/* ===== FORM FIELDS ===== */
-.form-field {
+.form-section.toggle-section .form-section-title {
+    color: #334155;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-section.toggle-section .form-section-title::before {
+    content: '⚙️';
+    font-size: 18px;
+}
+
+.toggle-section-fields {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 16px;
 }
 
-.form-field.col-span-2 {
-    grid-column: span 2;
-}
-
-.form-field label {
-    font-weight: 500;
-    color: #374151;
-    font-size: 0.875rem;
-    margin-bottom: 4px;
-}
-
-.form-field label .required {
-    color: #ef4444;
-    font-weight: 700;
-}
-
-/* ===== FORM INPUTS ===== */
-.form-input,
-.form-select,
-input,
-textarea,
-select {
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-family: inherit;
-    background: #ffffff;
-    transition: all 0.2s ease;
-    color: #111827;
-}
-
-.form-input:focus,
-.form-select:focus,
-input:focus,
-textarea:focus,
-select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* ===== READ-ONLY FIELDS ===== */
-.form-input.readonly,
-input[readonly],
-textarea[readonly] {
-    background-color: #f3f4f6 !important;
-    color: #6b7280 !important;
-    border-color: #d1d5db !important;
-    cursor: not-allowed;
-    opacity: 0.8;
-}
-
-.form-input.readonly:focus,
-input[readonly]:focus,
-textarea[readonly]:focus {
-    box-shadow: none !important;
-    border-color: #d1d5db !important;
-}
-
-/* ===== AUTOCOMPLETE SECTION ===== */
-.autocomplete-section {
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
-}
-
-.autocomplete-section .form-section-title {
-    color: #0369a1;
-    border-bottom-color: #7dd3fc;
-}
-
-.form-help {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 4px;
-    line-height: 1.4;
-}
-
-/* ===== BUTTON STYLES IN MODALS ===== */
-.btn {
-    display: inline-flex;
+.toggle-field {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 16px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    font-family: inherit;
-}
-
-.btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.btn-secondary {
+    justify-content: space-between;
+    padding: 12px 16px;
     background: #ffffff;
-    color: #6b7280;
-    border-color: #d1d5db;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    min-height: 60px;
 }
 
-.btn-secondary:hover:not(:disabled) {
-    background: #f9fafb;
-    color: #374151;
-    border-color: #9ca3af;
-    transform: translateY(-1px);
+.toggle-field:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* ===== AUTOCOMPLETE DROPDOWN ===== */
-.autocomplete-results {
+.toggle-field-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+}
+
+.toggle-field-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+    margin: 0;
+    cursor: pointer;
+}
+
+.toggle-help {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.toggle-field-control {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Enhanced toggle switch styling for modals */
+.toggle-section .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+    margin: 0;
+}
+
+.toggle-section .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-section .toggle-slider {
     position: absolute;
-    top: 100%;
+    cursor: pointer;
+    top: 0;
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-top: none;
-    border-radius: 0 0 6px 6px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    bottom: 0;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border: 2px solid #94a3b8;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 24px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.autocomplete-result {
-    padding: 10px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #f3f4f6;
-    font-size: 0.875rem;
-    transition: background-color 0.15s ease;
+.toggle-section .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid #cbd5e1;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.autocomplete-result:hover,
-.autocomplete-result.highlighted {
-    background-color: #f0f9ff;
-    color: #1e40af;
+.toggle-section .toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-color: #15803d;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(34, 197, 94, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.autocomplete-result:last-child {
-    border-bottom: none;
+.toggle-section .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(18px);
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+    border-color: #bbf7d0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-section .toggle-switch input:focus + .toggle-slider {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.toggle-section .toggle-switch:hover .toggle-slider {
+    transform: scale(1.02);
+}
+
+.toggle-section .toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggle-section .toggle-switch:hover .toggle-slider:not([disabled]) {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* ===== RESPONSIVE ADJUSTMENTS ===== */

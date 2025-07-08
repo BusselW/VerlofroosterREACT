@@ -23,13 +23,19 @@ const medewerkerConfig = {
             ]
         },
         {
-            title: 'Opmerkingen & Status',
+            title: 'Opmerkingen',
             fields: [
                 { name: 'Opmekring', label: 'Opmerking', type: 'textarea', colSpan: 2, placeholder: 'Voeg eventuele opmerkingen toe...' },
                 { name: 'OpmerkingGeldigTot', label: 'Opmerking Geldig Tot', type: 'date', placeholder: 'DD-MM-JJJJ' },
-                { name: 'Actief', label: 'Actief', type: 'checkbox' },
-                { name: 'Verbergen', label: 'Verborgen in rooster', type: 'checkbox' },
-                { name: 'Horen', label: 'Horen', type: 'checkbox' },
+            ]
+        },
+        {
+            title: 'Status & Zichtbaarheid',
+            type: 'toggle-section',
+            fields: [
+                { name: 'Actief', label: 'Medewerker Actief', type: 'toggle', help: 'Schakel uit om medewerker te deactiveren' },
+                { name: 'Verbergen', label: 'Verbergen in Rooster', type: 'toggle', help: 'Verberg medewerker in de roosterweergave' },
+                { name: 'Horen', label: 'Horen', type: 'toggle', help: 'Medewerker kan horen (toegankelijkheidsfunctie)' },
             ]
         }
     ]
@@ -142,6 +148,22 @@ export const MedewerkerForm = ({ onSave, onCancel, initialData = {}, title }) =>
             });
         }
 
+        if (field.type === 'toggle') {
+            return h('label', { className: 'toggle-switch' },
+                h('input', {
+                    id: field.name,
+                    name: field.name,
+                    type: 'checkbox',
+                    checked: !!value,
+                    onChange: (e) => setFormData(prev => ({
+                        ...prev,
+                        [field.name]: e.target.checked
+                    }))
+                }),
+                h('span', { className: 'toggle-slider' })
+            );
+        }
+
         return h('input', {
             id: field.name,
             name: field.name,
@@ -177,10 +199,35 @@ export const MedewerkerForm = ({ onSave, onCancel, initialData = {}, title }) =>
         
         // Regular form sections
         ...medewerkerConfig.sections.map((section, index) => 
-            h('div', { className: 'form-section', key: index },
+            h('div', { 
+                className: `form-section ${section.type === 'toggle-section' ? 'toggle-section' : ''}`,
+                key: index 
+            },
                 h('h3', { className: 'form-section-title' }, section.title),
-                h('div', { className: 'form-section-fields' },
+                h('div', { 
+                    className: section.type === 'toggle-section' ? 'toggle-section-fields' : 'form-section-fields'
+                },
                     section.fields.map(field => {
+                        if (section.type === 'toggle-section') {
+                            return h('div', { 
+                                className: 'toggle-field',
+                                key: field.name 
+                            },
+                                h('div', { className: 'toggle-field-content' },
+                                    h('div', { className: 'toggle-field-info' },
+                                        h('label', { 
+                                            htmlFor: field.name,
+                                            className: 'toggle-label'
+                                        }, field.label),
+                                        field.help && h('div', { className: 'toggle-help' }, field.help)
+                                    ),
+                                    h('div', { className: 'toggle-field-control' },
+                                        renderField(field)
+                                    )
+                                )
+                            );
+                        }
+                        
                         return h('div', { 
                             className: `form-field ${field.colSpan ? `col-span-${field.colSpan}` : ''}`,
                             key: field.name 
