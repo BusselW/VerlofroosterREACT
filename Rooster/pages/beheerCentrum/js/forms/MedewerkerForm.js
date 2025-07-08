@@ -76,6 +76,7 @@ export const MedewerkerForm = ({ onSave, onCancel, initialData = {}, title }) =>
     }, []);
 
     const handleAutocompleteSelect = (user) => {
+        console.log('Autocomplete selected user:', user); // Debug log
         setFormData(prev => ({
             ...prev,
             Username: user.LoginName.split('|').pop(),
@@ -186,9 +187,23 @@ export const MedewerkerForm = ({ onSave, onCancel, initialData = {}, title }) =>
             h('h3', { className: 'form-section-title' }, 'Zoek Medewerker'),
             h('div', { className: 'form-field' },
                 h('label', { className: 'form-label' }, 'Zoek bestaande medewerker'),
+                h('div', { 
+                    style: { border: '2px solid red', padding: '4px', marginBottom: '8px' } 
+                }, 'DEBUG: Autocomplete container should appear here'),
                 h(Autocomplete, {
+                    key: 'autocomplete-debug', // Add key to force re-render
                     onSelect: handleAutocompleteSelect,
-                    searchFunction: searchSiteUsers,
+                    searchFunction: async (query) => {
+                        console.log('Autocomplete search called with:', query); // Debug log
+                        try {
+                            const result = await searchSiteUsers(query);
+                            console.log('Search results:', result); // Debug log
+                            return result;
+                        } catch (error) {
+                            console.error('Search error:', error);
+                            return [];
+                        }
+                    },
                     placeholder: 'Type om te zoeken...'
                 }),
                 h('div', { className: 'form-help' }, 
