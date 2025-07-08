@@ -389,6 +389,36 @@ body {
     border-color: var(--info-200);
 }
 
+.tag.tag-team {
+    position: relative;
+    font-weight: 600;
+    border-width: 1px;
+    border-style: solid;
+    transition: all var(--transition-fast);
+}
+
+.tag.tag-team::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    margin-right: var(--space-1);
+    opacity: 0.8;
+}
+
+.tag.tag-team:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tag.tag-neutral {
+    background: var(--neutral-100);
+    color: var(--neutral-600);
+    border-color: var(--neutral-300);
+}
+
 .badge {
     display: inline-flex;
     align-items: center;

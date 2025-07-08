@@ -6,6 +6,26 @@ import { getFormComponent } from './forms/index.js';
 
 const { useState, useEffect, createElement: h, useCallback } = React;
 
+// Global variable to store teams data for color mapping
+let teamsColorMap = new Map();
+
+// Initialize teams color mapping
+const initializeTeamsColorMap = async () => {
+    try {
+        if (window.appConfiguratie && window.appConfiguratie.Teams) {
+            const teamsData = await getListItems('Teams');
+            teamsColorMap.clear();
+            teamsData.forEach(team => {
+                if (team.Naam && team.Kleur) {
+                    teamsColorMap.set(team.Naam, team.Kleur);
+                }
+            });
+        }
+    } catch (error) {
+        console.warn('Could not initialize teams color map:', error);
+    }
+};
+
 // --- Components ---
 
 const PageBanner = () => {
@@ -216,6 +236,35 @@ const formatValue = (value, column) => {
         } else {
             // Fallback for malformed usernames
             return h('span', { className: 'tag tag-warning' }, value);
+        }
+    }
+    
+    // Handle team fields with colored tags based on Teams.Kleur
+    if (column.accessor.toLowerCase().includes('team') || 
+        column.Header.toLowerCase().includes('team') ||
+        column.accessor === 'Team' || column.accessor === 'TeamNaam') {
+        if (!value) return h('span', { className: 'tag tag-neutral' }, 'Geen team');
+        
+        // Get the team color from the teams color map
+        const teamColor = teamsColorMap.get(value);
+        
+        if (teamColor) {
+            // Ensure the color starts with # for hex colors
+            const colorValue = teamColor.startsWith('#') ? teamColor : `#${teamColor}`;
+            
+            return h('span', { 
+                className: 'tag tag-team',
+                style: {
+                    backgroundColor: `${colorValue}20`, // 20% opacity for background
+                    color: colorValue,
+                    borderColor: `${colorValue}40`, // 40% opacity for border
+                    fontWeight: '600'
+                },
+                title: `Team: ${value} (${colorValue})`
+            }, value);
+        } else {
+            // Fallback if no color is found
+            return h('span', { className: 'tag tag-primary' }, value);
         }
     }
     
@@ -465,6 +514,8 @@ const ContentContainer = () => {
         const initContext = async () => {
             try {
                 await initializeSharePointContext();
+                // Initialize teams color mapping after SharePoint context is ready
+                await initializeTeamsColorMap();
                 setContextInitialized(true);
             } catch (err) {
                 console.error("Failed to initialize SharePoint context:", err);
