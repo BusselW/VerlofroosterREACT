@@ -1,7 +1,7 @@
 import { beheerTabs } from './dataTabs.js';
 import { getListItems, createListItem, updateListItem, deleteListItem } from './dataService.js';
 import { initializeSharePointContext } from './sharepointContext.js';
-import Modal from '../../js/ui/Modal.js';
+import { Modal } from './ui/modal.js';
 import { getFormComponent } from './forms/index.js';
 
 const { useState, useEffect, createElement: h, useCallback } = React;
