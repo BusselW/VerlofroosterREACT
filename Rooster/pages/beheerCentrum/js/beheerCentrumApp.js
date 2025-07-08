@@ -348,6 +348,43 @@ const formatValue = (value, column) => {
         return h('span', { className: tagClass }, value);
     }
     
+    // Handle email fields with mailto links
+    if (column.type === 'email' || 
+        column.accessor.toLowerCase().includes('mail') || 
+        column.accessor.toLowerCase().includes('email') ||
+        column.accessor === 'E_x002d_mail') {
+        if (!value) return h('span', { className: 'tag tag-neutral' }, 'Geen email');
+        
+        // Validate email format (basic check)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            return h('span', { className: 'tag tag-warning', title: 'Ongeldig email formaat' }, value);
+        }
+        
+        return h('a', {
+            href: `mailto:${value}`,
+            className: 'email-link',
+            style: {
+                color: 'var(--primary-600)',
+                textDecoration: 'none',
+                fontWeight: '500',
+                transition: 'all var(--transition-fast)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '2px 4px',
+                display: 'inline-block'
+            },
+            onMouseEnter: (e) => {
+                e.target.style.backgroundColor = 'var(--primary-50)';
+                e.target.style.textDecoration = 'underline';
+            },
+            onMouseLeave: (e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.textDecoration = 'none';
+            },
+            title: `Email versturen naar ${value}`
+        }, value);
+    }
+    
     // Handle ID fields with monospace font
     if (column.accessor.toLowerCase().includes('id') || column.accessor.toLowerCase().includes('guid')) {
         return h('code', { 
