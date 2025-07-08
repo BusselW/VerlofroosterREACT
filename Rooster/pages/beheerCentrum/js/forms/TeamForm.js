@@ -1,62 +1,85 @@
 /**
- * TeamForm.js - Team-specific form component
+ * TeamForm.js - Team-specific form component using enhanced modal configuration
+ * References coding instructions for ES6 modules, accessibility, and modern UX patterns
  */
 
-import { BaseForm } from './BaseForm.js';
+import { EnhancedBaseForm } from './EnhancedBaseForm.js';
 
 const { createElement: h } = React;
 
+/**
+ * Configuration for the team form
+ */
 const teamConfig = {
-    width: 'medium',
     sections: [
         {
             title: 'Team Informatie',
             fields: [
                 { 
-                    name: 'Naam', 
+                    name: 'Title', 
                     label: 'Team Naam', 
                     type: 'text', 
                     required: true, 
-                    colSpan: 2,
-                    help: 'De naam van het team zoals deze wordt weergegeven in het rooster'
+                    placeholder: 'Bijv. Ontwikkeling' 
                 },
                 { 
-                    name: 'Teamleider', 
-                    label: 'Teamleider', 
-                    type: 'text', 
-                    required: true,
-                    help: 'Naam van de teamleider'
-                },
-                { 
-                    name: 'TeamleiderId', 
-                    label: 'Teamleider ID', 
-                    type: 'text',
-                    help: 'Interne ID van de teamleider (optioneel)'
-                },
-                { 
-                    name: 'Kleur', 
+                    name: 'TeamKleur', 
                     label: 'Team Kleur', 
                     type: 'color', 
                     required: true, 
-                    help: 'Kies een unieke kleur voor dit team in het rooster'
+                    placeholder: '#3B82F6',
+                    help: 'Deze kleur wordt gebruikt in de roosterweergave'
                 },
                 { 
+                    name: 'Omschrijving', 
+                    label: 'Omschrijving', 
+                    type: 'textarea', 
+                    colSpan: 2,
+                    rows: 3,
+                    placeholder: 'Beschrijf de rol en verantwoordelijkheden van dit team...' 
+                }
+            ]
+        },
+        {
+            title: 'Instellingen',
+            type: 'toggle-section',
+            icon: '⚙️',
+            background: 'neutral',
+            fields: [
+                { 
                     name: 'Actief', 
-                    label: 'Actief', 
-                    type: 'checkbox',
-                    help: 'Vink aan als dit team actief is en zichtbaar moet zijn'
+                    label: 'Team Actief', 
+                    type: 'toggle', 
+                    help: 'Schakel uit om team te deactiveren' 
                 },
+                { 
+                    name: 'ZichtbaarInRooster', 
+                    label: 'Zichtbaar in Rooster', 
+                    type: 'toggle', 
+                    help: 'Toon dit team in de roosterweergave' 
+                }
             ]
         }
     ]
 };
 
+/**
+ * TeamForm component using enhanced base form with modal configuration
+ */
 export const TeamForm = ({ onSave, onCancel, initialData = {}, title }) => {
-    return h(BaseForm, {
+    return h(EnhancedBaseForm, {
         onSave,
         onCancel,
         initialData,
         config: teamConfig,
-        title: title || `${initialData.Id ? 'Bewerk' : 'Nieuw'} Team`
+        title,
+        modalType: 'standard',
+        modalOverrides: {
+            width: 'medium',
+            header: {
+                gradient: 'primary',
+                showIcon: true
+            }
+        }
     });
 };
