@@ -416,7 +416,7 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
         });
     };
 
-    return h('div', null,
+    return h('div', { className: 'work-hours-tab' },
         // Loading indicator while fetching data
         isLoadingData && h('div', { 
             style: { 
@@ -500,8 +500,7 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                 padding: '15px', 
                 marginBottom: '20px' 
             } },
-                h('h4', { style: { margin: '0 0 10px 0', color: '#495057', fontSize: '14px' } }, 
-                    scheduleType === 'fixed' ? '📅 Vast Werkschema Actief' : '� Roulerend Werkschema Actief'
+                h('h4', { style: { margin: '0 0 10px 0', color: '#495057', fontSize: '14px' } },                        scheduleType === 'fixed' ? '📅 Vast Werkschema Actief' : '🔄 Roulerend Werkschema Actief'
                 ),
                 h('ul', { style: { margin: '0', paddingLeft: '20px', fontSize: '13px', color: '#6c757d' } },
                     scheduleType === 'fixed' ? [
@@ -510,9 +509,9 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                         h('li', { key: 3 }, 'Markeer vrije dagen met het VVD vakje'),
                         h('li', { key: 4 }, 'Het systeem berekent automatisch je werkdagtype en totaal uren per week')
                     ] : [
-                        h('li', { key: 1 }, 'Je hebt een roulerend rooster gekozen - Week A en Week B wisselen af'),
-                        h('li', { key: 2 }, 'Stel voor beide weken (A en B) je werktijden in'),
-                        h('li', { key: 3 }, 'Kies de startdatum van je Week A cyclus'),
+                        h('li', { key: 1 }, 'Je hebt een roulerend rooster gekozen - Week 1 en Week 2 wisselen af'),
+                        h('li', { key: 2 }, 'Stel voor beide weken (1 en 2) je werktijden in'),
+                        h('li', { key: 3 }, 'Kies de startdatum van je Week 1 cyclus'),
                         h('li', { key: 4 }, 'Test eerst je rooster in de playground voordat je het opslaat')
                     ]
                 )
@@ -585,132 +584,6 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                     'Het type wordt automatisch bepaald op basis van je tijden en of je de dag als vrij markeert.'
                 )
             ),
-            h('div', { className: 'schedule-type-selector' },
-                h('label', { className: 'radio-option' },
-                    h('input', {
-                        type: 'radio',
-                        name: 'scheduleType',
-                        value: 'fixed',
-                        checked: scheduleType === 'fixed',
-                        onChange: (e) => setScheduleType(e.target.value)
-                    }),
-                    h('span', null, 'Vast rooster'),
-                    h('small', { className: 'text-muted' }, 'Dit gebruik je als elke week dezelfde uren hebt')
-                ),
-                h('label', { className: 'radio-option' },
-                    h('input', {
-                        type: 'radio',
-                        name: 'scheduleType',
-                        value: 'rotating',
-                        checked: scheduleType === 'rotating',
-                        onChange: (e) => setScheduleType(e.target.value)
-                    }),
-                    h('span', null, 'Roulerend rooster'),
-                    h('small', { className: 'text-muted' }, 'Voor mensen die Week A en Week B afwisselen')
-                )
-            ),
-
-            // Additional explanation for rotating schedule
-            scheduleType === 'rotating' && h('div', { 
-                className: 'rotating-explanation',
-                style: { 
-                    background: '#fff3cd', 
-                    border: '1px solid #ffeaa7', 
-                    borderRadius: '8px', 
-                    padding: '20px', 
-                    margin: '15px 0'
-                } 
-            },
-                h('h4', { 
-                    style: { 
-                        margin: '0 0 15px 0', 
-                        color: '#856404', 
-                        fontSize: '16px',
-                        fontWeight: '600'
-                    } 
-                }, 'Hoe werkt een roulerend rooster?'),
-                h('div', { 
-                    style: { 
-                        color: '#856404', 
-                        fontSize: '14px',
-                        lineHeight: '1.5'
-                    } 
-                },
-                    h('p', { style: { margin: '0 0 10px 0' } }, 
-                        'Bij een roulerend rooster werk je niet elke week hetzelfde. In plaats daarvan wissel je tussen twee verschillende roosters:'
-                    ),
-                    h('ul', { style: { margin: '0 0 15px 0', paddingLeft: '20px' } },
-                        h('li', { style: { marginBottom: '5px' } }, 'Week A: bijvoorbeeld maandag t/m donderdag werken, vrijdag vrij'),
-                        h('li', { style: { marginBottom: '5px' } }, 'Week B: bijvoorbeeld maandag vrij, dinsdag t/m vrijdag werken'),
-                        h('li', { style: { marginBottom: '5px' } }, 'Deze weken wisselen elkaar af: A-B-A-B-A-B...')
-                    ),
-                    h('p', { style: { margin: '0', fontWeight: '500' } }, 
-                        'Het systeem berekent automatisch welke week van toepassing is op basis van de startdatum die u instelt.'
-                    )
-                )
-            ),
-
-            // Playground button for testing A/B week schedules
-            scheduleType === 'rotating' && h('div', { 
-                className: 'playground-button-container',
-                style: { 
-                    background: '#fff3cd', 
-                    border: '1px solid #ffeaa7', 
-                    borderRadius: '8px', 
-                    padding: '15px', 
-                    margin: '15px 0',
-                    textAlign: 'center'
-                } 
-            },
-                h('h4', { 
-                    style: { 
-                        margin: '0 0 10px 0', 
-                        color: '#856404', 
-                        fontSize: '16px',
-                        fontWeight: '600'
-                    } 
-                }, 'Niet zeker welke cyclus u moet invullen?'),
-                h('p', { 
-                    style: { 
-                        margin: '0 0 15px 0', 
-                        color: '#856404', 
-                        fontSize: '14px',
-                        lineHeight: '1.4'
-                    } 
-                }, 'Test eerst je A/B week rooster in onze handige tester voordat je het hier instelt. Zo ziet je precies hoe je cyclus er uit komt te zien!'),
-                h('button', {
-                    type: 'button',
-                    className: 'btn btn-warning',
-                    style: {
-                        background: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
-                        color: 'white',
-                        border: 'none',
-                        padding: '12px 24px',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        transition: 'all 0.3s ease'
-                    },
-                    onClick: () => {
-                        // Open playground in new tab
-                        const baseUrl = window.location.origin;
-                        const currentPath = window.location.pathname;
-                        // Navigate to the playground in the same directory structure
-                        const playgroundUrl = baseUrl + '/Rooster/pages/instellingenCentrum/testen/playground.aspx';
-                        window.open(playgroundUrl, '_blank');
-                    },
-                    onMouseOver: (e) => {
-                        e.target.style.transform = 'translateY(-1px)';
-                        e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-                    },
-                    onMouseOut: (e) => {
-                        e.target.style.transform = 'translateY(0)';
-                        e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                    }
-                }, 'Test mijn A/B week rooster eerst')
-            ),
             
             // Date inputs
             h('div', { className: 'form-row', style: { marginTop: '1.5rem' } },
@@ -730,7 +603,7 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                 ),
                 scheduleType === 'rotating' && h('div', { className: 'form-group' },
                     h('label', { className: 'form-label' }, 
-                        'Op welke datum begint Week A van je cyclus?'
+                        'Op welke datum begint Week 1 van je cyclus?'
                     ),
                     h('input', {
                         type: 'date',
@@ -739,7 +612,7 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                         onChange: (e) => setCycleStartDate(e.target.value)
                     }),
                     h('small', { className: 'text-muted' }, 
-                        'Dit bepaalt welke week "Week A" is en welke "Week B". Kies bijvoorbeeld de maandag van een week die Week A moet worden. Het systeem wisselt daarna automatisch elke week tussen A en B.'
+                        'Dit bepaalt welke week "Week 1" is en welke "Week 2". Kies bijvoorbeeld de maandag van een week die Week 1 moet worden. Het systeem wisselt daarna automatisch elke week tussen 1 en 2.'
                     )
                 )
             )
@@ -751,21 +624,21 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                 'Welke week wilt u instellen?'
             ),
             h('p', { className: 'text-muted mb-3' }, 
-                'U kunt verschillende werktijden instellen voor Week A en Week B. Klik hieronder op de week die u wilt bewerken.'
+                'U kunt verschillende werktijden instellen voor Week 1 en Week 2. Klik hieronder op de week die u wilt bewerken.'
             ),
             h('div', { className: 'week-selector' },
                 h('button', {
                     className: `btn ${activeWeek === 'A' ? 'btn-primary' : 'btn-secondary'}`,
                     onClick: () => setActiveWeek('A')
                 }, 
-                    h('span', null, '📋 Week A'),
+                    h('span', null, '📋 Week 1'),
                     activeWeek === 'A' && h('small', { style: { display: 'block', fontSize: '11px' } }, '(nu aan het bewerken)')
                 ),
                 h('button', {
                     className: `btn ${activeWeek === 'B' ? 'btn-primary' : 'btn-secondary'}`,
                     onClick: () => setActiveWeek('B')
                 }, 
-                    h('span', null, '📋 Week B'),
+                    h('span', null, '📋 Week 2'),
                     activeWeek === 'B' && h('small', { style: { display: 'block', fontSize: '11px' } }, '(nu aan het bewerken)')
                 )
             )
@@ -776,8 +649,126 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
             h('div', { className: 'card-header-with-actions' },
                 h('h3', { className: 'card-title' }, 
                     scheduleType === 'rotating' ? 
-                        `Werktijden voor Week ${activeWeek}` : 
+                        `Werktijden voor Week ${activeWeek === 'A' ? '1' : '2'}` : 
                         'Mijn Werktijden'
+                ),
+                
+                // Schedule Type Toggle Slider - moved here
+                h('div', { 
+                    className: 'schedule-type-toggle-container',
+                    style: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        marginTop: '1rem',
+                        marginBottom: '1rem'
+                    }
+                },
+                    h('label', { 
+                        className: 'form-label',
+                        style: { margin: 0, fontSize: '0.9rem', fontWeight: '600' }
+                    }, 'Rooster type:'),
+                    h('div', { 
+                        className: 'toggle-slider-container',
+                        style: {
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            fontSize: '0.85rem'
+                        }
+                    },
+                        h('span', { 
+                            style: { 
+                                fontWeight: scheduleType === 'fixed' ? '600' : '400',
+                                color: scheduleType === 'fixed' ? '#1e3a8a' : '#64748b',
+                                transition: 'all 0.2s ease'
+                            } 
+                        }, 'Vast'),
+                        h('label', { 
+                            className: 'toggle-switch',
+                            style: {
+                                position: 'relative',
+                                display: 'inline-block',
+                                width: '60px',
+                                height: '28px',
+                                cursor: 'pointer'
+                            }
+                        },
+                            h('input', {
+                                type: 'checkbox',
+                                checked: scheduleType === 'rotating',
+                                onChange: (e) => setScheduleType(e.target.checked ? 'rotating' : 'fixed'),
+                                style: {
+                                    opacity: 0,
+                                    width: 0,
+                                    height: 0
+                                }
+                            }),
+                            h('span', { 
+                                className: 'toggle-slider',
+                                style: {
+                                    position: 'absolute',
+                                    cursor: 'pointer',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    backgroundColor: scheduleType === 'rotating' ? '#10b981' : '#e5e7eb',
+                                    transition: 'all 0.3s ease',
+                                    borderRadius: '28px',
+                                    '&:before': {
+                                        position: 'absolute',
+                                        content: '""',
+                                        height: '22px',
+                                        width: '22px',
+                                        left: scheduleType === 'rotating' ? '35px' : '3px',
+                                        bottom: '3px',
+                                        backgroundColor: 'white',
+                                        transition: 'all 0.3s ease',
+                                        borderRadius: '50%',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }
+                                }
+                            },
+                                h('span', {
+                                    style: {
+                                        position: 'absolute',
+                                        content: '""',
+                                        height: '22px',
+                                        width: '22px',
+                                        left: scheduleType === 'rotating' ? '35px' : '3px',
+                                        bottom: '3px',
+                                        backgroundColor: 'white',
+                                        transition: 'all 0.3s ease',
+                                        borderRadius: '50%',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }
+                                })
+                            )
+                        ),
+                        h('span', { 
+                            style: { 
+                                fontWeight: scheduleType === 'rotating' ? '600' : '400',
+                                color: scheduleType === 'rotating' ? '#1e3a8a' : '#64748b',
+                                transition: 'all 0.2s ease'
+                            } 
+                        }, 'Roulerend')
+                    ),
+                    h('small', { 
+                        className: 'text-muted',
+                        style: { 
+                            textAlign: 'center',
+                            fontSize: '0.75rem',
+                            color: '#6b7280',
+                            maxWidth: '300px'
+                        }
+                    }, 
+                        scheduleType === 'fixed' 
+                            ? 'Elke week dezelfde werktijden' 
+                            : 'Week 1 en Week 2 wisselen af'
+                    )
                 ),
                 // Integrated bulk time setter - centered
                 h('div', { 
@@ -928,17 +919,6 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
             }, 
                 isLoading ? 'Bezig met opslaan...' : (isRegistration ? 'Werktijden opslaan' : 'Opslaan')
             ),
-            isRegistration && h('p', { 
-                className: 'text-muted', 
-                style: { 
-                    fontSize: '13px', 
-                    alignSelf: 'flex-start',
-                    maxWidth: '500px',
-                    marginBottom: '10px'
-                } 
-            },
-                'Je kunt je werktijden nu instellen, of dit later doen via de instellingen.'
-            ),
             !isRegistration && h('p', { 
                 className: 'text-muted', 
                 style: { 
@@ -956,7 +936,7 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
         h('div', { className: 'card' },
             h('h3', { className: 'card-title' }, 
                 scheduleType === 'rotating' ? 
-                    `📊 Overzicht Week ${activeWeek}` : 
+                    `📊 Overzicht Week ${activeWeek === 'A' ? '1' : '2'}` : 
                     '📊 Overzicht van je werkweek'
             ),
             h('div', { className: 'work-hours-overview' },
@@ -964,7 +944,7 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                     h('div', { className: 'summary-item' },
                         h('span', { className: 'summary-label' }, 
                             scheduleType === 'rotating' ? 
-                                `⏱️ Totaal uren Week ${activeWeek}:` : 
+                                `⏱️ Totaal uren Week ${activeWeek === 'A' ? '1' : '2'}:` : 
                                 '⏱️ Totaal uren per week:'
                         ),
                         h('span', { className: 'summary-value' }, `${getCurrentWeekHours()} uur`)
@@ -977,7 +957,7 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                 
                 scheduleType === 'rotating' && h('div', { className: 'info-grid', style: { marginTop: '1rem' } },
                     h('div', { className: 'info-item' },
-                        h('span', { className: 'info-label' }, 'Week A start datum:'),
+                        h('span', { className: 'info-label' }, 'Week 1 start datum:'),
                         h('span', { className: 'info-value' }, new Date(cycleStartDate).toLocaleDateString('nl-NL'))
                     ),
                     h('div', { className: 'info-item' },
@@ -999,8 +979,8 @@ export const WorkHoursTab = ({ user, data, isRegistration = false, onDataUpdate,
                 },
                     h('strong', { style: { color: '#495057' } }, '💡 Hoe werkt je roulerende rooster:'),
                     h('ul', { style: { margin: '5px 0 0 0', paddingLeft: '20px' } },
-                        h('li', null, 'Week A en Week B wisselen elke week af'),
-                        h('li', null, `Week A begint op ${new Date(cycleStartDate).toLocaleDateString('nl-NL')}`),
+                        h('li', null, 'Week 1 en Week 2 wisselen elke week af'),
+                        h('li', null, `Week 1 begint op ${new Date(cycleStartDate).toLocaleDateString('nl-NL')}`),
                         h('li', null, 'Het systeem berekent automatisch welke week van toepassing is'),
                         h('li', null, 'U kunt beide weken hier apart instellen')
                     )

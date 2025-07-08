@@ -370,38 +370,6 @@
                         }, 'Vorige')
                     ),
                     h('div', { className: 'btn-group' },
-                        // Show skip button for steps 2 and 3
-                        (currentStep === 2 || currentStep === 3) && h('button', {
-                            className: 'btn btn-outline-secondary',
-                            onClick: () => {
-                                console.log(`Skipping step ${currentStep}, redirecting to main app...`);
-                                
-                                // Show success message briefly before redirect
-                                const successDiv = document.createElement('div');
-                                successDiv.style.cssText = `
-                                    position: fixed;
-                                    top: 20px;
-                                    right: 20px;
-                                    background: #fff3cd;
-                                    color: #856404;
-                                    padding: 16px 20px;
-                                    border-radius: 8px;
-                                    border: 1px solid #ffeaa7;
-                                    z-index: 10000;
-                                    font-family: Inter, sans-serif;
-                                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                                `;
-                                successDiv.textContent = 'Basisregistratie voltooid! Je kunt later je instellingen aanpassen.';
-                                document.body.appendChild(successDiv);
-                                
-                                setTimeout(() => {
-                                    window.location.href = '../../verlofRooster.aspx';
-                                }, 1500);
-                            },
-                            disabled: isSubmitting,
-                            style: { marginRight: '10px' }
-                        }, 'Overslaan (later instellen)'),
-                        
                         // Save/Next button for steps 1 and 2, Finish button for step 3
                         currentStep === 1 && h('button', {
                             className: 'btn btn-primary',
@@ -411,9 +379,9 @@
                         
                         currentStep === 2 && h('button', {
                             className: 'btn btn-primary',
-                            onClick: handleStepSave,
+                            onClick: handleNext,
                             disabled: isSubmitting
-                        }, 'Volgende (werktijden optioneel)'),
+                        }, 'Volgende'),
                         
                         currentStep === 3 && h('button', {
                             className: 'btn btn-success',
