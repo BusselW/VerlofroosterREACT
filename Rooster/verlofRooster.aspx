@@ -769,6 +769,7 @@
             const [huidigWeek, setHuidigWeek] = useState(getWeekNummer(new Date()));
             const [zoekTerm, setZoekTerm] = useState('');
             const [geselecteerdTeam, setGeselecteerdTeam] = useState('');
+            const [sortDirection, setSortDirection] = useState('asc'); // 'asc' for A-Z, 'desc' for Z-A
             const [zittingsvrijItems, setZittingsvrijItems] = useState([]);
             const [compensatieUrenItems, setCompensatieUrenItems] = useState([]);
             const [urenPerWeekItems, setUrenPerWeekItems] = useState([]);
@@ -2065,13 +2066,32 @@
                 const volgende = () => { if (weergaveType === 'week') { const maxWeken = getWekenInJaar(huidigJaar); if (huidigWeek >= maxWeken) { setHuidigWeek(1); setHuidigJaar(huidigJaar + 1); } else { setHuidigWeek(huidigWeek + 1); } } else { if (huidigMaand === 11) { setHuidigMaand(0); setHuidigJaar(huidigJaar + 1); } else { setHuidigMaand(huidigMaand + 1); } } };
                 const vorige = () => { if (weergaveType === 'week') { if (huidigWeek === 1) { const vorigJaar = huidigJaar - 1; setHuidigWeek(getWekenInJaar(vorigJaar)); setHuidigJaar(vorigJaar); } else { setHuidigWeek(huidigWeek - 1); } } else { if (huidigMaand === 0) { setHuidigMaand(11); setHuidigJaar(huidigJaar - 1); } else { setHuidigMaand(huidigMaand - 1); } } };
 
+                // Toggle sort direction for medewerkers
+                const toggleSortDirection = () => {
+                    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+                };
+
                 const gegroepeerdeData = useMemo(() => {
                     const gefilterdeMedewerkers = medewerkers.filter(m => (!zoekTerm || m.naam.toLowerCase().includes(zoekTerm.toLowerCase())) && (!geselecteerdTeam || m.team === geselecteerdTeam));
-                    const data = teams.reduce((acc, team) => { if (team && team.id) { acc[team.id] = gefilterdeMedewerkers.filter(m => m.team === team.id); } return acc; }, {});
-                    const medewerkersZonderTeam = gefilterdeMedewerkers.filter(m => !m.team);
+                    
+                    // Sort medewerkers by naam based on sortDirection
+                    const gesorteerdeFilters = gefilterdeMedewerkers.sort((a, b) => {
+                        // Get the display name, preferring naam over Title, with fallback
+                        const nameA = (a.naam || a.Title || a.Naam || 'Onbekend').toLowerCase().trim();
+                        const nameB = (b.naam || b.Title || b.Naam || 'Onbekend').toLowerCase().trim();
+                        
+                        if (sortDirection === 'asc') {
+                            return nameA.localeCompare(nameB, 'nl', { numeric: true, sensitivity: 'base' });
+                        } else {
+                            return nameB.localeCompare(nameA, 'nl', { numeric: true, sensitivity: 'base' });
+                        }
+                    });
+                    
+                    const data = teams.reduce((acc, team) => { if (team && team.id) { acc[team.id] = gesorteerdeFilters.filter(m => m.team === team.id); } return acc; }, {});
+                    const medewerkersZonderTeam = gesorteerdeFilters.filter(m => !m.team);
                     if (medewerkersZonderTeam.length > 0) { data['geen_team'] = medewerkersZonderTeam; }
                     return data;
-                }, [medewerkers, teams, zoekTerm, geselecteerdTeam]);
+                }, [medewerkers, teams, zoekTerm, geselecteerdTeam, sortDirection]);
 
                 // =====================
                 // Helper: Check if a date is in the current selection for a medewerker
@@ -2200,7 +2220,46 @@
                             },
                                 h('thead', { className: 'rooster-thead' },
                                     h('tr', null,
-                                        h('th', { className: 'medewerker-kolom', id: 'medewerker-kolom' }, 'Medewerker'),
+                                        h('th', { className: 'medewerker-kolom', id: 'medewerker-kolom' }, 
+                                            h('div', { 
+                                                className: 'medewerker-header-container',
+                                                style: {
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    gap: '8px'
+                                                }
+                                            },
+                                                h('span', null, 'Medewerker'),
+                                                h('button', {
+                                                    className: 'sort-button',
+                                                    onClick: toggleSortDirection,
+                                                    title: `Huidige sortering: ${sortDirection === 'asc' ? 'A-Z' : 'Z-A'} (klik om te wisselen)`,
+                                                    style: {
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        padding: '4px 6px',
+                                                        borderRadius: '4px',
+                                                        color: '#6b7280',
+                                                        fontSize: '12px',
+                                                        fontWeight: '600',
+                                                        transition: 'all 0.2s ease',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        lineHeight: 1
+                                                    },
+                                                    onMouseOver: (e) => {
+                                                        e.target.style.backgroundColor = '#f3f4f6';
+                                                        e.target.style.color = '#374151';
+                                                    },
+                                                    onMouseOut: (e) => {
+                                                        e.target.style.backgroundColor = 'transparent';
+                                                        e.target.style.color = '#6b7280';
+                                                    }
+                                                }, sortDirection === 'asc' ? '▼' : '▲')
+                                            )
+                                        ),
                                         periodeData.map(dag => {
                                             const isWeekend = dag.getDay() === 0 || dag.getDay() === 6;
                                             const feestdagNaam = checkIsFeestdag(dag);

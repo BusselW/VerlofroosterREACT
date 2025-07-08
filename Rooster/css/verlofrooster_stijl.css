@@ -2226,3 +2226,90 @@ td .compensatie-uur-container img.compensatie-icon-svg {
 .tooltip-holiday .custom-tooltip-title {
     color: #ffeb3b;
 }
+
+/* ==========================================================================
+   Medewerker Header Sorting Styles
+   ========================================================================== */
+
+.medewerker-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    position: relative;
+}
+
+.medewerker-header-container::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    opacity: 0.6;
+    border-radius: 1px;
+}
+
+.sort-button {
+    background: none !important;
+    border: none !important;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    min-width: 22px;
+    height: 22px;
+    justify-content: center;
+    opacity: 0.7;
+}
+
+.sort-button:hover {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sort-button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+.sort-button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Enhanced medewerker column styling */
+.medewerker-kolom {
+    position: relative;
+    min-width: 200px;
+}
+
+.medewerker-kolom th {
+    padding: 12px 16px;
+}
+
+/* Ensure sort button is visible on smaller screens */
+@media (max-width: 768px) {
+    .medewerker-header-container {
+        flex-direction: row;
+        gap: 6px;
+    }
+    
+    .sort-button {
+        font-size: 12px;
+        padding: 3px 5px;
+        min-width: 18px;
+        height: 18px;
+    }
+}
