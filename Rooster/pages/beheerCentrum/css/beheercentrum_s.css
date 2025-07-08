@@ -1488,6 +1488,7 @@ body {
 .btn-add {
     color: var(--success-600);
     border-color: var(--success-200);
+    border-radius: var(--radius-default);
 }
 
 .btn-add:hover {
