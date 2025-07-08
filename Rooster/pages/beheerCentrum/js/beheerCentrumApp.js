@@ -55,8 +55,19 @@ const PageBanner = () => {
 const generateColumnsFromConfig = (listConfig) => {
     if (!listConfig || !listConfig.velden) return [];
     
+    // Define fields to hide for specific lists
+    const hiddenFields = {
+        'Medewerkers': ['HalveDagType', 'HalveDagWeekdag', 'UrenPerWeek', 'Werkdagen', 'Werkschema']
+    };
+    
+    const fieldsToHide = hiddenFields[listConfig.lijstTitel] || [];
+    
     const columns = listConfig.velden
-        .filter(field => field.interneNaam !== 'ID' && field.interneNaam !== 'Title') // Skip system fields
+        .filter(field => 
+            field.interneNaam !== 'ID' && 
+            field.interneNaam !== 'Title' && 
+            !fieldsToHide.includes(field.interneNaam)
+        ) // Skip system fields and hidden fields
         .map(field => {
             let columnType = 'text';
             
