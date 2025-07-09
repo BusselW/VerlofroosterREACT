@@ -1,7 +1,10 @@
 # How to use this file
-When the error message(s) below the dashed line start with an 'X:', that's the indicator that we have an unhandled error message that requires your attention.
+- Whenever a new request is made via CoPilot code chat, read this file and check if the text under the dashed line contains a 'X:' or 'Y:' leading parameter. This variable is an indicator that the user has shared their console log due to the existance of an error after publishing the code to their environment.
 
-In response, after you have handled the error message, you (CoPilot code) need to replace the X: with a Y:. That way if the console log has a Y: in front of it, you know you can ignore it cause it's been handled.
+1. the message starts with X:
+Read all of the text that comes after 'X:' including if the the text starts on a new line. Read it from top until bottom and search for the file mentioned in the error. Fix the error. After fixing the error, update the 'X:' to 'Y:'.
+
+2. the message starts with Y:
+This means you have already updated the code to handle the error and the user has not set a new console error message. Disregard whatever comes after 'Y:'
 --------------------------------------------------------------------------------------------------------
 X: Verlofrooster.aspx:2553  Uncaught SyntaxError: missing ) after argument list (at Verlofrooster.aspx:2553:21)
-
