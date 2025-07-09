@@ -2257,7 +2257,11 @@
                                                         e.target.style.backgroundColor = 'transparent';
                                                         e.target.style.color = '#6b7280';
                                                     }
-                                                }, sortDirection === 'asc' ? '▼' : '▲')
+                                                }, 
+                                                h('i', { 
+                                                    className: `fas ${sortDirection === 'asc' ? 'fa-sort-down' : 'fa-sort-up'}`,
+                                                    style: { fontSize: '10px' }
+                                                })
                                             )
                                         ),
                                         periodeData.map(dag => {
