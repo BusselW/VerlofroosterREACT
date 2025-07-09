@@ -2074,16 +2074,16 @@
                 const gegroepeerdeData = useMemo(() => {
                     const gefilterdeMedewerkers = medewerkers.filter(m => (!zoekTerm || m.naam.toLowerCase().includes(zoekTerm.toLowerCase())) && (!geselecteerdTeam || m.team === geselecteerdTeam));
                     
-                    // Sort medewerkers by naam based on sortDirection
+                    // Sort medewerkers by Title column from Medewerkers SharePoint list based on sortDirection
                     const gesorteerdeFilters = gefilterdeMedewerkers.sort((a, b) => {
-                        // Get the display name, preferring naam over Title, with fallback
-                        const nameA = (a.naam || a.Title || a.Naam || 'Onbekend').toLowerCase().trim();
-                        const nameB = (b.naam || b.Title || b.Naam || 'Onbekend').toLowerCase().trim();
+                        // Use the Title field from the SharePoint Medewerkers list specifically
+                        const titleA = (a.Title || a.Naam || a.naam || 'Onbekend').toLowerCase().trim();
+                        const titleB = (b.Title || b.Naam || b.naam || 'Onbekend').toLowerCase().trim();
                         
                         if (sortDirection === 'asc') {
-                            return nameA.localeCompare(nameB, 'nl', { numeric: true, sensitivity: 'base' });
+                            return titleA.localeCompare(titleB, 'nl', { numeric: true, sensitivity: 'base' });
                         } else {
-                            return nameB.localeCompare(nameA, 'nl', { numeric: true, sensitivity: 'base' });
+                            return titleB.localeCompare(titleA, 'nl', { numeric: true, sensitivity: 'base' });
                         }
                     });
                     
