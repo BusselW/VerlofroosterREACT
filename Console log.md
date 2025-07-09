@@ -7,4 +7,4 @@ Read all of the text that comes after 'X:' including if the the text starts on a
 2. the message starts with Y:
 This means you have already updated the code to handle the error and the user has not set a new console error message. Disregard whatever comes after 'Y:'
 --------------------------------------------------------------------------------------------------------
-X: Verlofrooster.aspx:2553  Uncaught SyntaxError: missing ) after argument list (at Verlofrooster.aspx:2553:21)
+Y: Verlofrooster.aspx:2553  Uncaught SyntaxError: missing ) after argument list (at Verlofrooster.aspx:2553:21)

@@ -2110,14 +2110,8 @@
                     return d >= s && d <= e;
                 }
 
-                // Wrap the entire app content with UserRegistrationCheck
-                return h(UserRegistrationCheck, { 
-                    onUserValidated: setIsUserValidated 
-                }, 
-                    // App content - this will be shown dimmed when user is not registered
-                    (() => {
-                        // Show loading state while refreshing data
-                        if (loading) {
+                // Show loading state while refreshing data
+                if (loading) {
                             return h('div', {
                                 className: 'flex items-center justify-center min-h-screen bg-gray-50',
                                 style: { fontFamily: 'Inter, sans-serif' }
@@ -2157,8 +2151,8 @@
                             );
                         }
 
-                // Render de roosterkop en de medewerkerrijen
-                return h(Fragment, null,
+                        // Render de roosterkop en de medewerkerrijen
+                        const fragmentContent = h(Fragment, null,
                     h('div', { className: 'sticky-header-container' },
                         h('header', { id: 'header', className: 'header' },
                             h('div', { className: 'header-content' },
@@ -2548,10 +2542,13 @@
                             medewerkers: medewerkers,
                             selection: selection,
                             initialData: selection && selection.itemData ? selection.itemData : {}
-                        }))
-                ); // Close Fragment with all app content (table + contextMenu + FAB + 4 modals)
-                })() // Close the anonymous function that wraps the app content  
-                ); // Close the UserRegistrationCheck component
+                        }))                ) // Close Fragment with all app content (table + contextMenu + FAB + 4 modals)
+                );
+
+                // Wrap the entire app content with UserRegistrationCheck
+                return h(UserRegistrationCheck, { 
+                    onUserValidated: setIsUserValidated 
+                }, fragmentContent);
         }; // Close the RoosterApp function
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
